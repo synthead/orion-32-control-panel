@@ -6,13 +6,23 @@ use eframe::egui;
 struct Orion32ControlPanel;
 
 macro_rules! render_asset {
-    ($ui:expr, $x:expr, $y:expr, $w:expr, $h:expr, $path:literal) => {
-        $ui.put(
-            egui::Rect::from_min_size(
+    ($ui:expr, $x:expr, $y:expr, $subpath:literal) => {
+        $ui.scope_builder(
+            egui::UiBuilder::new().max_rect(egui::Rect::from_min_size(
                 egui::pos2($x, $y),
-                egui::vec2($w, $h),
-            ),
-            egui::Image::new(egui::include_image!($path)).show_loading_spinner(false),
+                $ui.available_size(),
+            )),
+            |ui| {
+                ui.add(
+                    egui::Image::new(egui::include_image!(concat!(
+                        "../assets/",
+                        $subpath,
+                        ".png"
+                    )))
+                    .fit_to_original_size(1.0)
+                    .show_loading_spinner(false),
+                );
+            },
         );
     };
 }
@@ -22,14 +32,14 @@ impl Orion32ControlPanel {
         egui::CentralPanel::default()
             .frame(egui::Frame::NONE)
             .show(ui, |ui| {
-                render_asset!(ui, 0.0, 0.0, 1180.0, 700.0, "../assets/ControlPanel/default/background.png");
+                render_asset!(ui, 0.0, 0.0, "ControlPanel/default/background");
 
-                render_asset!(ui, 0.0, 226.0, 1180.0, 453.0, "../assets/Routing/default/background.png");
-                render_asset!(ui, 20.0, 8.0, 17.0, 17.0, "../assets/StandbyButton/default/pressed.png");
-                render_asset!(ui, 1075.0, 9.0, 14.0, 14.0, "../assets/SettingsButton/default/released.png");
-                render_asset!(ui, 1124.0, 9.0, 14.0, 14.0, "../assets/MinimizeButton/default/released.png");
-                render_asset!(ui, 1100.0, 9.0, 14.0, 14.0, "../assets/AboutButton/default/released.png");
-                render_asset!(ui, 1149.0, 9.0, 14.0, 14.0, "../assets/CloseButton/default/released.png");
+                render_asset!(ui, 0.0, 226.0, "Routing/default/background");
+                render_asset!(ui, 20.0, 8.0, "StandbyButton/default/pressed");
+                render_asset!(ui, 1075.0, 9.0, "SettingsButton/default/released");
+                render_asset!(ui, 1124.0, 9.0, "MinimizeButton/default/released");
+                render_asset!(ui, 1100.0, 9.0, "AboutButton/default/released");
+                render_asset!(ui, 1149.0, 9.0, "CloseButton/default/released");
 
                 ui.put(
                     egui::Rect::from_min_size(egui::pos2(500.0, 500.0), egui::vec2(100.0, 20.0)),
