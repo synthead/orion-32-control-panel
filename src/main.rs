@@ -42,33 +42,53 @@ impl Orion32ControlPanel {
                 render_asset!(ui, 1149.0, 9.0, "CloseButton/default/released");
 
                 for rect_x in 0..32 {
-                    Self::draw_route(ui, rect_x, 0, (0x20, 0xa4, 0xf7));
-                    Self::draw_route(ui, rect_x, 1, (0x00, 0x73, 0xff));
-                    Self::draw_route(ui, rect_x, 2, (0xff, 0xb8, 0x00));
-                }
+                    let label = &(rect_x + 1).to_string();
 
-                for rect_x in 0..8 {
-                    Self::draw_route(ui, rect_x, 4, (0xff, 0x00, 0x37));
-                }
+                    Self::draw_route(ui, rect_x, 0, (0x20, 0xa4, 0xf7), label);
+                    Self::draw_route(ui, rect_x, 1, (0x00, 0x73, 0xff), label);
+                    Self::draw_route(ui, rect_x, 2, (0xff, 0xb8, 0x00), label);
 
-                for rect_x in 0..2 {
-                    Self::draw_route(ui, rect_x, 5, (0xd9, 0x24, 0x94));
-                    Self::draw_route(ui, rect_x, 6, (0x72, 0xab, 0x20));
+                    Self::draw_route(ui, rect_x, 11, (0x20, 0xa4, 0xf7), label);
+                    Self::draw_route(ui, rect_x, 12, (0x00, 0x73, 0xff), label);
+                    Self::draw_route(ui, rect_x, 13, (0xff, 0xb8, 0x00), label);
+
+                    Self::draw_route(ui, rect_x, 17, (0x7b, 0x7b, 0x7b), "M");
+
+                    if rect_x >= 8 {
+                        continue;
+                    }
+
+                    Self::draw_route(ui, rect_x, 4, (0xff, 0x00, 0x37), label);
+                    Self::draw_route(ui, rect_x, 15, (0x7b, 0x7b, 0x7b), "M");
+
+                    if rect_x >= 2 {
+                        continue;
+                    }
+
+                    Self::draw_route(ui, rect_x, 5, (0xd9, 0x24, 0x94), label);
+                    Self::draw_route(ui, rect_x, 6, (0x72, 0xab, 0x20), label);
+
+                    Self::draw_route(ui, rect_x, 16, (0x7b, 0x7b, 0x7b), "M");
                 }
 
                 Self::draw_text(ui, 1134, 101, (0x95, 0x95, 0x95), "-43 dB");
             });
     }
 
-    fn draw_route(ui: &mut egui::Ui, rect_x: i16, rect_y: i16, color: (u8, u8, u8)) {
-        let pos_x = (128 + rect_x * 30) as f32;
-        let pos_y = (285 + rect_y * 15) as f32;
+    fn draw_route(ui: &mut egui::Ui, rect_x: i16, rect_y: i16, color: (u8, u8, u8), text: &str) {
+        let pos_x = 128 + rect_x * 30;
+        let pos_y = 285 + rect_y * 15;
 
         ui.painter().rect_filled(
-            egui::Rect::from_min_size(egui::pos2(pos_x, pos_y), egui::vec2(29.0, 14.0)),
+            egui::Rect::from_min_size(
+                egui::pos2(pos_x as f32, pos_y as f32),
+                egui::vec2(29.0, 14.0),
+            ),
             0.0,
             egui::Color32::from_rgb(color.0, color.1, color.2),
         );
+
+        Self::draw_text(ui, pos_x + 15, pos_y, (0xff, 0xff, 0xff), text);
     }
 
     fn draw_text(ui: &mut egui::Ui, center_x: i16, pos_y: i16, color: (u8, u8, u8), text: &str) {
