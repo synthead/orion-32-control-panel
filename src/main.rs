@@ -41,11 +41,32 @@ impl Orion32ControlPanel {
                 render_asset!(ui, 1100.0, 9.0, "AboutButton/default/released");
                 render_asset!(ui, 1149.0, 9.0, "CloseButton/default/released");
 
-                ui.put(
-                    egui::Rect::from_min_size(egui::pos2(500.0, 500.0), egui::vec2(100.0, 20.0)),
-                    egui::Label::new("Hello World!"),
-                );
+                for rect_x in 0..32 {
+                    Self::draw_route(ui, rect_x, 0, (0x20, 0xa4, 0xf7));
+                    Self::draw_route(ui, rect_x, 1, (0x00, 0x73, 0xff));
+                    Self::draw_route(ui, rect_x, 2, (0xff, 0xb8, 0x00));
+                }
+
+                for rect_x in 0..8 {
+                    Self::draw_route(ui, rect_x, 4, (0xff, 0x00, 0x37));
+                }
+
+                for rect_x in 0..2 {
+                    Self::draw_route(ui, rect_x, 5, (0xd9, 0x24, 0x94));
+                    Self::draw_route(ui, rect_x, 6, (0x72, 0xab, 0x20));
+                }
             });
+    }
+
+    fn draw_route(ui: &mut egui::Ui, rect_x: i16, rect_y: i16, color: (u8, u8, u8)) {
+        let pos_x = (128 + rect_x * 30) as f32;
+        let pos_y = (285 + rect_y * 15) as f32;
+
+        ui.painter().rect_filled(
+            egui::Rect::from_min_size(egui::pos2(pos_x, pos_y), egui::vec2(29.0, 14.0)),
+            0.0,
+            egui::Color32::from_rgb(color.0, color.1, color.2),
+        );
     }
 }
 
