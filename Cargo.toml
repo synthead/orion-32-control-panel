@@ -1,0 +1,11 @@
+[package]
+name = "orion-32-control-panel"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+eframe = "0.36.2"
+egui = "0.36.2"
+egui_extras = { version = "0.36.2", features = ["image"] }
+env_logger = { version = "0.11.11", features = ["auto-color", "humantime"] }
+nusb = "0.2.7"
