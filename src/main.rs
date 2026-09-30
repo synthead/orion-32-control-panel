@@ -55,6 +55,8 @@ impl Orion32ControlPanel {
                     Self::draw_route(ui, rect_x, 5, (0xd9, 0x24, 0x94));
                     Self::draw_route(ui, rect_x, 6, (0x72, 0xab, 0x20));
                 }
+
+                Self::draw_text(ui, 1134, 101, (0x95, 0x95, 0x95), "-43 dB");
             });
     }
 
@@ -66,6 +68,20 @@ impl Orion32ControlPanel {
             egui::Rect::from_min_size(egui::pos2(pos_x, pos_y), egui::vec2(29.0, 14.0)),
             0.0,
             egui::Color32::from_rgb(color.0, color.1, color.2),
+        );
+    }
+
+    fn draw_text(ui: &mut egui::Ui, center_x: i16, pos_y: i16, color: (u8, u8, u8), text: &str) {
+        let color = egui::Color32::from_rgb(color.0, color.1, color.2);
+        let label = egui::Label::new(egui::RichText::new(text).strong().size(12.0).color(color));
+        let (_, galley, _) = label.layout_in_ui(ui);
+
+        let pos_x = center_x as f32 - galley.size().x / 2.0;
+
+        ui.painter().galley(
+            egui::pos2(pos_x, pos_y as f32),
+            galley,
+            egui::Color32::PLACEHOLDER,
         );
     }
 }
