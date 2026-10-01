@@ -8,6 +8,7 @@ use std::thread;
 
 #[derive(Default)]
 struct Orion32Parameters {
+    serial: String,
     left_vu_source: u8,
     left_vu_values: [u8; 32],
     right_vu_source: u8,
@@ -173,6 +174,16 @@ impl Orion32ControlPanel {
 
                 Self::draw_combobox(
                     ui,
+                    950,
+                    7,
+                    110,
+                    &mut 0,
+                    &[parameters.serial.as_str()],
+                    "serial",
+                );
+
+                Self::draw_combobox(
+                    ui,
                     396,
                     38,
                     83,
@@ -275,6 +286,20 @@ impl Orion32ControlPanel {
         );
     }
 
+    fn get_init_values(orion_hid: &hidapi::HidDevice) {
+        let packet_init = [
+            0x74, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        ];
+
+        orion_hid
+            .write(&packet_init)
+            .expect("Failed to write HID packet");
+    }
+
     fn update_loop(
         orion_hid: hidapi::HidDevice,
         parameters: Arc<Mutex<Orion32Parameters>>,
@@ -287,28 +312,33 @@ impl Orion32ControlPanel {
                 .read(&mut hid_data)
                 .expect("Failed to read HID packet");
 
-            if hid_data[0] != 0x73 {
-                continue;
+            if matches!(hid_data[0], 0x73 | 0x75) {
+                let mut parameters_locked = parameters.lock().unwrap();
+
+                if hid_data[0] == 0x73 {
+                    parameters_locked.left_vu_source = hid_data[30] & 0x0f;
+                    parameters_locked.right_vu_source = hid_data[30] >> 4;
+                    parameters_locked.clock_source = hid_data[19];
+                    parameters_locked.sample_rate = hid_data[18];
+
+                    parameters_locked.line_out = hid_data[28];
+
+                    let vu = if hid_data[31] == 1 {
+                        &mut parameters_locked.left_vu_values
+                    } else {
+                        &mut parameters_locked.right_vu_values
+                    };
+
+                    vu.copy_from_slice(&hid_data[32..]);
+                }
+
+                if hid_data[0] == 0x75 {
+                    parameters_locked.serial =
+                        std::str::from_utf8(&hid_data[36..49]).unwrap().to_owned();
+                }
+
+                ctx.request_repaint();
             }
-
-            let mut parameters_locked = parameters.lock().unwrap();
-
-            parameters_locked.left_vu_source = hid_data[30] & 0x0f;
-            parameters_locked.right_vu_source = hid_data[30] >> 4;
-            parameters_locked.clock_source = hid_data[19];
-            parameters_locked.sample_rate = hid_data[18];
-
-            parameters_locked.line_out = hid_data[28];
-
-            let vu = if hid_data[31] == 1 {
-                &mut parameters_locked.left_vu_values
-            } else {
-                &mut parameters_locked.right_vu_values
-            };
-
-            vu.copy_from_slice(&hid_data[32..]);
-
-            ctx.request_repaint();
         }
     }
 }
@@ -343,6 +373,7 @@ fn main() -> eframe::Result {
             let parameters_copy = Arc::clone(&parameters);
 
             thread::spawn(move || {
+                Orion32ControlPanel::get_init_values(&orion_hid);
                 Orion32ControlPanel::update_loop(orion_hid, parameters_copy, ctx_copy);
             });
 
