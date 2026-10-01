@@ -284,6 +284,9 @@ impl Orion32ControlPanel {
 
             let mut parameters_locked = parameters.lock().unwrap();
 
+            parameters_locked.left_vu_source = hid_data[30] & 0x0f;
+            parameters_locked.right_vu_source = hid_data[30] >> 4;
+
             parameters_locked.line_out = hid_data[28];
 
             let vu = if hid_data[31] == 1 {
