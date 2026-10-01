@@ -6,8 +6,14 @@ use hidapi::HidApi;
 use std::sync::{Arc, Mutex};
 use std::thread;
 
+#[derive(Default)]
+struct Orion32Parameters {
+    vu_left: [u8; 32],
+    vu_right: [u8; 32],
+}
+
 struct Orion32ControlPanel {
-    packet: Arc<Mutex<[u8; 64]>>,
+    parameters: Arc<Mutex<Orion32Parameters>>,
 }
 
 macro_rules! render_asset {
@@ -184,8 +190,8 @@ fn main() -> eframe::Result {
     let hid_api = HidApi::new().expect("Failed to create API instance");
     let orion_hid = hid_api.open(0x23e5, 0xa040).expect("Failed to open device");
 
-    let packet = Arc::new(Mutex::new([0u8; 64]));
-    let packet_reader = Arc::clone(&packet);
+    let parameters = Arc::new(Mutex::new(Orion32Parameters::default()));
+    let parameters_reader = Arc::clone(&parameters);
 
     // Log to stderr with RUST_LOG=debug env var.
     env_logger::init();
@@ -204,23 +210,32 @@ fn main() -> eframe::Result {
             let ctx = cc.egui_ctx.clone();
 
             thread::spawn(move || {
-                let mut buffer = [0u8; 64];
+                let mut hid_data = [0u8; 64];
 
                 loop {
                     orion_hid
-                        .read(&mut buffer)
+                        .read(&mut hid_data)
                         .expect("Failed to read HID packet");
 
-                    {
-                        let mut packet = packet_reader.lock().unwrap();
-                        packet.copy_from_slice(&buffer);
-                    }
+                    match hid_data[31] {
+                        1 => {
+                            let mut parameters = parameters_reader.lock().unwrap();
+                            parameters.vu_left.copy_from_slice(&hid_data[32..]);
 
-                    ctx.request_repaint();
+                            ctx.request_repaint();
+                        }
+                        2 => {
+                            let mut parameters = parameters_reader.lock().unwrap();
+                            parameters.vu_right.copy_from_slice(&hid_data[32..]);
+
+                            ctx.request_repaint();
+                        }
+                        _ => {}
+                    }
                 }
             });
 
-            Ok(Box::new(Orion32ControlPanel { packet }))
+            Ok(Box::new(Orion32ControlPanel { parameters }))
         }),
     )
 }
