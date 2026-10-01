@@ -8,9 +8,13 @@ use std::thread;
 
 #[derive(Default)]
 struct Orion32Parameters {
-    vu_left: [u8; 32],
-    vu_right: [u8; 32],
-    line_out: u8
+    left_vu_source: u8,
+    left_vu_values: [u8; 32],
+    right_vu_source: u8,
+    right_vu_values: [u8; 32],
+    clock_source: u8,
+    sample_rate: u8,
+    line_out: u8,
 }
 
 struct Orion32ControlPanel {
@@ -67,6 +71,37 @@ macro_rules! render_peak {
 }
 
 impl Orion32ControlPanel {
+    const VU_SELECTIONS: [&str; 14] = [
+        "ADC",
+        "USB PLAY",
+        "MADI IN 1",
+        "MADI IN 2",
+        "ADAT IN",
+        "S/PDIF IN",
+        "MIX 1 L/R",
+        "DAC",
+        "USB REC",
+        "MADI OUT 1",
+        "MADI OUT 2",
+        "ADAT OUT",
+        "S/PDIF OUT",
+        "MIX 1 CH",
+    ];
+
+    const CLOCK_SOURCE_SELECTIONS: [&str; 9] = [
+        "Oven", "W.C.", "ADAT", "ADAT 2x", "ADAT 4x", "MADI", "MADI 2x", "MADI 4x", "S/PDIF",
+    ];
+
+    const SAMPLE_RATE_SELECTIONS: [&str; 7] = [
+        "32.0 kHz",
+        "44.1 kHz",
+        "48.0 kHz",
+        "88.2 kHz",
+        "96.0 kHz",
+        "176.4 kHz",
+        "192.0 kHz",
+    ];
+
     fn ui_content(&mut self, ui: &mut egui::Ui) {
         egui::CentralPanel::default()
             .frame(egui::Frame::NONE)
@@ -80,7 +115,7 @@ impl Orion32ControlPanel {
                 render_asset!(ui, 1100, 9, "AboutButton/default/released");
                 render_asset!(ui, 1149, 9, "CloseButton/default/released");
 
-                let parameters = self.parameters.lock().unwrap();
+                let mut parameters = self.parameters.lock().unwrap();
 
                 for peak_x in 0..32 {
                     let pos_x_1 = 135 + peak_x * 11;
@@ -90,14 +125,14 @@ impl Orion32ControlPanel {
                         ui,
                         pos_x_1,
                         60,
-                        parameters.vu_left[peak_x],
+                        parameters.left_vu_values[peak_x],
                         "MonitorPeakMeter/default/background"
                     );
                     render_peak!(
                         ui,
                         pos_x_2,
                         60,
-                        parameters.vu_right[peak_x],
+                        parameters.right_vu_values[peak_x],
                         "MonitorPeakMeter/default/background"
                     );
                 }
@@ -135,6 +170,42 @@ impl Orion32ControlPanel {
                 let line_out_value = (((parameters.line_out) as f32 / 255.0) * -96.0) as i8;
                 let line_out_text = format!("{} dB", line_out_value);
                 Self::draw_text(ui, 1134, 101, (0x95, 0x95, 0x95), &line_out_text);
+
+                Self::draw_combobox(
+                    ui,
+                    396.0,
+                    38.0,
+                    &mut parameters.left_vu_source,
+                    &Self::VU_SELECTIONS,
+                    "left_vu_source",
+                );
+
+                Self::draw_combobox(
+                    ui,
+                    977.0,
+                    38.0,
+                    &mut parameters.right_vu_source,
+                    &Self::VU_SELECTIONS,
+                    "right_vu_source",
+                );
+
+                Self::draw_combobox(
+                    ui,
+                    508.0,
+                    92.0,
+                    &mut parameters.clock_source,
+                    &Self::CLOCK_SOURCE_SELECTIONS,
+                    "clock_source",
+                );
+
+                Self::draw_combobox(
+                    ui,
+                    597.0,
+                    92.0,
+                    &mut parameters.sample_rate,
+                    &Self::SAMPLE_RATE_SELECTIONS,
+                    "sample_rate",
+                );
             });
     }
 
@@ -168,6 +239,37 @@ impl Orion32ControlPanel {
         );
     }
 
+    fn draw_combobox(
+        ui: &mut egui::Ui,
+        x: f32,
+        y: f32,
+        selected: &mut u8,
+        selections: &[&str],
+        id: &str,
+    ) {
+        ui.scope_builder(
+            egui::UiBuilder::new().max_rect(egui::Rect::from_min_size(
+                egui::pos2(x, y),
+                egui::vec2(83.0, 17.0),
+            )),
+            |ui| {
+                ui.visuals_mut().widgets.inactive.weak_bg_fill = egui::Color32::TRANSPARENT;
+                ui.visuals_mut().widgets.hovered.weak_bg_fill = egui::Color32::TRANSPARENT;
+                ui.visuals_mut().widgets.active.weak_bg_fill = egui::Color32::TRANSPARENT;
+                ui.visuals_mut().widgets.open.weak_bg_fill = egui::Color32::TRANSPARENT;
+
+                egui::ComboBox::from_id_salt(id)
+                    .width(83.0)
+                    .selected_text(egui::RichText::new(selections[*selected as usize]).size(10.5))
+                    .show_ui(ui, |ui| {
+                        for (i, selection) in selections.iter().enumerate() {
+                            ui.selectable_value(selected, i as u8, *selection);
+                        }
+                    });
+            },
+        );
+    }
+
     fn update_loop(
         orion_hid: hidapi::HidDevice,
         parameters: Arc<Mutex<Orion32Parameters>>,
@@ -185,9 +287,9 @@ impl Orion32ControlPanel {
             parameters_locked.line_out = hid_data[28];
 
             let vu = if hid_data[31] == 1 {
-                &mut parameters_locked.vu_left
+                &mut parameters_locked.left_vu_values
             } else {
-                &mut parameters_locked.vu_right
+                &mut parameters_locked.right_vu_values
             };
 
             vu.copy_from_slice(&hid_data[32..]);
