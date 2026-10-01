@@ -173,8 +173,9 @@ impl Orion32ControlPanel {
 
                 Self::draw_combobox(
                     ui,
-                    396.0,
-                    38.0,
+                    396,
+                    38,
+                    83,
                     &mut parameters.left_vu_source,
                     &Self::VU_SELECTIONS,
                     "left_vu_source",
@@ -182,8 +183,9 @@ impl Orion32ControlPanel {
 
                 Self::draw_combobox(
                     ui,
-                    977.0,
-                    38.0,
+                    977,
+                    38,
+                    83,
                     &mut parameters.right_vu_source,
                     &Self::VU_SELECTIONS,
                     "right_vu_source",
@@ -191,8 +193,9 @@ impl Orion32ControlPanel {
 
                 Self::draw_combobox(
                     ui,
-                    508.0,
-                    92.0,
+                    508,
+                    92,
+                    72,
                     &mut parameters.clock_source,
                     &Self::CLOCK_SOURCE_SELECTIONS,
                     "clock_source",
@@ -200,8 +203,9 @@ impl Orion32ControlPanel {
 
                 Self::draw_combobox(
                     ui,
-                    597.0,
-                    92.0,
+                    597,
+                    92,
+                    72,
                     &mut parameters.sample_rate,
                     &Self::SAMPLE_RATE_SELECTIONS,
                     "sample_rate",
@@ -241,16 +245,17 @@ impl Orion32ControlPanel {
 
     fn draw_combobox(
         ui: &mut egui::Ui,
-        x: f32,
-        y: f32,
+        x: u16,
+        y: u16,
+        width: u8,
         selected: &mut u8,
         selections: &[&str],
         id: &str,
     ) {
         ui.scope_builder(
             egui::UiBuilder::new().max_rect(egui::Rect::from_min_size(
-                egui::pos2(x, y),
-                egui::vec2(83.0, 17.0),
+                egui::pos2(x as f32, y as f32),
+                egui::vec2(width as f32, 17.0),
             )),
             |ui| {
                 ui.visuals_mut().widgets.inactive.weak_bg_fill = egui::Color32::TRANSPARENT;
@@ -259,7 +264,7 @@ impl Orion32ControlPanel {
                 ui.visuals_mut().widgets.open.weak_bg_fill = egui::Color32::TRANSPARENT;
 
                 egui::ComboBox::from_id_salt(id)
-                    .width(83.0)
+                    .width(width as f32)
                     .selected_text(egui::RichText::new(selections[*selected as usize]).size(10.5))
                     .show_ui(ui, |ui| {
                         for (i, selection) in selections.iter().enumerate() {
