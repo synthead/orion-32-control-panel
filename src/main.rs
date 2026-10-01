@@ -164,6 +164,32 @@ impl Orion32ControlPanel {
             egui::Color32::PLACEHOLDER,
         );
     }
+
+    fn update_loop(
+        orion_hid: hidapi::HidDevice,
+        parameters: Arc<Mutex<Orion32Parameters>>,
+        ctx: egui::Context,
+    ) {
+        let mut hid_data = [0u8; 64];
+
+        loop {
+            orion_hid
+                .read(&mut hid_data)
+                .expect("Failed to read HID packet");
+
+            let mut parameters_locked = parameters.lock().unwrap();
+
+            let vu = if hid_data[31] == 1 {
+                &mut parameters_locked.vu_left
+            } else {
+                &mut parameters_locked.vu_right
+            };
+
+            vu.copy_from_slice(&hid_data[32..]);
+
+            ctx.request_repaint();
+        }
+    }
 }
 
 impl eframe::App for Orion32ControlPanel {
@@ -177,7 +203,6 @@ fn main() -> eframe::Result {
     let orion_hid = hid_api.open(0x23e5, 0xa040).expect("Failed to open device");
 
     let parameters = Arc::new(Mutex::new(Orion32Parameters::default()));
-    let parameters_reader = Arc::clone(&parameters);
 
     // Log to stderr with RUST_LOG=debug env var.
     env_logger::init();
@@ -193,32 +218,11 @@ fn main() -> eframe::Result {
         Box::new(|cc| {
             egui_extras::install_image_loaders(&cc.egui_ctx);
 
-            let ctx = cc.egui_ctx.clone();
+            let ctx_copy = cc.egui_ctx.clone();
+            let parameters_copy = Arc::clone(&parameters);
 
             thread::spawn(move || {
-                let mut hid_data = [0u8; 64];
-
-                loop {
-                    orion_hid
-                        .read(&mut hid_data)
-                        .expect("Failed to read HID packet");
-
-                    match hid_data[31] {
-                        1 => {
-                            let mut parameters = parameters_reader.lock().unwrap();
-                            parameters.vu_left.copy_from_slice(&hid_data[32..]);
-
-                            ctx.request_repaint();
-                        }
-                        2 => {
-                            let mut parameters = parameters_reader.lock().unwrap();
-                            parameters.vu_right.copy_from_slice(&hid_data[32..]);
-
-                            ctx.request_repaint();
-                        }
-                        _ => {}
-                    }
-                }
+                Orion32ControlPanel::update_loop(orion_hid, parameters_copy, ctx_copy);
             });
 
             Ok(Box::new(Orion32ControlPanel { parameters }))
