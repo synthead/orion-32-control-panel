@@ -287,6 +287,10 @@ impl Orion32ControlPanel {
                 .read(&mut hid_data)
                 .expect("Failed to read HID packet");
 
+            if hid_data[0] != 0x73 {
+                continue;
+            }
+
             let mut parameters_locked = parameters.lock().unwrap();
 
             parameters_locked.left_vu_source = hid_data[30] & 0x0f;
