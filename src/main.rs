@@ -269,10 +269,10 @@ impl Orion32ControlPanel {
                 egui::vec2(width as f32, 17.0),
             )),
             |ui| {
-                ui.visuals_mut().widgets.inactive.weak_bg_fill = egui::Color32::TRANSPARENT;
-                ui.visuals_mut().widgets.hovered.weak_bg_fill = egui::Color32::TRANSPARENT;
-                ui.visuals_mut().widgets.active.weak_bg_fill = egui::Color32::TRANSPARENT;
-                ui.visuals_mut().widgets.open.weak_bg_fill = egui::Color32::TRANSPARENT;
+                ui.visuals_mut().widgets.inactive.weak_bg_fill = egui::Color32::BLACK;
+                ui.visuals_mut().widgets.hovered.weak_bg_fill = egui::Color32::BLACK;
+                ui.visuals_mut().widgets.active.weak_bg_fill = egui::Color32::BLACK;
+                ui.visuals_mut().widgets.open.weak_bg_fill = egui::Color32::BLACK;
 
                 egui::ComboBox::from_id_salt(id)
                     .width(width as f32)
