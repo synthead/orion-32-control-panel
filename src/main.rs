@@ -132,11 +132,6 @@ impl Orion32ControlPanel {
                 }
 
                 Self::draw_text(ui, 1134, 101, (0x95, 0x95, 0x95), "-43 dB");
-
-                let packet = self.packet.lock().unwrap();
-                let packet_text = format!("{:02X?}", &*packet);
-
-                Self::draw_text(ui, 590, 600, (0xff, 0xff, 0xff), &packet_text);
             });
     }
 
