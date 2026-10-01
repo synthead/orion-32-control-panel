@@ -2,8 +2,13 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use eframe::egui;
+use hidapi::HidApi;
+use std::sync::{Arc, Mutex};
+use std::thread;
 
-struct Orion32ControlPanel;
+struct Orion32ControlPanel {
+    packet: Arc<Mutex<[u8; 64]>>,
+}
 
 macro_rules! render_asset {
     ($ui:expr, $x:expr, $y:expr, $subpath:literal) => {
@@ -72,6 +77,11 @@ impl Orion32ControlPanel {
                 }
 
                 Self::draw_text(ui, 1134, 101, (0x95, 0x95, 0x95), "-43 dB");
+
+                let packet = self.packet.lock().unwrap();
+                let packet_text = format!("{:02X?}", &*packet);
+
+                Self::draw_text(ui, 590, 600, (0xff, 0xff, 0xff), &packet_text);
             });
     }
 
@@ -113,6 +123,12 @@ impl eframe::App for Orion32ControlPanel {
 }
 
 fn main() -> eframe::Result {
+    let hid_api = HidApi::new().expect("Failed to create API instance");
+    let orion_hid = hid_api.open(0x23e5, 0xa040).expect("Failed to open device");
+
+    let packet = Arc::new(Mutex::new([0u8; 64]));
+    let packet_reader = Arc::clone(&packet);
+
     // Log to stderr with RUST_LOG=debug env var.
     env_logger::init();
 
@@ -127,7 +143,26 @@ fn main() -> eframe::Result {
         Box::new(|cc| {
             egui_extras::install_image_loaders(&cc.egui_ctx);
 
-            Ok(Box::new(Orion32ControlPanel))
+            let ctx = cc.egui_ctx.clone();
+
+            thread::spawn(move || {
+                let mut buffer = [0u8; 64];
+
+                loop {
+                    orion_hid
+                        .read(&mut buffer)
+                        .expect("Failed to read HID packet");
+
+                    {
+                        let mut packet = packet_reader.lock().unwrap();
+                        packet.copy_from_slice(&buffer);
+                    }
+
+                    ctx.request_repaint();
+                }
+            });
+
+            Ok(Box::new(Orion32ControlPanel { packet }))
         }),
     )
 }
