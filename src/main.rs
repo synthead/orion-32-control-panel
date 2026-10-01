@@ -39,7 +39,7 @@ macro_rules! render_asset {
 }
 
 macro_rules! render_peak {
-    ($ui:expr, $x:expr, $y:expr, $height:expr, $subpath:literal) => {{
+    ($ui:expr, $x:expr, $y:expr, $db:expr, $subpath:literal) => {{
         let image = egui::Image::new(egui::include_image!(concat!(
             "../assets/",
             $subpath,
@@ -48,30 +48,19 @@ macro_rules! render_peak {
         .fit_to_original_size(1.0)
         .show_loading_spinner(false);
 
-        if let Some(image_size) = image.load_and_calc_size(
-            $ui,
-            $ui.available_size(),
-        ) {
-            let image_rect = egui::Rect::from_min_size(
-                egui::pos2($x as f32, $y as f32),
-                image_size,
-            );
+        if let Some(image_size) = image.load_and_calc_size($ui, $ui.available_size()) {
+            let image_rect =
+                egui::Rect::from_min_size(egui::pos2($x as f32, $y as f32), image_size);
 
             let clip_rect = egui::Rect::from_min_max(
-                egui::pos2(
-                    $x as f32,
-                    $y as f32 + image_size.y * (1.0 - $height),
-                ),
+                egui::pos2($x as f32, $y as f32 + image_size.y * $db as f32 / 96.0),
                 image_rect.max,
             );
 
-            $ui.scope_builder(
-                egui::UiBuilder::new().max_rect(image_rect),
-                |ui| {
-                    ui.set_clip_rect(clip_rect);
-                    ui.add(image);
-                },
-            );
+            $ui.scope_builder(egui::UiBuilder::new().max_rect(image_rect), |ui| {
+                ui.set_clip_rect(clip_rect);
+                ui.add(image);
+            });
         }
     }};
 }
@@ -90,6 +79,8 @@ impl Orion32ControlPanel {
                 render_asset!(ui, 1100, 9, "AboutButton/default/released");
                 render_asset!(ui, 1149, 9, "CloseButton/default/released");
 
+                let parameters = self.parameters.lock().unwrap();
+
                 for peak_x in 0..32 {
                     let pos_x_1 = 135 + peak_x * 11;
                     let pos_x_2 = pos_x_1 + 581;
@@ -98,14 +89,14 @@ impl Orion32ControlPanel {
                         ui,
                         pos_x_1,
                         60,
-                        (peak_x + 1) as f32 / 32.0,
+                        parameters.vu_left[peak_x],
                         "MonitorPeakMeter/default/background"
                     );
                     render_peak!(
                         ui,
                         pos_x_2,
                         60,
-                        (peak_x + 1) as f32 / 32.0,
+                        parameters.vu_right[peak_x],
                         "MonitorPeakMeter/default/background"
                     );
                 }
