@@ -291,6 +291,8 @@ impl Orion32ControlPanel {
 
             parameters_locked.left_vu_source = hid_data[30] & 0x0f;
             parameters_locked.right_vu_source = hid_data[30] >> 4;
+            parameters_locked.clock_source = hid_data[19];
+            parameters_locked.sample_rate = hid_data[18];
 
             parameters_locked.line_out = hid_data[28];
 
