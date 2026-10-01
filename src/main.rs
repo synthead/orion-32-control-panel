@@ -10,6 +10,7 @@ use std::thread;
 struct Orion32Parameters {
     vu_left: [u8; 32],
     vu_right: [u8; 32],
+    line_out: u8
 }
 
 struct Orion32ControlPanel {
@@ -131,7 +132,9 @@ impl Orion32ControlPanel {
                     Self::draw_route(ui, rect_x, 16, (0x7b, 0x7b, 0x7b), "M");
                 }
 
-                Self::draw_text(ui, 1134, 101, (0x95, 0x95, 0x95), "-43 dB");
+                let line_out_value = (((parameters.line_out) as f32 / 255.0) * -96.0) as i8;
+                let line_out_text = format!("{} dB", line_out_value);
+                Self::draw_text(ui, 1134, 101, (0x95, 0x95, 0x95), &line_out_text);
             });
     }
 
@@ -178,6 +181,8 @@ impl Orion32ControlPanel {
                 .expect("Failed to read HID packet");
 
             let mut parameters_locked = parameters.lock().unwrap();
+
+            parameters_locked.line_out = hid_data[28];
 
             let vu = if hid_data[31] == 1 {
                 &mut parameters_locked.vu_left
