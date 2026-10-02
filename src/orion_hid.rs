@@ -1,5 +1,7 @@
 use hidapi::HidApi;
 use hidapi::HidDevice;
+use std::sync::Arc;
+use std::sync::Mutex;
 
 use crate::orion_state::OrionState;
 
@@ -7,24 +9,34 @@ use crate::orion_state::OrionState;
 pub struct OrionHid {
     hid_api: Option<HidApi>,
     orion_hid: Option<HidDevice>,
+    orion_state: Arc<Mutex<OrionState>>,
 }
 
 impl OrionHid {
     const USB_VENDOR: u16 = 0x23e5;
     const USB_PRODUCT: u16 = 0xa040;
 
+    pub fn new(orion_state: Arc<Mutex<OrionState>>) -> Self {
+        Self {
+            orion_state,
+            ..Default::default()
+        }
+    }
+
     pub fn write_init(&mut self) {
         self.write_packet(0x74, 0x10, 0x01, &[]);
     }
 
-    pub fn read_packet(&mut self) -> [u8; 64] {
+    pub fn poll_and_update_state(&mut self) {
         let mut hid_data = [0u8; 64];
 
         self.orion_hid()
             .read(&mut hid_data)
             .expect("Failed to read HID packet");
 
-        hid_data
+        let mut state = self.orion_state.lock().unwrap();
+
+        Self::update_orion_state(&hid_data, &mut state);
     }
 
     pub fn update_orion_state(hid_data: &[u8; 64], orion_state: &mut OrionState) {

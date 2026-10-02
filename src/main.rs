@@ -3,6 +3,7 @@
 
 use eframe::egui;
 use std::sync::Arc;
+use std::sync::Mutex;
 use std::thread;
 
 mod control_panel;
@@ -11,6 +12,7 @@ mod orion_state;
 
 use crate::control_panel::ControlPanel;
 use crate::orion_hid::OrionHid;
+use crate::orion_state::OrionState;
 
 fn main() -> eframe::Result {
     // Log to stderr with RUST_LOG=debug env var.
@@ -21,10 +23,13 @@ fn main() -> eframe::Result {
         ..Default::default()
     };
 
-    let control_panel = ControlPanel::new();
+    let orion_state = Arc::new(Mutex::new(OrionState::default()));
+    let orion_hid = Arc::new(Mutex::new(OrionHid::new(Arc::clone(&orion_state))));
 
-    let orion_hid = Arc::clone(&control_panel.orion_hid);
-    let orion_state = Arc::clone(&control_panel.orion_state);
+    let control_panel = ControlPanel {
+        orion_state: Arc::clone(&orion_state),
+        orion_hid: Arc::clone(&orion_hid),
+    };
 
     eframe::run_native(
         "Orion 32 Control Panel",
@@ -32,30 +37,20 @@ fn main() -> eframe::Result {
         Box::new(|cc| {
             egui_extras::install_image_loaders(&cc.egui_ctx);
 
-            let ctx_copy = cc.egui_ctx.clone();
+            let ctx_thread = cc.egui_ctx.clone();
+            let orion_hid_thread = Arc::clone(&orion_hid);
 
-            thread::spawn(move || {
-                {
-                    let mut orion_hid_locked = orion_hid.lock().unwrap();
-                    orion_hid_locked.write_init();
-                }
+            thread::spawn(move || loop {
+                let mut orion_hid_locked = orion_hid_thread.lock().unwrap();
 
-                loop {
-                    let hid_data = {
-                        let mut orion_hid_locked = orion_hid.lock().unwrap();
-
-                        orion_hid_locked.read_packet()
-                    };
-
-                    {
-                        let mut orion_state_locked = orion_state.lock().unwrap();
-
-                        OrionHid::update_orion_state(&hid_data, &mut orion_state_locked)
-                    }
-
-                    ctx_copy.request_repaint();
-                }
+                orion_hid_locked.poll_and_update_state();
+                ctx_thread.request_repaint();
             });
+
+            {
+                let mut orion_hid_locked = orion_hid.lock().unwrap();
+                orion_hid_locked.write_init();
+            }
 
             Ok(Box::new(control_panel))
         }),

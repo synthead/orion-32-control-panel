@@ -94,13 +94,6 @@ impl ControlPanel {
         "192.0 kHz",
     ];
 
-    pub fn new() -> Self {
-        Self {
-            orion_state: Arc::new(Mutex::new(OrionState::default())),
-            orion_hid: Arc::new(Mutex::new(OrionHid::default())),
-        }
-    }
-
     fn ui_content(&mut self, ui: &mut egui::Ui) {
         egui::CentralPanel::default()
             .frame(egui::Frame::NONE)
