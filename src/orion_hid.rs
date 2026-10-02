@@ -37,11 +37,7 @@ impl OrionHid {
         hid_data
     }
 
-    pub fn update_orion_state(hid_data: &[u8; 64], orion_state: &mut OrionState) -> bool {
-        if !matches!(hid_data[0], 0x73 | 0x75) {
-            return false;
-        }
-
+    pub fn update_orion_state(hid_data: &[u8; 64], orion_state: &mut OrionState) {
         if hid_data[0] == 0x73 {
             orion_state.left_vu_source = hid_data[30] & 0x0f;
             orion_state.right_vu_source = hid_data[30] >> 4;
@@ -61,8 +57,6 @@ impl OrionHid {
         if hid_data[0] == 0x75 {
             orion_state.serial = hid_data[36..49].try_into().unwrap();
         }
-
-        true
     }
 
     fn hid_api(&mut self) -> &mut HidApi {
