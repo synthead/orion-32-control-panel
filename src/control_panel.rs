@@ -161,10 +161,12 @@ impl ControlPanel {
 
                 let line_out_value = (((orion_state.line_out) as f32 / 255.0) * -96.0) as i8;
                 let line_out_text = format!("{} dB", line_out_value);
+
                 Self::draw_text(ui, 1134, 101, (0x95, 0x95, 0x95), &line_out_text);
 
                 let serial = String::from_utf8_lossy(&orion_state.serial);
-                Self::draw_combobox(ui, 950, 7, 110, &mut 0, &[&serial], "serial");
+
+                Self::draw_combobox(ui, 950, 7, 110, &mut 0, &[&serial], "serial", |selected| {});
 
                 Self::draw_combobox(
                     ui,
@@ -174,6 +176,7 @@ impl ControlPanel {
                     &mut orion_state.left_vu_source,
                     &Self::VU_SELECTIONS,
                     "left_vu_source",
+                    |selected| {},
                 );
 
                 Self::draw_combobox(
@@ -184,6 +187,7 @@ impl ControlPanel {
                     &mut orion_state.right_vu_source,
                     &Self::VU_SELECTIONS,
                     "right_vu_source",
+                    |selected| {},
                 );
 
                 Self::draw_combobox(
@@ -194,6 +198,7 @@ impl ControlPanel {
                     &mut orion_state.clock_source,
                     &Self::CLOCK_SOURCE_SELECTIONS,
                     "clock_source",
+                    |selected| {},
                 );
 
                 Self::draw_combobox(
@@ -204,6 +209,9 @@ impl ControlPanel {
                     &mut orion_state.sample_rate,
                     &Self::SAMPLE_RATE_SELECTIONS,
                     "sample_rate",
+                    |selected| {
+                        self.orion_hid.queue_sample_rate(selected);
+                    },
                 );
             });
     }
@@ -246,6 +254,7 @@ impl ControlPanel {
         selected: &mut u8,
         selections: &[&str],
         id: &str,
+        mut changed_callback: impl FnMut(u8),
     ) {
         ui.scope_builder(
             egui::UiBuilder::new().max_rect(egui::Rect::from_min_size(
@@ -263,7 +272,11 @@ impl ControlPanel {
                     .selected_text(egui::RichText::new(selections[*selected as usize]).size(10.5))
                     .show_ui(ui, |ui| {
                         for (i, selection) in selections.iter().enumerate() {
-                            ui.selectable_value(selected, i as u8, *selection);
+                            let response = ui.selectable_value(selected, i as u8, *selection);
+
+                            if response.changed() {
+                                changed_callback(*selected);
+                            }
                         }
                     });
             },
