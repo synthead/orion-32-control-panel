@@ -10,7 +10,7 @@ use crate::orion_state::OrionState;
 
 pub struct ControlPanel {
     pub orion_state: Arc<Mutex<OrionState>>,
-    pub orion_hid: Arc<Mutex<OrionHid>>,
+    pub orion_hid: OrionHid,
 }
 
 macro_rules! render_asset {

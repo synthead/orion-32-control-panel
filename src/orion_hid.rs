@@ -1,85 +1,23 @@
-use hidapi::HidApi;
-use hidapi::HidDevice;
-use std::sync::Arc;
-use std::sync::Mutex;
+use std::sync::mpsc;
 
-use crate::orion_state::OrionState;
-
-#[derive(Default)]
 pub struct OrionHid {
-    hid_api: Option<HidApi>,
-    orion_hid: Option<HidDevice>,
-    orion_state: Arc<Mutex<OrionState>>,
+    hid_write_tx: mpsc::Sender<[u8; 64]>,
 }
 
 impl OrionHid {
-    const USB_VENDOR: u16 = 0x23e5;
-    const USB_PRODUCT: u16 = 0xa040;
-
-    pub fn new(orion_state: Arc<Mutex<OrionState>>) -> Self {
-        Self {
-            orion_state,
-            ..Default::default()
-        }
+    pub fn new(hid_write_tx: mpsc::Sender<[u8; 64]>) -> Self {
+        Self { hid_write_tx }
     }
 
-    pub fn write_init(&mut self) {
-        self.write_packet(0x74, 0x10, 0x01, &[]);
+    pub fn queue_init(&mut self) {
+        self.queue_packet(0x74, 0x10, 0x01, &[]);
     }
 
-    pub fn poll_and_update_state(&mut self) {
-        let mut hid_data = [0u8; 64];
-
-        self.orion_hid()
-            .read(&mut hid_data)
-            .expect("Failed to read HID packet");
-
-        let mut state = self.orion_state.lock().unwrap();
-
-        Self::update_orion_state(&hid_data, &mut state);
+    pub fn queue_sample_rate(&mut self, sample_rate: u8) {
+        self.queue_packet(0x70, 0x16, 0x00, &[0xc2, 0x04, sample_rate]);
     }
 
-    pub fn update_orion_state(hid_data: &[u8; 64], orion_state: &mut OrionState) {
-        if hid_data[0] == 0x73 {
-            orion_state.left_vu_source = hid_data[30] & 0x0f;
-            orion_state.right_vu_source = hid_data[30] >> 4;
-            orion_state.clock_source = hid_data[19];
-            orion_state.sample_rate = hid_data[18];
-            orion_state.line_out = hid_data[28];
-
-            let vu = if hid_data[31] == 1 {
-                &mut orion_state.left_vu_values
-            } else {
-                &mut orion_state.right_vu_values
-            };
-
-            *vu = hid_data[32..].try_into().unwrap();
-        }
-
-        if hid_data[0] == 0x75 {
-            orion_state.serial = hid_data[36..49].try_into().unwrap();
-        }
-    }
-
-    fn hid_api(&mut self) -> &mut HidApi {
-        self.hid_api
-            .get_or_insert_with(|| HidApi::new().expect("Failed to create API instance"))
-    }
-
-    fn orion_hid(&mut self) -> &mut HidDevice {
-        if self.orion_hid.is_none() {
-            let device = self
-                .hid_api()
-                .open(Self::USB_VENDOR, Self::USB_PRODUCT)
-                .expect("Failed to open device");
-
-            self.orion_hid = Some(device);
-        }
-
-        self.orion_hid.as_mut().unwrap()
-    }
-
-    fn write_packet(&mut self, byte_0: u8, byte_4: u8, byte_12: u8, payload: &[u8]) {
+    fn queue_packet(&mut self, byte_0: u8, byte_4: u8, byte_12: u8, payload: &[u8]) {
         let mut packet = [0u8; 64];
 
         packet[0] = byte_0;
@@ -87,8 +25,6 @@ impl OrionHid {
         packet[12] = byte_12;
         packet[16..16 + payload.len()].copy_from_slice(payload);
 
-        self.orion_hid()
-            .write(&packet)
-            .expect("Failed to write HID packet");
+        let _ = self.hid_write_tx.send(packet);
     }
 }

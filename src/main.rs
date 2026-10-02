@@ -2,16 +2,19 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use eframe::egui;
+use std::sync::mpsc;
 use std::sync::Arc;
 use std::sync::Mutex;
 use std::thread;
 
 mod control_panel;
 mod orion_hid;
+mod orion_hid_poller;
 mod orion_state;
 
 use crate::control_panel::ControlPanel;
 use crate::orion_hid::OrionHid;
+use crate::orion_hid_poller::OrionHidPoller;
 use crate::orion_state::OrionState;
 
 fn main() -> eframe::Result {
@@ -24,11 +27,15 @@ fn main() -> eframe::Result {
     };
 
     let orion_state = Arc::new(Mutex::new(OrionState::default()));
-    let orion_hid = Arc::new(Mutex::new(OrionHid::new(Arc::clone(&orion_state))));
+    let (hid_write_tx, hid_write_rx) = mpsc::channel::<[u8; 64]>();
+    let mut orion_hid_poller = OrionHidPoller::new(Arc::clone(&orion_state), hid_write_rx);
+    let mut orion_hid = OrionHid::new(hid_write_tx);
+
+    orion_hid.queue_init();
 
     let control_panel = ControlPanel {
         orion_state: Arc::clone(&orion_state),
-        orion_hid: Arc::clone(&orion_hid),
+        orion_hid: orion_hid,
     };
 
     eframe::run_native(
@@ -38,19 +45,11 @@ fn main() -> eframe::Result {
             egui_extras::install_image_loaders(&cc.egui_ctx);
 
             let ctx_thread = cc.egui_ctx.clone();
-            let orion_hid_thread = Arc::clone(&orion_hid);
 
             thread::spawn(move || loop {
-                let mut orion_hid_locked = orion_hid_thread.lock().unwrap();
-
-                orion_hid_locked.poll_and_update_state();
+                orion_hid_poller.poll_and_update_state();
                 ctx_thread.request_repaint();
             });
-
-            {
-                let mut orion_hid_locked = orion_hid.lock().unwrap();
-                orion_hid_locked.write_init();
-            }
 
             Ok(Box::new(control_panel))
         }),
