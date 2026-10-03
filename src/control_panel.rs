@@ -22,28 +22,10 @@ impl ControlPanelRouteColors {
     const MUTE: egui::Color32 = egui::Color32::from_rgb(0x7b, 0x7b, 0x7b);
 }
 
-struct ControlPanelRouteLabels {
-    adc: [String; 32],
-    usb_play: [String; 32],
-    madi_in_1: [String; 32],
-    madi_in_2: [String; 32],
-    adat_in: [String; 16],
-    spdif_in: [String; 2],
-    mix_lr: [String; 2],
-
-    dac: [String; 32],
-    usb_rec: [String; 32],
-    madi_out_1: [String; 32],
-    madi_out_2: [String; 32],
-    adat_out: [String; 16],
-    spdif_out: [String; 2],
-    mix_ch: [String; 32],
-}
-
 pub struct ControlPanel {
     pub orion_state: Arc<Mutex<OrionState>>,
     pub orion_hid: OrionHid,
-    route_labels: ControlPanelRouteLabels,
+    route_labels: [[String; 32]; 7],
 }
 
 macro_rules! render_asset {
@@ -128,23 +110,11 @@ impl ControlPanel {
     ];
 
     pub fn new(orion_state: Arc<Mutex<OrionState>>, orion_hid: OrionHid) -> Self {
-        let route_labels = ControlPanelRouteLabels {
-            adc: Self::route_labels_init(1),
-            usb_play: Self::route_labels_init(1),
-            madi_in_1: Self::route_labels_init(1),
-            madi_in_2: Self::route_labels_init(33),
-            adat_in: Self::route_labels_init(1),
-            spdif_in: Self::route_labels_init(1),
-            mix_lr: Self::route_labels_init(1),
+        let route_labels = std::array::from_fn(|group| {
+            let start_at = if group == 3 { 33 } else { 1 };
 
-            dac: Self::route_labels_init(1),
-            usb_rec: Self::route_labels_init(1),
-            madi_out_1: Self::route_labels_init(1),
-            madi_out_2: Self::route_labels_init(33),
-            adat_out: Self::route_labels_init(1),
-            spdif_out: Self::route_labels_init(1),
-            mix_ch: Self::route_labels_init(1),
-        };
+            std::array::from_fn(|i| (i + start_at).to_string())
+        });
 
         Self {
             orion_state,
@@ -205,111 +175,21 @@ impl ControlPanel {
                     _ => 16,
                 };
 
-                self.draw_route_sources(
-                    ui,
-                    0,
-                    32,
-                    ControlPanelRouteColors::ADC_DAC,
-                    &self.route_labels.adc,
-                );
+                self.draw_route_sources(ui, 0, 32, ControlPanelRouteColors::ADC_DAC);
+                self.draw_route_sources(ui, 1, 32, ControlPanelRouteColors::USB);
+                self.draw_route_sources(ui, 2, madi_1_count, ControlPanelRouteColors::MADI);
+                self.draw_route_sources(ui, 3, madi_2_count, ControlPanelRouteColors::MADI);
+                self.draw_route_sources(ui, 4, adat_count, ControlPanelRouteColors::ADAT);
+                self.draw_route_sources(ui, 5, 2, ControlPanelRouteColors::SPDIF);
+                self.draw_route_sources(ui, 6, 2, ControlPanelRouteColors::MIX_LR);
 
-                self.draw_route_sources(
-                    ui,
-                    1,
-                    32,
-                    ControlPanelRouteColors::USB,
-                    &self.route_labels.usb_play,
-                );
-
-                self.draw_route_sources(
-                    ui,
-                    2,
-                    madi_1_count,
-                    ControlPanelRouteColors::MADI,
-                    &self.route_labels.madi_in_1,
-                );
-
-                self.draw_route_sources(
-                    ui,
-                    3,
-                    madi_2_count,
-                    ControlPanelRouteColors::MADI,
-                    &self.route_labels.madi_in_2,
-                );
-
-                self.draw_route_sources(
-                    ui,
-                    4,
-                    adat_count,
-                    ControlPanelRouteColors::ADAT,
-                    &self.route_labels.adat_in,
-                );
-
-                self.draw_route_sources(
-                    ui,
-                    5,
-                    2,
-                    ControlPanelRouteColors::SPDIF,
-                    &self.route_labels.spdif_in,
-                );
-
-                self.draw_route_sources(
-                    ui,
-                    6,
-                    2,
-                    ControlPanelRouteColors::MIX_LR,
-                    &self.route_labels.mix_lr,
-                );
-
-                self.draw_route_targets(ui, 11, 32, &orion_state.routes[0], &self.route_labels.dac);
-
-                self.draw_route_targets(
-                    ui,
-                    12,
-                    32,
-                    &orion_state.routes[1],
-                    &self.route_labels.usb_rec,
-                );
-
-                self.draw_route_targets(
-                    ui,
-                    13,
-                    madi_1_count,
-                    &orion_state.routes[2],
-                    &self.route_labels.madi_out_1,
-                );
-
-                self.draw_route_targets(
-                    ui,
-                    14,
-                    madi_2_count,
-                    &orion_state.routes[3],
-                    &self.route_labels.madi_out_2,
-                );
-
-                self.draw_route_targets(
-                    ui,
-                    15,
-                    adat_count,
-                    &orion_state.routes[4],
-                    &self.route_labels.adat_out,
-                );
-
-                self.draw_route_targets(
-                    ui,
-                    16,
-                    2,
-                    &orion_state.routes[5],
-                    &self.route_labels.spdif_out,
-                );
-
-                self.draw_route_targets(
-                    ui,
-                    17,
-                    32,
-                    &orion_state.routes[6],
-                    &self.route_labels.mix_ch,
-                );
+                self.draw_route_targets(ui, 0, 32, &orion_state.routes[0]);
+                self.draw_route_targets(ui, 1, 32, &orion_state.routes[1]);
+                self.draw_route_targets(ui, 2, madi_1_count, &orion_state.routes[2]);
+                self.draw_route_targets(ui, 3, madi_2_count, &orion_state.routes[3]);
+                self.draw_route_targets(ui, 4, adat_count, &orion_state.routes[4]);
+                self.draw_route_targets(ui, 5, 2, &orion_state.routes[5]);
+                self.draw_route_targets(ui, 6, 32, &orion_state.routes[6]);
 
                 let line_out_value = (((orion_state.line_out) as f32 / 255.0) * -96.0) as i8;
                 let line_out_text = format!("{} dB", line_out_value);
@@ -378,10 +258,9 @@ impl ControlPanel {
         rect_y: u8,
         rect_count: u8,
         color: egui::Color32,
-        labels: &[String],
     ) {
         for rect_x in 0..rect_count {
-            let label = &labels[rect_x as usize];
+            let label = &self.route_labels[rect_y as usize][rect_x as usize];
 
             Self::draw_route(ui, rect_x, rect_y, color, label);
         }
@@ -393,14 +272,13 @@ impl ControlPanel {
         rect_y: u8,
         rect_count: u8,
         sources: &[u8; 32],
-        labels: &[String],
     ) {
         for rect_x in 0..rect_count {
             let source = sources[rect_x as usize];
             let color = Self::route_color(source);
-            let label = &labels[rect_x as usize];
+            let label = &self.label_for_source(source);
 
-            Self::draw_route(ui, rect_x, rect_y, color, label);
+            Self::draw_route(ui, rect_x, rect_y + 11, color, label);
         }
     }
 
@@ -473,6 +351,21 @@ impl ControlPanel {
         );
     }
 
+    fn label_for_source(&self, source: u8) -> String {
+        match source {
+            0x07 => "O1".to_string(),
+            0x0f => "O2".to_string(),
+            0x17 => "M".to_string(),
+
+            _ => {
+                let source_type = source % 0x08;
+                let source_index = source / 0x08;
+
+                self.route_labels[source_type as usize][source_index as usize].clone()
+            }
+        }
+    }
+
     fn route_color(source: u8) -> egui::Color32 {
         match source {
             0x07 => ControlPanelRouteColors::OSC_1,
@@ -491,10 +384,6 @@ impl ControlPanel {
                 _ => egui::Color32::BLACK,
             },
         }
-    }
-
-    fn route_labels_init<const N: usize>(start_at: usize) -> [String; N] {
-        std::array::from_fn(|i| (i + start_at).to_string())
     }
 }
 
