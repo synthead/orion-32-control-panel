@@ -13,6 +13,14 @@ impl OrionHid {
         self.queue_packet(0x74, 0x10, 0x01, &[]);
     }
 
+    pub fn queue_vu_source_left(&mut self, vu_source_left: u8) {
+        self.queue_packet(0x70, 0x13, 0x00, &[0x49, 0x00, vu_source_left]);
+    }
+
+    pub fn queue_vu_source_right(&mut self, vu_source_right: u8) {
+        self.queue_packet(0x70, 0x13, 0x00, &[0x49, 0x01, vu_source_right]);
+    }
+
     pub fn queue_clock_source(&mut self, clock_source: u8) {
         self.queue_packet(0x70, 0x12, 0x00, &[0x03, clock_source]);
     }

@@ -176,7 +176,9 @@ impl ControlPanel {
                     &mut orion_state.left_vu_source,
                     &Self::VU_SELECTIONS,
                     "left_vu_source",
-                    |selected| {},
+                    |selected| {
+                        self.orion_hid.queue_vu_source_left(selected);
+                    },
                 );
 
                 Self::draw_combobox(
@@ -187,7 +189,9 @@ impl ControlPanel {
                     &mut orion_state.right_vu_source,
                     &Self::VU_SELECTIONS,
                     "right_vu_source",
-                    |selected| {},
+                    |selected| {
+                        self.orion_hid.queue_vu_source_right(selected);
+                    },
                 );
 
                 Self::draw_combobox(
