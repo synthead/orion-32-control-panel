@@ -27,6 +27,7 @@ struct ControlPanelRoutingLabels {
 pub struct ControlPanel {
     pub orion_state: Arc<Mutex<OrionState>>,
     pub orion_hid: OrionHid,
+    routing_labels: ControlPanelRoutingLabels,
 }
 
 macro_rules! render_asset {
@@ -110,6 +111,31 @@ impl ControlPanel {
         "192.0 kHz",
     ];
 
+    pub fn new(orion_state: Arc<Mutex<OrionState>>, orion_hid: OrionHid) -> Self {
+        let routing_labels = ControlPanelRoutingLabels {
+            adc: Self::route_labels_init(),
+            usb_play: Self::route_labels_init(),
+            madi_in: Self::route_labels_init(),
+            adat_in: Self::route_labels_init(),
+            spdif_in: Self::route_labels_init(),
+            mix_lr: Self::route_labels_init(),
+
+            dac: Self::route_labels_init(),
+            usb_rec: Self::route_labels_init(),
+            madi_out: Self::route_labels_init(),
+            adat_out: Self::route_labels_init(),
+            spdif_out: Self::route_labels_init(),
+            mix_ch: Self::route_labels_init(),
+        };
+
+        Self {
+            orion_state,
+            orion_hid,
+            routing_labels,
+            editing_id: None,
+        }
+    }
+
     fn ui_content(&mut self, ui: &mut egui::Ui) {
         egui::CentralPanel::default()
             .frame(egui::Frame::NONE)
@@ -145,35 +171,31 @@ impl ControlPanel {
                     );
                 }
 
-                for rect_x in 0..32 {
-                    let label = &(rect_x + 1).to_string();
+                Self::draw_routes(ui, 0, 32, (0x20, 0xa4, 0xf7), &self.routing_labels.adc);
+                Self::draw_routes(ui, 1, 32, (0x00, 0x73, 0xff), &self.routing_labels.usb_play);
+                Self::draw_routes(ui, 2, 64, (0xff, 0xb8, 0x00), &self.routing_labels.madi_in);
+                Self::draw_routes(ui, 4, 8, (0xff, 0x00, 0x37), &self.routing_labels.adat_in);
+                Self::draw_routes(ui, 5, 2, (0xd9, 0x24, 0x94), &self.routing_labels.spdif_in);
+                Self::draw_routes(ui, 6, 2, (0x72, 0xab, 0x20), &self.routing_labels.mix_lr);
 
-                    Self::draw_route(ui, rect_x, 0, (0x20, 0xa4, 0xf7), label);
-                    Self::draw_route(ui, rect_x, 1, (0x00, 0x73, 0xff), label);
-                    Self::draw_route(ui, rect_x, 2, (0xff, 0xb8, 0x00), label);
-
-                    Self::draw_route(ui, rect_x, 11, (0x20, 0xa4, 0xf7), label);
-                    Self::draw_route(ui, rect_x, 12, (0x00, 0x73, 0xff), label);
-                    Self::draw_route(ui, rect_x, 13, (0xff, 0xb8, 0x00), label);
-
-                    Self::draw_route(ui, rect_x, 17, (0x7b, 0x7b, 0x7b), "M");
-
-                    if rect_x >= 8 {
-                        continue;
-                    }
-
-                    Self::draw_route(ui, rect_x, 4, (0xff, 0x00, 0x37), label);
-                    Self::draw_route(ui, rect_x, 15, (0x7b, 0x7b, 0x7b), "M");
-
-                    if rect_x >= 2 {
-                        continue;
-                    }
-
-                    Self::draw_route(ui, rect_x, 5, (0xd9, 0x24, 0x94), label);
-                    Self::draw_route(ui, rect_x, 6, (0x72, 0xab, 0x20), label);
-
-                    Self::draw_route(ui, rect_x, 16, (0x7b, 0x7b, 0x7b), "M");
-                }
+                Self::draw_routes(ui, 11, 32, (0x20, 0xa4, 0xf7), &self.routing_labels.dac);
+                Self::draw_routes(ui, 12, 32, (0x00, 0x73, 0xff), &self.routing_labels.usb_rec);
+                Self::draw_routes(
+                    ui,
+                    13,
+                    64,
+                    (0xff, 0xb8, 0x00),
+                    &self.routing_labels.madi_out,
+                );
+                Self::draw_routes(ui, 15, 8, (0xff, 0x00, 0x37), &self.routing_labels.adat_out);
+                Self::draw_routes(
+                    ui,
+                    16,
+                    2,
+                    (0xd9, 0x24, 0x94),
+                    &self.routing_labels.spdif_out,
+                );
+                Self::draw_routes(ui, 17, 32, (0x20, 0xa4, 0xf7), &self.routing_labels.mix_ch);
 
                 let line_out_value = (((orion_state.line_out) as f32 / 255.0) * -96.0) as i8;
                 let line_out_text = format!("{} dB", line_out_value);
@@ -236,20 +258,33 @@ impl ControlPanel {
             });
     }
 
-    fn draw_route(ui: &mut egui::Ui, rect_x: u8, rect_y: u8, color: (u8, u8, u8), text: &str) {
-        let pos_x = 128 + rect_x as u16 * 30;
-        let pos_y = 285 + rect_y as u16 * 15;
+    fn draw_routes(
+        ui: &mut egui::Ui,
+        start_rect_y: u8,
+        rect_count: u8,
+        color: (u8, u8, u8),
+        labels: &[String],
+    ) {
+        for rect_i in 0..rect_count {
+            let rect_x = rect_i % 32;
+            let rect_y = start_rect_y + rect_i / 32;
 
-        ui.painter().rect_filled(
-            egui::Rect::from_min_size(
-                egui::pos2(pos_x as f32, pos_y as f32),
-                egui::vec2(29.0, 14.0),
-            ),
-            0.0,
-            egui::Color32::from_rgb(color.0, color.1, color.2),
-        );
+            let pos_x = 128 + rect_x as u16 * 30;
+            let pos_y = 285 + rect_y as u16 * 15;
 
-        Self::draw_text(ui, pos_x + 15, pos_y, (0xff, 0xff, 0xff), text);
+            let label = &labels[rect_i as usize];
+
+            ui.painter().rect_filled(
+                egui::Rect::from_min_size(
+                    egui::pos2(pos_x as f32, pos_y as f32),
+                    egui::vec2(29.0, 14.0),
+                ),
+                0.0,
+                egui::Color32::from_rgb(color.0, color.1, color.2),
+            );
+
+            Self::draw_text(ui, pos_x + 15, pos_y, (0xff, 0xff, 0xff), label);
+        }
     }
 
     fn draw_text(ui: &mut egui::Ui, center_x: u16, pos_y: u16, color: (u8, u8, u8), text: &str) {
@@ -303,6 +338,10 @@ impl ControlPanel {
                     });
             },
         );
+    }
+
+    fn route_labels_init<const N: usize>() -> [String; N] {
+        std::array::from_fn(|i| (i + 1).to_string())
     }
 }
 
