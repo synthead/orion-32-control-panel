@@ -166,7 +166,7 @@ impl ControlPanel {
 
                 let serial = String::from_utf8_lossy(&orion_state.serial);
 
-                Self::draw_combobox(ui, 950, 7, 110, 0, &[&serial], "serial", |_selected| {
+                Self::draw_combobox(ui, 950, 7, 110, 0, &[&serial], |_selected| {
                     // TODO: Implement multi-interface control, and switch it here.
                 });
 
@@ -177,7 +177,6 @@ impl ControlPanel {
                     83,
                     orion_state.left_vu_source,
                     &Self::VU_SELECTIONS,
-                    "left_vu_source",
                     |selected| {
                         self.orion_hid.queue_vu_source_left(selected);
                     },
@@ -190,7 +189,6 @@ impl ControlPanel {
                     83,
                     orion_state.right_vu_source,
                     &Self::VU_SELECTIONS,
-                    "right_vu_source",
                     |selected| {
                         self.orion_hid.queue_vu_source_right(selected);
                     },
@@ -203,7 +201,6 @@ impl ControlPanel {
                     72,
                     orion_state.clock_source,
                     &Self::CLOCK_SOURCE_SELECTIONS,
-                    "clock_source",
                     |selected| {
                         self.orion_hid.queue_clock_source(selected);
                     },
@@ -216,7 +213,6 @@ impl ControlPanel {
                     72,
                     orion_state.sample_rate,
                     &Self::SAMPLE_RATE_SELECTIONS,
-                    "sample_rate",
                     |selected| {
                         self.orion_hid.queue_sample_rate(selected);
                     },
@@ -261,7 +257,6 @@ impl ControlPanel {
         width: u8,
         selected: u8,
         selections: &[&str],
-        id: &str,
         mut changed_callback: impl FnMut(u8),
     ) {
         ui.scope_builder(
@@ -277,7 +272,7 @@ impl ControlPanel {
 
                 let mut selected_mut = selected;
 
-                egui::ComboBox::from_id_salt(id)
+                egui::ComboBox::from_id_salt((x, y))
                     .width(width as f32)
                     .selected_text(egui::RichText::new(selections[selected as usize]).size(10.5))
                     .show_ui(ui, |ui| {
