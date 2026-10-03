@@ -107,7 +107,7 @@ impl ControlPanel {
                 render_asset!(ui, 1100, 9, "AboutButton/default/released");
                 render_asset!(ui, 1149, 9, "CloseButton/default/released");
 
-                let mut orion_state = self.orion_state.lock().unwrap();
+                let orion_state = self.orion_state.lock().unwrap().clone();
 
                 for peak_x in 0..32 {
                     let pos_x_1 = 135 + peak_x * 11;
@@ -166,7 +166,7 @@ impl ControlPanel {
 
                 let serial = String::from_utf8_lossy(&orion_state.serial);
 
-                Self::draw_combobox(ui, 950, 7, 110, &mut 0, &[&serial], "serial", |_selected| {
+                Self::draw_combobox(ui, 950, 7, 110, 0, &[&serial], "serial", |_selected| {
                     // TODO: Implement multi-interface control, and switch it here.
                 });
 
@@ -175,7 +175,7 @@ impl ControlPanel {
                     396,
                     38,
                     83,
-                    &mut orion_state.left_vu_source,
+                    orion_state.left_vu_source,
                     &Self::VU_SELECTIONS,
                     "left_vu_source",
                     |selected| {
@@ -188,7 +188,7 @@ impl ControlPanel {
                     977,
                     38,
                     83,
-                    &mut orion_state.right_vu_source,
+                    orion_state.right_vu_source,
                     &Self::VU_SELECTIONS,
                     "right_vu_source",
                     |selected| {
@@ -201,7 +201,7 @@ impl ControlPanel {
                     508,
                     92,
                     72,
-                    &mut orion_state.clock_source,
+                    orion_state.clock_source,
                     &Self::CLOCK_SOURCE_SELECTIONS,
                     "clock_source",
                     |selected| {
@@ -214,7 +214,7 @@ impl ControlPanel {
                     597,
                     92,
                     72,
-                    &mut orion_state.sample_rate,
+                    orion_state.sample_rate,
                     &Self::SAMPLE_RATE_SELECTIONS,
                     "sample_rate",
                     |selected| {
@@ -259,7 +259,7 @@ impl ControlPanel {
         x: u16,
         y: u16,
         width: u8,
-        selected: &mut u8,
+        selected: u8,
         selections: &[&str],
         id: &str,
         mut changed_callback: impl FnMut(u8),
@@ -275,15 +275,18 @@ impl ControlPanel {
                 ui.visuals_mut().widgets.active.weak_bg_fill = egui::Color32::BLACK;
                 ui.visuals_mut().widgets.open.weak_bg_fill = egui::Color32::BLACK;
 
+                let mut selected_mut = selected;
+
                 egui::ComboBox::from_id_salt(id)
                     .width(width as f32)
-                    .selected_text(egui::RichText::new(selections[*selected as usize]).size(10.5))
+                    .selected_text(egui::RichText::new(selections[selected as usize]).size(10.5))
                     .show_ui(ui, |ui| {
                         for (i, selection) in selections.iter().enumerate() {
-                            let response = ui.selectable_value(selected, i as u8, *selection);
+                            let response =
+                                ui.selectable_value(&mut selected_mut, i as u8, *selection);
 
                             if response.changed() {
-                                changed_callback(*selected);
+                                changed_callback(selected_mut);
                             }
                         }
                     });
