@@ -8,4 +8,6 @@ pub struct OrionState {
     pub clock_source: u8,
     pub sample_rate: u8,
     pub line_out: u8,
+
+    pub routes: [[u8; 32]; 7],
 }
