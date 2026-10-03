@@ -33,10 +33,7 @@ fn main() -> eframe::Result {
 
     orion_hid.queue_init();
 
-    let control_panel = ControlPanel {
-        orion_state: Arc::clone(&orion_state),
-        orion_hid: orion_hid,
-    };
+    let control_panel = ControlPanel::new(Arc::clone(&orion_state), orion_hid);
 
     eframe::run_native(
         "Orion 32 Control Panel",
