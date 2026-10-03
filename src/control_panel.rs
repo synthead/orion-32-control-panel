@@ -8,6 +8,22 @@ use std::sync::Mutex;
 use crate::orion_hid::OrionHid;
 use crate::orion_state::OrionState;
 
+struct ControlPanelRoutingLabels {
+    adc: [String; 32],
+    usb_play: [String; 32],
+    madi_in: [String; 64],
+    adat_in: [String; 8],
+    spdif_in: [String; 2],
+    mix_lr: [String; 2],
+
+    dac: [String; 32],
+    usb_rec: [String; 32],
+    madi_out: [String; 64],
+    adat_out: [String; 8],
+    spdif_out: [String; 2],
+    mix_ch: [String; 32],
+}
+
 pub struct ControlPanel {
     pub orion_state: Arc<Mutex<OrionState>>,
     pub orion_hid: OrionHid,
