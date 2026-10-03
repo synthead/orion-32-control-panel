@@ -55,6 +55,9 @@ impl OrionHidPoller {
             (0x75, 0x10, 0x01) => {
                 Self::transform_serial(hid_data, orion_state);
             }
+            (0x75, 0x10, 0x02) => {
+                Self::transform_routes(hid_data, orion_state);
+            }
             _ => {}
         }
     }
@@ -77,6 +80,12 @@ impl OrionHidPoller {
 
     fn transform_serial(hid_data: &[u8; 64], orion_state: &mut OrionState) {
         orion_state.serial = hid_data[36..49].try_into().unwrap();
+    }
+
+    fn transform_routes(hid_data: &[u8; 64], orion_state: &mut OrionState) {
+        let source_index = hid_data[16] as usize;
+
+        orion_state.routes[source_index] = hid_data[17..49].try_into().unwrap()
     }
 
     fn hid_api(&mut self) -> &mut HidApi {
