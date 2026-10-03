@@ -220,9 +220,9 @@ impl ControlPanel {
             });
     }
 
-    fn draw_route(ui: &mut egui::Ui, rect_x: i16, rect_y: i16, color: (u8, u8, u8), text: &str) {
-        let pos_x = 128 + rect_x * 30;
-        let pos_y = 285 + rect_y * 15;
+    fn draw_route(ui: &mut egui::Ui, rect_x: u8, rect_y: u8, color: (u8, u8, u8), text: &str) {
+        let pos_x = 128 + rect_x as u16 * 30;
+        let pos_y = 285 + rect_y as u16 * 15;
 
         ui.painter().rect_filled(
             egui::Rect::from_min_size(
@@ -236,7 +236,7 @@ impl ControlPanel {
         Self::draw_text(ui, pos_x + 15, pos_y, (0xff, 0xff, 0xff), text);
     }
 
-    fn draw_text(ui: &mut egui::Ui, center_x: i16, pos_y: i16, color: (u8, u8, u8), text: &str) {
+    fn draw_text(ui: &mut egui::Ui, center_x: u16, pos_y: u16, color: (u8, u8, u8), text: &str) {
         let color = egui::Color32::from_rgb(color.0, color.1, color.2);
         let label = egui::Label::new(egui::RichText::new(text).strong().size(12.0).color(color));
         let (_, galley, _) = label.layout_in_ui(ui);
