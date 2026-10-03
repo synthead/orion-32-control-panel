@@ -48,25 +48,35 @@ impl OrionHidPoller {
     }
 
     pub fn update_orion_state(hid_data: &[u8; 64], orion_state: &mut OrionState) {
-        if hid_data[0] == 0x73 {
-            orion_state.left_vu_source = hid_data[30] & 0x0f;
-            orion_state.right_vu_source = hid_data[30] >> 4;
-            orion_state.clock_source = hid_data[19];
-            orion_state.sample_rate = hid_data[18];
-            orion_state.line_out = hid_data[28];
-
-            let vu = if hid_data[31] == 1 {
-                &mut orion_state.left_vu_values
-            } else {
-                &mut orion_state.right_vu_values
-            };
-
-            *vu = hid_data[32..].try_into().unwrap();
+        match (hid_data[0], hid_data[4], hid_data[12]) {
+            (0x73, 0x00, 0x00) => {
+                Self::transform_vu(hid_data, orion_state);
+            }
+            (0x75, 0x10, 0x01) => {
+                Self::transform_serial(hid_data, orion_state);
+            }
+            _ => {}
         }
+    }
 
-        if hid_data[0] == 0x75 {
-            orion_state.serial = hid_data[36..49].try_into().unwrap();
-        }
+    fn transform_vu(hid_data: &[u8; 64], orion_state: &mut OrionState) {
+        orion_state.left_vu_source = hid_data[30] & 0x0f;
+        orion_state.right_vu_source = hid_data[30] >> 4;
+        orion_state.clock_source = hid_data[19];
+        orion_state.sample_rate = hid_data[18];
+        orion_state.line_out = hid_data[28];
+
+        let vu = if hid_data[31] == 1 {
+            &mut orion_state.left_vu_values
+        } else {
+            &mut orion_state.right_vu_values
+        };
+
+        *vu = hid_data[32..].try_into().unwrap();
+    }
+
+    fn transform_serial(hid_data: &[u8; 64], orion_state: &mut OrionState) {
+        orion_state.serial = hid_data[36..49].try_into().unwrap();
     }
 
     fn hid_api(&mut self) -> &mut HidApi {
