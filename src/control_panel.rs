@@ -166,7 +166,9 @@ impl ControlPanel {
 
                 let serial = String::from_utf8_lossy(&orion_state.serial);
 
-                Self::draw_combobox(ui, 950, 7, 110, &mut 0, &[&serial], "serial", |selected| {});
+                Self::draw_combobox(ui, 950, 7, 110, &mut 0, &[&serial], "serial", |_selected| {
+                    // TODO: Implement multi-interface control, and switch it here.
+                });
 
                 Self::draw_combobox(
                     ui,
