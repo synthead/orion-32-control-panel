@@ -13,6 +13,10 @@ impl OrionHid {
         self.queue_packet(0x74, 0x10, 0x01, &[]);
     }
 
+    pub fn queue_clock_source(&mut self, clock_source: u8) {
+        self.queue_packet(0x70, 0x12, 0x00, &[0x03, clock_source]);
+    }
+
     pub fn queue_sample_rate(&mut self, sample_rate: u8) {
         self.queue_packet(0x70, 0x16, 0x00, &[0xc2, 0x04, sample_rate]);
     }

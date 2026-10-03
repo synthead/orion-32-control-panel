@@ -198,7 +198,9 @@ impl ControlPanel {
                     &mut orion_state.clock_source,
                     &Self::CLOCK_SOURCE_SELECTIONS,
                     "clock_source",
-                    |selected| {},
+                    |selected| {
+                        self.orion_hid.queue_clock_source(selected);
+                    },
                 );
 
                 Self::draw_combobox(
