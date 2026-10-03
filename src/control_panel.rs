@@ -475,33 +475,21 @@ impl ControlPanel {
 
     fn route_color(source: u8) -> egui::Color32 {
         match source {
-            // Osc 1
             0x07 => ControlPanelRouteColors::OSC_1,
-            // Osc 2
             0x0f => ControlPanelRouteColors::OSC_2,
-            // Mute
             0x17 => ControlPanelRouteColors::MUTE,
 
-            _ => {
-                match source % 0x08 {
-                    // ADC
-                    0x00 => ControlPanelRouteColors::ADC_DAC,
-                    // USB play
-                    0x01 => ControlPanelRouteColors::USB,
-                    // MADI in 0-31
-                    0x02 => ControlPanelRouteColors::MADI,
-                    // MADI in 32-64
-                    0x03 => ControlPanelRouteColors::MADI,
-                    // ADAT in
-                    0x04 => ControlPanelRouteColors::ADAT,
-                    // S/PDIF in
-                    0x05 => ControlPanelRouteColors::SPDIF,
-                    // Mix L/R
-                    0x06 => ControlPanelRouteColors::MIX_LR,
+            _ => match source % 0x08 {
+                0x00 => ControlPanelRouteColors::ADC_DAC,
+                0x01 => ControlPanelRouteColors::USB,
+                0x02 => ControlPanelRouteColors::MADI,
+                0x03 => ControlPanelRouteColors::MADI,
+                0x04 => ControlPanelRouteColors::ADAT,
+                0x05 => ControlPanelRouteColors::SPDIF,
+                0x06 => ControlPanelRouteColors::MIX_LR,
 
-                    _ => egui::Color32::BLACK,
-                }
-            }
+                _ => egui::Color32::BLACK,
+            },
         }
     }
 
