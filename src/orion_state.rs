@@ -1,4 +1,4 @@
-#[derive(Default)]
+#[derive(Clone, Default)]
 pub struct OrionState {
     pub serial: [u8; 13],
     pub left_vu_source: u8,
