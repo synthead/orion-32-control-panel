@@ -277,7 +277,7 @@ impl ControlPanel {
 
             ui.painter().rect_filled(rect, 0.0, color);
 
-            let id = ui.id().with(("route", rect_x, rect_y));
+            let id = ui.id().with(("route_label", rect_x, rect_y));
             let response = ui.interact(rect, id, egui::Sense::click());
 
             if response.double_clicked() {
