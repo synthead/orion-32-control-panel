@@ -20,6 +20,7 @@ impl ControlPanelRouteColors {
     const OSC_1: egui::Color32 = egui::Color32::from_rgb(0x38, 0x90, 0xa7);
     const OSC_2: egui::Color32 = egui::Color32::from_rgb(0x90, 0x38, 0xa7);
     const MUTE: egui::Color32 = egui::Color32::from_rgb(0x7b, 0x7b, 0x7b);
+    const SELECT: egui::Color32 = egui::Color32::from_rgb(0x91, 0xb4, 0xdf);
 }
 
 pub struct ControlPanel {
@@ -29,6 +30,7 @@ pub struct ControlPanel {
     route_source_counts: [usize; 7],
     route_target_counts: [usize; 7],
     label_edit_rect: Option<[u8; 2]>,
+    label_source_select_rects: (u8, Vec<u8>),
     label_edit_string: String,
 }
 
@@ -125,6 +127,7 @@ impl ControlPanel {
             orion_hid,
             route_labels,
             label_edit_rect: None,
+            label_source_select_rects: (0, Vec::new()),
             route_source_counts: [0; 7],
             route_target_counts: [0; 7],
             label_edit_string: String::new(),
@@ -204,6 +207,8 @@ impl ControlPanel {
 
                 self.draw_route_sources(ui);
                 self.draw_route_targets(ui, &orion_state.routes);
+
+                self.draw_route_source_selections(ui);
 
                 if self.label_edit_rect.is_some() {
                     self.draw_route_editor(ui);
@@ -318,6 +323,26 @@ impl ControlPanel {
 
                 Self::draw_text(ui, pos_x + 15, pos_y, (0xff, 0xff, 0xff), label);
             }
+        }
+    }
+
+    fn draw_route_source_selections(&self, ui: &mut egui::Ui) {
+        let (rect_y, rect_xs) = &self.label_source_select_rects;
+
+        for &rect_x in rect_xs {
+            let label = &self.route_labels[*rect_y as usize][rect_x as usize];
+
+            let pos_x = 127 + rect_x as u16 * 30;
+            let pos_y = 284 + *rect_y as u16 * 15;
+
+            let rect = egui::Rect::from_min_size(
+                egui::pos2(pos_x as f32, pos_y as f32),
+                egui::vec2(29.0, 14.0),
+            );
+
+            ui.painter().rect_filled(rect, 0.0, ControlPanelRouteColors::SELECT);
+
+            Self::draw_text(ui, pos_x + 15, pos_y, (0xff, 0xff, 0xff), &label);
         }
     }
 
