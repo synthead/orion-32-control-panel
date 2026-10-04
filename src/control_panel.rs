@@ -27,6 +27,7 @@ pub struct ControlPanel {
     pub orion_hid: OrionHid,
     route_labels: [[String; 32]; 7],
     label_edit_rect: Option<[u8; 2]>,
+    label_edit_string: String,
 }
 
 macro_rules! render_asset {
@@ -122,6 +123,7 @@ impl ControlPanel {
             orion_hid,
             route_labels,
             label_edit_rect: None,
+            label_edit_string: String::new(),
         }
     }
 
@@ -265,7 +267,7 @@ impl ControlPanel {
         color: egui::Color32,
     ) {
         for rect_x in 0..rect_count {
-            let label = &self.route_labels[rect_y as usize][rect_x as usize].clone();
+            let label = &self.route_labels[rect_y as usize][rect_x as usize];
 
             let pos_x = 127 + rect_x as u16 * 30;
             let pos_y = 284 + rect_y as u16 * 15;
@@ -281,10 +283,11 @@ impl ControlPanel {
             let response = ui.interact(rect, id, egui::Sense::click());
 
             if response.double_clicked() {
+                self.label_edit_string = label.clone();
                 self.label_edit_rect = Some([rect_x, rect_y]);
             }
 
-            Self::draw_text(ui, pos_x + 15, pos_y, (0xff, 0xff, 0xff), label);
+            Self::draw_text(ui, pos_x + 15, pos_y, (0xff, 0xff, 0xff), &label);
         }
     }
 
@@ -317,11 +320,10 @@ impl ControlPanel {
     fn draw_route_editor(&mut self, ui: &mut egui::Ui) {
         let [rect_x, rect_y] = self.label_edit_rect.unwrap();
 
-        let label = &mut self.route_labels[rect_y as usize][rect_x as usize];
-        let color = Self::route_color_for_source(rect_y);
-
         let pos_x = 113 + rect_x as u16 * 30;
         let pos_y = 282 + rect_y as u16 * 15;
+
+        let color = Self::route_color_for_source(rect_y);
 
         let rect = egui::Rect::from_min_size(
             egui::pos2(pos_x as f32, pos_y as f32),
@@ -350,6 +352,7 @@ impl ControlPanel {
                     .interact_pos()
                     .is_some_and(|pos| !hitbox_rect.contains(pos))
         }) {
+            self.route_labels[rect_y as usize][rect_x as usize] = self.label_edit_string.clone();
             self.label_edit_rect = None;
         }
 
@@ -359,7 +362,7 @@ impl ControlPanel {
             let mut state = egui::widgets::text_edit::TextEditState::load(ui.ctx(), text_edit_id)
                 .unwrap_or_default();
 
-            let label_chars = label.chars().count();
+            let label_chars = self.label_edit_string.chars().count();
 
             state
                 .cursor
@@ -375,7 +378,7 @@ impl ControlPanel {
 
         let response = ui.put(
             rect,
-            egui::TextEdit::singleline(label)
+            egui::TextEdit::singleline(&mut self.label_edit_string)
                 .id(text_edit_id)
                 .font(egui::FontId::proportional(12.0))
                 .horizontal_align(egui::Align::Center)
@@ -385,6 +388,11 @@ impl ControlPanel {
         );
 
         if ui.input(|i| i.key_pressed(egui::Key::Enter)) {
+            self.route_labels[rect_y as usize][rect_x as usize] = self.label_edit_string.clone();
+            self.label_edit_rect = None;
+        }
+
+        if ui.input(|i| i.key_pressed(egui::Key::Escape)) {
             self.label_edit_rect = None;
         }
     }
