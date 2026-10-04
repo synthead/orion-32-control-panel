@@ -26,6 +26,7 @@ pub struct ControlPanel {
     pub orion_state: Arc<Mutex<OrionState>>,
     pub orion_hid: OrionHid,
     route_labels: [[String; 32]; 7],
+    label_edit_id: Option<egui::Id>,
 }
 
 macro_rules! render_asset {
@@ -120,7 +121,7 @@ impl ControlPanel {
             orion_state,
             orion_hid,
             route_labels,
-            editing_id: None,
+            label_edit_id: None,
         }
     }
 
@@ -253,16 +254,33 @@ impl ControlPanel {
     }
 
     fn draw_route_sources(
-        &self,
+        &mut self,
         ui: &mut egui::Ui,
         rect_y: u8,
         rect_count: u8,
         color: egui::Color32,
     ) {
         for rect_x in 0..rect_count {
-            let label = &self.route_labels[rect_y as usize][rect_x as usize];
+            let label = &self.route_labels[rect_y as usize][rect_x as usize].clone();
 
-            Self::draw_route(ui, rect_x, rect_y, color, label);
+            let pos_x = 127 + rect_x as u16 * 30;
+            let pos_y = 284 + rect_y as u16 * 15;
+
+            let rect = egui::Rect::from_min_size(
+                egui::pos2(pos_x as f32, pos_y as f32),
+                egui::vec2(29.0, 14.0),
+            );
+
+            ui.painter().rect_filled(rect, 0.0, color);
+
+            let id = ui.id().with(("route", rect_x, rect_y));
+            let response = ui.interact(rect, id, egui::Sense::click());
+
+            if response.double_clicked() {
+                self.label_edit_id = Some(id);
+            }
+
+            Self::draw_text(ui, pos_x + 15, pos_y, (0xff, 0xff, 0xff), label);
         }
     }
 
@@ -278,24 +296,18 @@ impl ControlPanel {
             let color = Self::route_color(source);
             let label = &self.label_for_source(source);
 
-            Self::draw_route(ui, rect_x, rect_y + 11, color, label);
-        }
-    }
+            let pos_x = 127 + rect_x as u16 * 30;
+            let pos_y = 448 + rect_y as u16 * 15;
 
-    fn draw_route(ui: &mut egui::Ui, rect_x: u8, rect_y: u8, color: egui::Color32, label: &String) {
-        let pos_x = 128 + rect_x as u16 * 30;
-        let pos_y = 285 + rect_y as u16 * 15;
-
-        ui.painter().rect_filled(
-            egui::Rect::from_min_size(
+            let rect = egui::Rect::from_min_size(
                 egui::pos2(pos_x as f32, pos_y as f32),
                 egui::vec2(29.0, 14.0),
-            ),
-            0.0,
-            color,
-        );
+            );
 
-        Self::draw_text(ui, pos_x + 15, pos_y, (0xff, 0xff, 0xff), label);
+            ui.painter().rect_filled(rect, 0.0, color);
+
+            Self::draw_text(ui, pos_x + 15, pos_y, (0xff, 0xff, 0xff), label);
+        }
     }
 
     fn draw_text(ui: &mut egui::Ui, center_x: u16, pos_y: u16, color: (u8, u8, u8), text: &str) {
