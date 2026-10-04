@@ -396,6 +396,27 @@ impl ControlPanel {
             self.label_edit_rect = None;
         }
 
+        if ui.input(|i| i.key_pressed(egui::Key::Tab)) {
+            self.route_labels[rect_y as usize][rect_x as usize] = self.label_edit_string.clone();
+
+            let mut rect_x_next = rect_x as usize;
+            let mut rect_y_next = rect_y as usize;
+
+            rect_x_next += 1;
+
+            if rect_x_next >= self.route_source_counts[rect_y_next] {
+                rect_x_next = 0;
+                rect_y_next += 1;
+            }
+
+            if rect_y_next >= self.route_source_counts.len() {
+                rect_y_next = 0;
+            }
+
+            self.label_edit_string = self.route_labels[rect_y_next][rect_x_next].clone();
+            self.label_edit_rect = Some([rect_x_next as u8, rect_y_next as u8]);
+        }
+
         if ui.input(|i| i.key_pressed(egui::Key::Escape)) {
             self.label_edit_rect = None;
         }
