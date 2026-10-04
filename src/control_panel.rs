@@ -388,7 +388,11 @@ impl ControlPanel {
                 .horizontal_align(egui::Align::Center)
                 .vertical_align(egui::Align::Center)
                 .text_color(egui::Color32::WHITE)
-                .frame(egui::Frame::NONE),
+                .frame(egui::Frame::NONE)
+                .event_filter(egui::EventFilter {
+                    tab: true,
+                    ..Default::default()
+                }),
         );
 
         if ui.input(|i| i.key_pressed(egui::Key::Enter)) {
