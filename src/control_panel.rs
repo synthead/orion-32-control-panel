@@ -39,7 +39,7 @@ macro_rules! render_asset {
             |ui| {
                 ui.add(
                     egui::Image::new(egui::include_image!(concat!(
-                        "../assets/",
+                        "../assets/images/",
                         $subpath,
                         ".png"
                     )))
@@ -54,7 +54,7 @@ macro_rules! render_asset {
 macro_rules! render_peak {
     ($ui:expr, $x:expr, $y:expr, $db:expr, $subpath:literal) => {{
         let image = egui::Image::new(egui::include_image!(concat!(
-            "../assets/",
+            "../assets/images/",
             $subpath,
             ".png"
         )))
