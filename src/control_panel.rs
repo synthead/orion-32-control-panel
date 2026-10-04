@@ -26,7 +26,7 @@ pub struct ControlPanel {
     pub orion_state: Arc<Mutex<OrionState>>,
     pub orion_hid: OrionHid,
     route_labels: [[String; 32]; 7],
-    label_edit_id: Option<egui::Id>,
+    label_edit_rect: Option<[u8; 2]>,
 }
 
 macro_rules! render_asset {
@@ -121,7 +121,7 @@ impl ControlPanel {
             orion_state,
             orion_hid,
             route_labels,
-            label_edit_id: None,
+            label_edit_rect: None,
         }
     }
 
@@ -191,6 +191,10 @@ impl ControlPanel {
                 self.draw_route_targets(ui, 4, adat_count, &orion_state.routes[4]);
                 self.draw_route_targets(ui, 5, 2, &orion_state.routes[5]);
                 self.draw_route_targets(ui, 6, 32, &orion_state.routes[6]);
+
+                if self.label_edit_rect.is_some() {
+                    self.draw_route_editor(ui);
+                }
 
                 let line_out_value = (((orion_state.line_out) as f32 / 255.0) * -96.0) as i8;
                 let line_out_text = format!("{} dB", line_out_value);
@@ -277,7 +281,7 @@ impl ControlPanel {
             let response = ui.interact(rect, id, egui::Sense::click());
 
             if response.double_clicked() {
-                self.label_edit_id = Some(id);
+                self.label_edit_rect = Some([rect_x, rect_y]);
             }
 
             Self::draw_text(ui, pos_x + 15, pos_y, (0xff, 0xff, 0xff), label);
@@ -308,6 +312,48 @@ impl ControlPanel {
 
             Self::draw_text(ui, pos_x + 15, pos_y, (0xff, 0xff, 0xff), label);
         }
+    }
+
+    fn draw_route_editor(&mut self, ui: &mut egui::Ui) {
+        let [rect_x, rect_y] = self.label_edit_rect.unwrap();
+
+        let label = &self.route_labels[rect_y as usize][rect_x as usize].clone();
+        let color = Self::route_color_for_source(rect_y);
+
+        let pos_x = 113 + rect_x as u16 * 30;
+        let pos_y = 282 + rect_y as u16 * 15;
+
+        let rect = egui::Rect::from_min_size(
+            egui::pos2(pos_x as f32, pos_y as f32),
+            egui::vec2(58.0, 18.0),
+        );
+
+        ui.painter().rect(
+            rect,
+            egui::CornerRadius::same(5),
+            color,
+            egui::Stroke::new(1.0, egui::Color32::BLACK),
+            egui::StrokeKind::Inside,
+        );
+
+        let hitbox_pos_x = 127 + rect_x as u16 * 30;
+        let hitbox_pos_y = 284 + rect_y as u16 * 15;
+
+        let hitbox_rect = egui::Rect::from_min_size(
+            egui::pos2(hitbox_pos_x as f32, hitbox_pos_y as f32),
+            egui::vec2(29.0, 14.0),
+        );
+
+        if ui.input(|i| {
+            i.pointer.any_click()
+                && i.pointer
+                    .interact_pos()
+                    .is_some_and(|pos| !hitbox_rect.contains(pos))
+        }) {
+            self.label_edit_rect = None;
+        }
+
+        Self::draw_text(ui, pos_x + 29, pos_y + 2, (0xff, 0xff, 0xff), label);
     }
 
     fn draw_text(ui: &mut egui::Ui, center_x: u16, pos_y: u16, color: (u8, u8, u8), text: &str) {
