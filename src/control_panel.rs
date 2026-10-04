@@ -303,8 +303,16 @@ impl ControlPanel {
                         *rect_y_selected = rect_y as u8;
                     }
 
-                    rect_x_selections.clear();
-                    rect_x_selections.insert(rect_x);
+                    if ui.input(|i| i.modifiers.ctrl) {
+                        if rect_x_selections.contains(&rect_x) {
+                            rect_x_selections.remove(&rect_x);
+                        } else {
+                            rect_x_selections.insert(rect_x);
+                        }
+                    } else {
+                        rect_x_selections.clear();
+                        rect_x_selections.insert(rect_x);
+                    }
                 }
 
                 if response.double_clicked() {
