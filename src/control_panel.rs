@@ -317,7 +317,7 @@ impl ControlPanel {
     fn draw_route_editor(&mut self, ui: &mut egui::Ui) {
         let [rect_x, rect_y] = self.label_edit_rect.unwrap();
 
-        let label = &self.route_labels[rect_y as usize][rect_x as usize].clone();
+        let label = &mut self.route_labels[rect_y as usize][rect_x as usize];
         let color = Self::route_color_for_source(rect_y);
 
         let pos_x = 113 + rect_x as u16 * 30;
@@ -353,7 +353,40 @@ impl ControlPanel {
             self.label_edit_rect = None;
         }
 
-        Self::draw_text(ui, pos_x + 29, pos_y + 2, (0xff, 0xff, 0xff), label);
+        let text_edit_id = ui.id().with(("label_route_edit", rect_x, rect_y));
+
+        if !ui.memory(|mem| mem.has_focus(text_edit_id)) {
+            let mut state = egui::widgets::text_edit::TextEditState::load(ui.ctx(), text_edit_id)
+                .unwrap_or_default();
+
+            let label_chars = label.chars().count();
+
+            state
+                .cursor
+                .set_char_range(Some(egui::text::CCursorRange::two(
+                    egui::text::CCursor::new(0),
+                    egui::text::CCursor::new(label_chars),
+                )));
+
+            state.store(ui.ctx(), text_edit_id);
+
+            ui.memory_mut(|mem| mem.request_focus(text_edit_id));
+        }
+
+        let response = ui.put(
+            rect,
+            egui::TextEdit::singleline(label)
+                .id(text_edit_id)
+                .font(egui::FontId::proportional(12.0))
+                .horizontal_align(egui::Align::Center)
+                .vertical_align(egui::Align::Center)
+                .text_color(egui::Color32::WHITE)
+                .frame(egui::Frame::NONE),
+        );
+
+        if ui.input(|i| i.key_pressed(egui::Key::Enter)) {
+            self.label_edit_rect = None;
+        }
     }
 
     fn draw_text(ui: &mut egui::Ui, center_x: u16, pos_y: u16, color: (u8, u8, u8), text: &str) {
