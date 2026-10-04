@@ -2,6 +2,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use eframe::egui;
+use std::collections::HashSet;
 use std::sync::Arc;
 use std::sync::Mutex;
 
@@ -30,7 +31,7 @@ pub struct ControlPanel {
     route_source_counts: [usize; 7],
     route_target_counts: [usize; 7],
     label_edit_rect: Option<[u8; 2]>,
-    label_source_select_rects: (u8, Vec<u8>),
+    label_source_select_rects: (u8, HashSet<u8>),
     label_edit_string: String,
 }
 
@@ -127,7 +128,7 @@ impl ControlPanel {
             orion_hid,
             route_labels,
             label_edit_rect: None,
-            label_source_select_rects: (0, Vec::new()),
+            label_source_select_rects: (0, HashSet::new()),
             route_source_counts: [0; 7],
             route_target_counts: [0; 7],
             label_edit_string: String::new(),
@@ -277,8 +278,8 @@ impl ControlPanel {
 
     fn draw_route_sources(&mut self, ui: &mut egui::Ui) {
         for (rect_y, &rect_x_max) in self.route_source_counts.iter().enumerate() {
-            for rect_x in 0..rect_x_max {
-                let label = &self.route_labels[rect_y][rect_x];
+            for rect_x in 0..rect_x_max as u8 {
+                let label = &self.route_labels[rect_y][rect_x as usize];
                 let color = Self::route_color_for_source(rect_y as u8);
 
                 let pos_x = 127 + rect_x as u16 * 30;
@@ -291,12 +292,24 @@ impl ControlPanel {
 
                 ui.painter().rect_filled(rect, 0.0, color);
 
-                let id = ui.id().with(("route_label", rect_x as u8, rect_y as u8));
+                let id = ui.id().with(("route_label", rect_x, rect_y as u8));
                 let response = ui.interact(rect, id, egui::Sense::click());
+
+                if response.clicked() {
+                    let (rect_y_selected, rect_x_selections) = &mut self.label_source_select_rects;
+
+                    if *rect_y_selected != rect_y as u8 {
+                        rect_x_selections.clear();
+                        *rect_y_selected = rect_y as u8;
+                    }
+
+                    rect_x_selections.clear();
+                    rect_x_selections.insert(rect_x);
+                }
 
                 if response.double_clicked() {
                     self.label_edit_string = label.clone();
-                    self.label_edit_rect = Some([rect_x as u8, rect_y as u8]);
+                    self.label_edit_rect = Some([rect_x, rect_y as u8]);
                 }
 
                 Self::draw_text(ui, pos_x + 15, pos_y, (0xff, 0xff, 0xff), &label);
