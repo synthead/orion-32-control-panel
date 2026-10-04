@@ -293,8 +293,8 @@ impl ControlPanel {
     ) {
         for rect_x in 0..rect_count {
             let source = sources[rect_x as usize];
-            let color = Self::route_color(source);
-            let label = &self.label_for_source(source);
+            let color = Self::route_color_for_source(source);
+            let label = &self.route_label_for_source(source);
 
             let pos_x = 127 + rect_x as u16 * 30;
             let pos_y = 448 + rect_y as u16 * 15;
@@ -363,7 +363,7 @@ impl ControlPanel {
         );
     }
 
-    fn label_for_source(&self, source: u8) -> String {
+    fn route_label_for_source(&self, source: u8) -> String {
         match source {
             0x07 => "O1".to_string(),
             0x0f => "O2".to_string(),
@@ -378,7 +378,7 @@ impl ControlPanel {
         }
     }
 
-    fn route_color(source: u8) -> egui::Color32 {
+    fn route_color_for_source(source: u8) -> egui::Color32 {
         match source {
             0x07 => ControlPanelRouteColors::OSC_1,
             0x0f => ControlPanelRouteColors::OSC_2,
