@@ -26,6 +26,7 @@ pub struct ControlPanel {
     pub orion_state: Arc<Mutex<OrionState>>,
     pub orion_hid: OrionHid,
     route_labels: [[String; 32]; 7],
+    route_source_ranges: [std::ops::Range<usize>; 7],
     label_edit_rect: Option<[u8; 2]>,
     label_edit_string: String,
 }
@@ -123,6 +124,7 @@ impl ControlPanel {
             orion_hid,
             route_labels,
             label_edit_rect: None,
+            route_source_ranges: std::array::from_fn(|_| 0..0),
             label_edit_string: String::new(),
         }
     }
@@ -178,13 +180,17 @@ impl ControlPanel {
                     _ => 16,
                 };
 
-                self.draw_route_sources(ui, 0, 32, ControlPanelRouteColors::ADC_DAC);
-                self.draw_route_sources(ui, 1, 32, ControlPanelRouteColors::USB);
-                self.draw_route_sources(ui, 2, madi_1_count, ControlPanelRouteColors::MADI);
-                self.draw_route_sources(ui, 3, madi_2_count, ControlPanelRouteColors::MADI);
-                self.draw_route_sources(ui, 4, adat_count, ControlPanelRouteColors::ADAT);
-                self.draw_route_sources(ui, 5, 2, ControlPanelRouteColors::SPDIF);
-                self.draw_route_sources(ui, 6, 2, ControlPanelRouteColors::MIX_LR);
+                self.route_source_ranges = [
+                    0..32,
+                    0..32,
+                    0..madi_1_count.try_into().unwrap(),
+                    0..madi_2_count.try_into().unwrap(),
+                    0..adat_count.try_into().unwrap(),
+                    0..2,
+                    0..2,
+                ];
+
+                self.draw_route_sources(ui);
 
                 self.draw_route_targets(ui, 0, 32, &orion_state.routes[0]);
                 self.draw_route_targets(ui, 1, 32, &orion_state.routes[1]);
@@ -259,35 +265,32 @@ impl ControlPanel {
             });
     }
 
-    fn draw_route_sources(
-        &mut self,
-        ui: &mut egui::Ui,
-        rect_y: u8,
-        rect_count: u8,
-        color: egui::Color32,
-    ) {
-        for rect_x in 0..rect_count {
-            let label = &self.route_labels[rect_y as usize][rect_x as usize];
+    fn draw_route_sources(&mut self, ui: &mut egui::Ui) {
+        for (rect_y, rect_x_range) in self.route_source_ranges.iter().enumerate() {
+            for rect_x in rect_x_range.clone() {
+                let label = &self.route_labels[rect_y][rect_x as usize];
+                let color = Self::route_color_for_source(rect_y as u8);
 
-            let pos_x = 127 + rect_x as u16 * 30;
-            let pos_y = 284 + rect_y as u16 * 15;
+                let pos_x = 127 + rect_x as u16 * 30;
+                let pos_y = 284 + rect_y as u16 * 15;
 
-            let rect = egui::Rect::from_min_size(
-                egui::pos2(pos_x as f32, pos_y as f32),
-                egui::vec2(29.0, 14.0),
-            );
+                let rect = egui::Rect::from_min_size(
+                    egui::pos2(pos_x as f32, pos_y as f32),
+                    egui::vec2(29.0, 14.0),
+                );
 
-            ui.painter().rect_filled(rect, 0.0, color);
+                ui.painter().rect_filled(rect, 0.0, color);
 
-            let id = ui.id().with(("route_label", rect_x, rect_y));
-            let response = ui.interact(rect, id, egui::Sense::click());
+                let id = ui.id().with(("route_label", rect_x as u8, rect_y as u8));
+                let response = ui.interact(rect, id, egui::Sense::click());
 
-            if response.double_clicked() {
-                self.label_edit_string = label.clone();
-                self.label_edit_rect = Some([rect_x, rect_y]);
+                if response.double_clicked() {
+                    self.label_edit_string = label.clone();
+                    self.label_edit_rect = Some([rect_x as u8, rect_y as u8]);
+                }
+
+                Self::draw_text(ui, pos_x + 15, pos_y, (0xff, 0xff, 0xff), &label);
             }
-
-            Self::draw_text(ui, pos_x + 15, pos_y, (0xff, 0xff, 0xff), &label);
         }
     }
 
