@@ -301,7 +301,7 @@ impl ControlPanel {
         for row in 0..self.route_source_counts.len() {
             for column in 0..self.route_source_counts[row] as u8 {
                 let label = &self.route_labels[row][column as usize].clone();
-                let color = Self::route_color_for_source(row as u8);
+                let color = Self::route_color_for_route(row as u8);
 
                 let pos_x = 127 + column as u16 * 30;
                 let pos_y = 284 + row as u16 * 15;
@@ -374,9 +374,9 @@ impl ControlPanel {
     fn draw_route_targets(&self, ui: &mut egui::Ui, sources: &[[u8; 32]; 7]) {
         for (row, &column_max) in self.route_target_counts.iter().enumerate() {
             for column in 0..column_max {
-                let source = sources[row][column];
-                let color = Self::route_color_for_source(source);
-                let label = &self.route_label_for_source(source);
+                let route = routes[row][column];
+                let color = Self::route_color_for_route(route);
+                let label = &self.route_label_for_route(route);
 
                 let pos_x = 127 + column as u16 * 30;
                 let pos_y = 448 + row as u16 * 15;
@@ -419,7 +419,7 @@ impl ControlPanel {
         let pos_x = 113 + column as u16 * 30;
         let pos_y = 282 + row as u16 * 15;
 
-        let color = Self::route_color_for_source(row);
+        let color = Self::route_color_for_route(row);
 
         let rect = egui::Rect::from_min_size(
             egui::pos2(pos_x as f32, pos_y as f32),
@@ -574,28 +574,28 @@ impl ControlPanel {
         );
     }
 
-    fn route_label_for_source(&self, source: u8) -> String {
-        match source {
+    fn route_label_for_route(&self, route: u8) -> String {
+        match route {
             0x07 => "O1".to_string(),
             0x0f => "O2".to_string(),
             0x17 => "M".to_string(),
 
             _ => {
-                let source_type = source % 0x08;
-                let source_index = source / 0x08;
+                let route_type = route % 0x08;
+                let route_index = route / 0x08;
 
-                self.route_labels[source_type as usize][source_index as usize].clone()
+                self.route_labels[route_type as usize][route_index as usize].clone()
             }
         }
     }
 
-    fn route_color_for_source(source: u8) -> egui::Color32 {
-        match source {
+    fn route_color_for_route(route: u8) -> egui::Color32 {
+        match route {
             0x07 => ControlPanelRouteColors::OSC_1,
             0x0f => ControlPanelRouteColors::OSC_2,
             0x17 => ControlPanelRouteColors::MUTE,
 
-            _ => match source % 0x08 {
+            _ => match route % 0x08 {
                 0x00 => ControlPanelRouteColors::ADC_DAC,
                 0x01 => ControlPanelRouteColors::USB,
                 0x02 => ControlPanelRouteColors::MADI,
