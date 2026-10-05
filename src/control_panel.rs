@@ -235,6 +235,7 @@ impl ControlPanel {
                 self.draw_route_targets(ui, &orion_state.routes);
 
                 self.draw_route_selections(ui);
+                self.reset_target_selection_when_outside(ui);
 
                 if self.route_label_edit_cell.is_some() {
                     self.draw_route_editor(ui);
@@ -444,6 +445,16 @@ impl ControlPanel {
 
         if let Some([target_column, target_row]) = self.route_target_select_cell {
             self.draw_route_selection(ui, target_column, target_row, false);
+        }
+    }
+
+    fn reset_target_selection_when_outside(&mut self, ui: &mut egui::Ui) {
+        let rect = egui::Rect::from_min_max(egui::pos2(127.0, 448.0), egui::pos2(1086.0, 552.0));
+        let hover = ui.rect_contains_pointer(rect);
+
+        if self.route_target_select_cell.is_some() && !hover {
+            self.route_target_select_cell = None;
+            self.route_source_select_columns.clear();
         }
     }
 
