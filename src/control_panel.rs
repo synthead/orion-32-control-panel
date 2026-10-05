@@ -2,6 +2,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use eframe::egui;
+use std::collections::BTreeSet;
 use std::collections::HashSet;
 use std::sync::Arc;
 use std::sync::Mutex;
@@ -36,8 +37,13 @@ pub struct ControlPanel {
     route_label_edit_rect: Option<[u8; 2]>,
     route_label_edit_string: String,
 
+    route_source_select_range_rect_y: Option<u8>,
+    route_source_select_range_rect_x: u8,
+
+    route_source_select_toggle_rect_xs: HashSet<u8>,
+
     route_source_select_rect_y: u8,
-    route_source_select_rect_xs: HashSet<u8>,
+    route_source_select_rect_xs: BTreeSet<u8>,
 }
 
 macro_rules! render_asset {
@@ -140,8 +146,13 @@ impl ControlPanel {
             route_label_edit_rect: None,
             route_label_edit_string: String::new(),
 
+            route_source_select_range_rect_y: None,
+            route_source_select_range_rect_x: 0,
+
+            route_source_select_toggle_rect_xs: HashSet::new(),
+
             route_source_select_rect_y: 0,
-            route_source_select_rect_xs: HashSet::new(),
+            route_source_select_rect_xs: BTreeSet::new(),
         }
     }
 
@@ -287,9 +298,9 @@ impl ControlPanel {
     }
 
     fn draw_route_sources(&mut self, ui: &mut egui::Ui) {
-        for (rect_y, &rect_x_max) in self.route_source_counts.iter().enumerate() {
-            for rect_x in 0..rect_x_max as u8 {
-                let label = &self.route_labels[rect_y][rect_x as usize];
+        for rect_y in 0..self.route_source_counts.len() {
+            for rect_x in 0..self.route_source_counts[rect_y] as u8 {
+                let label = &self.route_labels[rect_y][rect_x as usize].clone();
                 let color = Self::route_color_for_source(rect_y as u8);
 
                 let pos_x = 127 + rect_x as u16 * 30;
@@ -306,21 +317,7 @@ impl ControlPanel {
                 let response = ui.interact(rect, id, egui::Sense::click());
 
                 if response.clicked() {
-                    if self.route_source_select_rect_y != rect_y as u8 {
-                        self.route_source_select_rect_xs.clear();
-                        self.route_source_select_rect_y = rect_y as u8;
-                    }
-
-                    if ui.input(|i| i.modifiers.ctrl) {
-                        if self.route_source_select_rect_xs.contains(&rect_x) {
-                            self.route_source_select_rect_xs.remove(&rect_x);
-                        } else {
-                            self.route_source_select_rect_xs.insert(rect_x);
-                        }
-                    } else {
-                        self.route_source_select_rect_xs.clear();
-                        self.route_source_select_rect_xs.insert(rect_x);
-                    }
+                    self.update_source_selections(ui, rect_x, rect_y as u8);
                 }
 
                 if response.double_clicked() {
@@ -331,6 +328,47 @@ impl ControlPanel {
                 Self::draw_text(ui, pos_x + 15, pos_y, (0xff, 0xff, 0xff), &label);
             }
         }
+    }
+
+    fn update_source_selections(&mut self, ui: &mut egui::Ui, rect_x: u8, rect_y: u8) {
+        if self.route_source_select_rect_y != rect_y {
+            self.route_source_select_rect_y = rect_y;
+
+            self.route_source_select_toggle_rect_xs.clear();
+            self.route_source_select_rect_xs.clear();
+        }
+
+        if ui.input(|i| i.modifiers.shift) {
+            self.route_source_select_rect_xs.clear();
+
+            if self.route_source_select_range_rect_y == Some(rect_y) {
+                self.route_source_select_rect_xs.extend(
+                    self.route_source_select_range_rect_x.min(rect_x)
+                        ..=self.route_source_select_range_rect_x.max(rect_x),
+                );
+            } else {
+                self.route_source_select_rect_xs.insert(rect_x);
+            }
+        } else {
+            self.route_source_select_range_rect_y = Some(rect_y);
+            self.route_source_select_range_rect_x = rect_x;
+
+            if ui.input(|i| i.modifiers.ctrl) {
+                self.route_source_select_toggle_rect_xs =
+                    self.route_source_select_rect_xs.iter().copied().collect();
+            } else {
+                self.route_source_select_toggle_rect_xs.clear();
+            }
+
+            self.route_source_select_rect_xs.clear();
+
+            if !self.route_source_select_toggle_rect_xs.remove(&rect_x) {
+                self.route_source_select_toggle_rect_xs.insert(rect_x);
+            }
+        }
+
+        self.route_source_select_rect_xs
+            .extend(self.route_source_select_toggle_rect_xs.iter().copied());
     }
 
     fn draw_route_targets(&self, ui: &mut egui::Ui, sources: &[[u8; 32]; 7]) {
