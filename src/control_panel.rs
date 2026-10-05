@@ -473,7 +473,7 @@ impl ControlPanel {
             ui.memory_mut(|mem| mem.request_focus(text_edit_id));
         }
 
-        let response = ui.put(
+        ui.put(
             rect,
             egui::TextEdit::singleline(&mut self.route_label_edit_string)
                 .id(text_edit_id)
