@@ -27,12 +27,16 @@ impl ControlPanelRouteColors {
 pub struct ControlPanel {
     pub orion_state: Arc<Mutex<OrionState>>,
     pub orion_hid: OrionHid,
+
     route_labels: [[String; 32]; 7],
+
     route_source_counts: [usize; 7],
     route_target_counts: [usize; 7],
-    label_edit_rect: Option<[u8; 2]>,
-    label_source_select_rects: (u8, HashSet<u8>),
-    label_edit_string: String,
+
+    route_label_edit_rect: Option<[u8; 2]>,
+    route_label_edit_string: String,
+
+    route_source_select_rects: (u8, HashSet<u8>),
 }
 
 macro_rules! render_asset {
@@ -126,12 +130,16 @@ impl ControlPanel {
         Self {
             orion_state,
             orion_hid,
+
             route_labels,
-            label_edit_rect: None,
-            label_source_select_rects: (0, HashSet::new()),
+
             route_source_counts: [0; 7],
             route_target_counts: [0; 7],
-            label_edit_string: String::new(),
+
+            route_label_edit_rect: None,
+            route_label_edit_string: String::new(),
+
+            route_source_select_rects: (0, HashSet::new()),
         }
     }
 
@@ -211,7 +219,7 @@ impl ControlPanel {
 
                 self.draw_route_source_selections(ui);
 
-                if self.label_edit_rect.is_some() {
+                if self.route_label_edit_rect.is_some() {
                     self.draw_route_editor(ui);
                 }
 
@@ -296,7 +304,7 @@ impl ControlPanel {
                 let response = ui.interact(rect, id, egui::Sense::click());
 
                 if response.clicked() {
-                    let (rect_y_selected, rect_x_selections) = &mut self.label_source_select_rects;
+                    let (rect_y_selected, rect_x_selections) = &mut self.route_source_select_rects;
 
                     if *rect_y_selected != rect_y as u8 {
                         rect_x_selections.clear();
@@ -316,8 +324,8 @@ impl ControlPanel {
                 }
 
                 if response.double_clicked() {
-                    self.label_edit_string = label.clone();
-                    self.label_edit_rect = Some([rect_x, rect_y as u8]);
+                    self.route_label_edit_string = label.clone();
+                    self.route_label_edit_rect = Some([rect_x, rect_y as u8]);
                 }
 
                 Self::draw_text(ui, pos_x + 15, pos_y, (0xff, 0xff, 0xff), &label);
@@ -348,7 +356,7 @@ impl ControlPanel {
     }
 
     fn draw_route_source_selections(&self, ui: &mut egui::Ui) {
-        let (rect_y, rect_xs) = &self.label_source_select_rects;
+        let (rect_y, rect_xs) = &self.route_source_select_rects;
 
         for &rect_x in rect_xs {
             let label = &self.route_labels[*rect_y as usize][rect_x as usize];
@@ -361,14 +369,15 @@ impl ControlPanel {
                 egui::vec2(29.0, 14.0),
             );
 
-            ui.painter().rect_filled(rect, 0.0, ControlPanelRouteColors::SELECT);
+            ui.painter()
+                .rect_filled(rect, 0.0, ControlPanelRouteColors::SELECT);
 
             Self::draw_text(ui, pos_x + 15, pos_y, (0xff, 0xff, 0xff), &label);
         }
     }
 
     fn draw_route_editor(&mut self, ui: &mut egui::Ui) {
-        let [rect_x, rect_y] = self.label_edit_rect.unwrap();
+        let [rect_x, rect_y] = self.route_label_edit_rect.unwrap();
 
         let pos_x = 113 + rect_x as u16 * 30;
         let pos_y = 282 + rect_y as u16 * 15;
@@ -402,8 +411,9 @@ impl ControlPanel {
                     .interact_pos()
                     .is_some_and(|pos| !hitbox_rect.contains(pos))
         }) {
-            self.route_labels[rect_y as usize][rect_x as usize] = self.label_edit_string.clone();
-            self.label_edit_rect = None;
+            self.route_labels[rect_y as usize][rect_x as usize] =
+                self.route_label_edit_string.clone();
+            self.route_label_edit_rect = None;
         }
 
         let text_edit_id = ui.id().with(("label_route_edit", rect_x, rect_y));
@@ -412,7 +422,7 @@ impl ControlPanel {
             let mut state = egui::widgets::text_edit::TextEditState::load(ui.ctx(), text_edit_id)
                 .unwrap_or_default();
 
-            let label_chars = self.label_edit_string.chars().count();
+            let label_chars = self.route_label_edit_string.chars().count();
 
             state
                 .cursor
@@ -428,7 +438,7 @@ impl ControlPanel {
 
         let response = ui.put(
             rect,
-            egui::TextEdit::singleline(&mut self.label_edit_string)
+            egui::TextEdit::singleline(&mut self.route_label_edit_string)
                 .id(text_edit_id)
                 .font(egui::FontId::proportional(12.0))
                 .horizontal_align(egui::Align::Center)
@@ -442,12 +452,14 @@ impl ControlPanel {
         );
 
         if ui.input(|i| i.key_pressed(egui::Key::Enter)) {
-            self.route_labels[rect_y as usize][rect_x as usize] = self.label_edit_string.clone();
-            self.label_edit_rect = None;
+            self.route_labels[rect_y as usize][rect_x as usize] =
+                self.route_label_edit_string.clone();
+            self.route_label_edit_rect = None;
         }
 
         if ui.input(|i| i.key_pressed(egui::Key::Tab)) {
-            self.route_labels[rect_y as usize][rect_x as usize] = self.label_edit_string.clone();
+            self.route_labels[rect_y as usize][rect_x as usize] =
+                self.route_label_edit_string.clone();
 
             let mut rect_x_next = rect_x as usize;
             let mut rect_y_next = rect_y as usize;
@@ -463,12 +475,12 @@ impl ControlPanel {
                 rect_y_next = 0;
             }
 
-            self.label_edit_string = self.route_labels[rect_y_next][rect_x_next].clone();
-            self.label_edit_rect = Some([rect_x_next as u8, rect_y_next as u8]);
+            self.route_label_edit_string = self.route_labels[rect_y_next][rect_x_next].clone();
+            self.route_label_edit_rect = Some([rect_x_next as u8, rect_y_next as u8]);
         }
 
         if ui.input(|i| i.key_pressed(egui::Key::Escape)) {
-            self.label_edit_rect = None;
+            self.route_label_edit_rect = None;
         }
     }
 
