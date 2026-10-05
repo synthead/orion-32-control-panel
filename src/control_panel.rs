@@ -323,7 +323,7 @@ impl ControlPanel {
                 let id = ui.id().with(("route_source", column, row as u8));
                 let response = ui.interact(rect, id, egui::Sense::click());
 
-                if response.hovered() && ui.input(|i| i.pointer.any_pressed()) {
+                if response.hovered() && ui.input(|i| i.pointer.primary_pressed()) {
                     source_clicked = true;
 
                     self.update_source_selections(ui, column, row as u8);
@@ -406,7 +406,7 @@ impl ControlPanel {
                 let id = ui.id().with(("route_target", column, row as u8));
                 let response = ui.interact(rect, id, egui::Sense::click());
 
-                if response.hovered() && ui.input(|i| i.pointer.any_pressed()) {
+                if response.hovered() && ui.input(|i| i.pointer.primary_pressed()) {
                     self.update_target_selections(ui, column as u8, row as u8, route);
                 }
 
