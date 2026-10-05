@@ -395,8 +395,7 @@ impl ControlPanel {
 
     fn draw_route_source_selections(&self, ui: &mut egui::Ui) {
         for &column in &self.route_source_select_columns {
-            let label =
-                &self.route_labels[self.route_source_select_row as usize][column as usize];
+            let label = &self.route_labels[self.route_source_select_row as usize][column as usize];
 
             let pos_x = 127 + column as u16 * 30;
             let pos_y = 284 + self.route_source_select_row as u16 * 15;
@@ -448,8 +447,7 @@ impl ControlPanel {
                     .interact_pos()
                     .is_some_and(|pos| !hitbox_rect.contains(pos))
         }) {
-            self.route_labels[row as usize][column as usize] =
-                self.route_label_edit_string.clone();
+            self.route_labels[row as usize][column as usize] = self.route_label_edit_string.clone();
             self.route_label_edit_cell = None;
         }
 
@@ -489,14 +487,12 @@ impl ControlPanel {
         );
 
         if ui.input(|i| i.key_pressed(egui::Key::Enter)) {
-            self.route_labels[row as usize][column as usize] =
-                self.route_label_edit_string.clone();
+            self.route_labels[row as usize][column as usize] = self.route_label_edit_string.clone();
             self.route_label_edit_cell = None;
         }
 
         if ui.input(|i| i.key_pressed(egui::Key::Tab)) {
-            self.route_labels[row as usize][column as usize] =
-                self.route_label_edit_string.clone();
+            self.route_labels[row as usize][column as usize] = self.route_label_edit_string.clone();
 
             let mut column_next = column as usize;
             let mut row_next = row as usize;
