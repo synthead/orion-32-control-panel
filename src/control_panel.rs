@@ -303,6 +303,8 @@ impl ControlPanel {
     }
 
     fn draw_route_sources(&mut self, ui: &mut egui::Ui) {
+        let mut source_clicked = false;
+
         for row in 0..self.route_source_counts.len() {
             for column in 0..self.route_source_counts[row] as u8 {
                 let label = &self.route_labels[row][column as usize].clone();
@@ -322,6 +324,8 @@ impl ControlPanel {
                 let response = ui.interact(rect, id, egui::Sense::click());
 
                 if response.clicked() {
+                    source_clicked = true;
+
                     self.update_source_selections(ui, column, row as u8);
                 }
 
@@ -332,6 +336,10 @@ impl ControlPanel {
 
                 Self::draw_text(ui, pos_x + 15, pos_y, (0xff, 0xff, 0xff), &label);
             }
+        }
+
+        if ui.input(|i| i.pointer.any_click()) && !source_clicked {
+            self.clear_selections(ui);
         }
     }
 
@@ -453,9 +461,13 @@ impl ControlPanel {
         let hover = ui.rect_contains_pointer(rect);
 
         if self.route_target_select_cell.is_some() && !hover {
-            self.route_target_select_cell = None;
-            self.route_source_select_columns.clear();
+            self.clear_selections(ui);
         }
+    }
+
+    fn clear_selections(&mut self, ui: &mut egui::Ui) {
+        self.route_target_select_cell = None;
+        self.route_source_select_columns.clear();
     }
 
     fn draw_route_editor(&mut self, ui: &mut egui::Ui) {
