@@ -36,7 +36,8 @@ pub struct ControlPanel {
     route_label_edit_rect: Option<[u8; 2]>,
     route_label_edit_string: String,
 
-    route_source_select_rects: (u8, HashSet<u8>),
+    route_source_select_rect_y: u8,
+    route_source_select_rect_xs: HashSet<u8>,
 }
 
 macro_rules! render_asset {
@@ -139,7 +140,8 @@ impl ControlPanel {
             route_label_edit_rect: None,
             route_label_edit_string: String::new(),
 
-            route_source_select_rects: (0, HashSet::new()),
+            route_source_select_rect_y: 0,
+            route_source_select_rect_xs: HashSet::new(),
         }
     }
 
@@ -304,22 +306,20 @@ impl ControlPanel {
                 let response = ui.interact(rect, id, egui::Sense::click());
 
                 if response.clicked() {
-                    let (rect_y_selected, rect_x_selections) = &mut self.route_source_select_rects;
-
-                    if *rect_y_selected != rect_y as u8 {
-                        rect_x_selections.clear();
-                        *rect_y_selected = rect_y as u8;
+                    if self.route_source_select_rect_y != rect_y as u8 {
+                        self.route_source_select_rect_xs.clear();
+                        self.route_source_select_rect_y = rect_y as u8;
                     }
 
                     if ui.input(|i| i.modifiers.ctrl) {
-                        if rect_x_selections.contains(&rect_x) {
-                            rect_x_selections.remove(&rect_x);
+                        if self.route_source_select_rect_xs.contains(&rect_x) {
+                            self.route_source_select_rect_xs.remove(&rect_x);
                         } else {
-                            rect_x_selections.insert(rect_x);
+                            self.route_source_select_rect_xs.insert(rect_x);
                         }
                     } else {
-                        rect_x_selections.clear();
-                        rect_x_selections.insert(rect_x);
+                        self.route_source_select_rect_xs.clear();
+                        self.route_source_select_rect_xs.insert(rect_x);
                     }
                 }
 
@@ -356,13 +356,12 @@ impl ControlPanel {
     }
 
     fn draw_route_source_selections(&self, ui: &mut egui::Ui) {
-        let (rect_y, rect_xs) = &self.route_source_select_rects;
-
-        for &rect_x in rect_xs {
-            let label = &self.route_labels[*rect_y as usize][rect_x as usize];
+        for &rect_x in &self.route_source_select_rect_xs {
+            let label =
+                &self.route_labels[self.route_source_select_rect_y as usize][rect_x as usize];
 
             let pos_x = 127 + rect_x as u16 * 30;
-            let pos_y = 284 + *rect_y as u16 * 15;
+            let pos_y = 284 + self.route_source_select_rect_y as u16 * 15;
 
             let rect = egui::Rect::from_min_size(
                 egui::pos2(pos_x as f32, pos_y as f32),
