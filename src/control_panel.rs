@@ -101,12 +101,6 @@ impl ControlPanel {
 
                 let orion_state = self.orion_state.lock().unwrap().clone();
 
-                let serial = String::from_utf8_lossy(&orion_state.serial);
-
-                ControlPanelHelpers::draw_combobox(ui, 950, 7, 110, 0, &[&serial], |_selected| {
-                    // TODO: Implement multi-interface control, and switch it here.
-                });
-
                 ControlPanelHelpers::draw_combobox(
                     ui,
                     396,
@@ -167,6 +161,7 @@ impl ControlPanel {
                     &orion_state.right_vu_values,
                 );
 
+                Self::draw_serial_combobox(ui, &orion_state.serial);
                 Self::draw_line_out(ui, orion_state.line_out);
 
                 self.routing.draw(ui);
@@ -201,6 +196,14 @@ impl ControlPanel {
         let line_out_text = format!("{} dB", line_out_value);
 
         ControlPanelHelpers::draw_text(ui, 1134, 101, (0x95, 0x95, 0x95), &line_out_text);
+    }
+
+    fn draw_serial_combobox(ui: &mut egui::Ui, serial: &[u8; 13]) {
+        let serial_text = String::from_utf8_lossy(serial);
+
+        ControlPanelHelpers::draw_combobox(ui, 950, 7, 110, 0, &[&serial_text], |_selected| {
+            // TODO: Implement multi-interface control, and switch it here.
+        });
     }
 }
 
