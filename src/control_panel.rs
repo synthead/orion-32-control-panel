@@ -28,12 +28,15 @@ impl ControlPanelRouteColors {
 struct ControlPanelRouteDimensions;
 
 impl ControlPanelRouteDimensions {
-    const START_X: u16 = 127;
-    const START_Y_SOURCE: u16 = 284;
-    const START_Y_TARGET: u16 = 448;
+    const START_X: f32 = 127.0;
+    const START_Y_SOURCE: f32 = 284.0;
+    const START_Y_TARGET: f32 = 448.0;
 
-    const WIDTH: u16 = 30;
-    const HEIGHT: u16 = 15;
+    const STEP_X: f32 = 30.0;
+    const STEP_Y: f32 = 15.0;
+
+    const SIZE_X: f32 = 29.0;
+    const SIZE_Y: f32 = 14.0;
 }
 
 pub struct ControlPanel {
@@ -325,14 +328,9 @@ impl ControlPanel {
             for column in 0..self.route_source_counts[row] as u8 {
                 let label = &self.route_labels[row][column as usize].clone();
                 let color = Self::route_color_for_route(row as u8);
-                let (pos_x, pos_y) = Self::route_cell_pos(column, row as u8, true);
 
-                let rect = egui::Rect::from_min_size(
-                    egui::pos2(pos_x as f32, pos_y as f32),
-                    egui::vec2(29.0, 14.0),
-                );
-
-                ui.painter().rect_filled(rect, 0.0, color);
+                let rect =
+                    Self::draw_route_rect_with_label(ui, column, row as u8, true, color, label);
 
                 let id = ui.id().with(("route_source", column, row as u8));
                 let response = ui.interact(rect, id, egui::Sense::click());
@@ -347,8 +345,6 @@ impl ControlPanel {
                     self.route_label_edit_string = label.clone();
                     self.route_label_edit_cell = Some([column, row as u8]);
                 }
-
-                Self::draw_text(ui, pos_x + 15, pos_y, (0xff, 0xff, 0xff), &label);
             }
         }
 
@@ -423,14 +419,15 @@ impl ControlPanel {
                 let route = routes[row][column];
                 let color = Self::route_color_for_route(route);
                 let label = &self.route_label_for_route(route);
-                let (pos_x, pos_y) = Self::route_cell_pos(column as u8, row as u8, false);
 
-                let rect = egui::Rect::from_min_size(
-                    egui::pos2(pos_x as f32, pos_y as f32),
-                    egui::vec2(29.0, 14.0),
+                let rect = Self::draw_route_rect_with_label(
+                    ui,
+                    column as u8,
+                    row as u8,
+                    false,
+                    color,
+                    label,
                 );
-
-                ui.painter().rect_filled(rect, 0.0, color);
 
                 let id = ui.id().with(("route_target", column, row as u8));
                 let response = ui.interact(rect, id, egui::Sense::click());
@@ -442,8 +439,6 @@ impl ControlPanel {
                         self.update_target_selections(ui, column as u8, row as u8, route);
                     }
                 }
-
-                Self::draw_text(ui, pos_x + 15, pos_y, (0xff, 0xff, 0xff), label);
             }
         }
     }
@@ -462,17 +457,15 @@ impl ControlPanel {
 
     fn draw_route_selection(&self, ui: &mut egui::Ui, column: u8, row: u8, is_source: bool) {
         let label = &self.route_labels[row as usize][column as usize];
-        let (pos_x, pos_y) = Self::route_cell_pos(column, row, is_source);
 
-        let rect = egui::Rect::from_min_size(
-            egui::pos2(pos_x as f32, pos_y as f32),
-            egui::vec2(29.0, 14.0),
+        Self::draw_route_rect_with_label(
+            ui,
+            column,
+            row,
+            is_source,
+            ControlPanelRouteColors::SELECT,
+            label,
         );
-
-        ui.painter()
-            .rect_filled(rect, 0.0, ControlPanelRouteColors::SELECT);
-
-        Self::draw_text(ui, pos_x + 15, pos_y, (0xff, 0xff, 0xff), &label);
     }
 
     fn draw_route_selections(&self, ui: &mut egui::Ui) {
@@ -510,16 +503,15 @@ impl ControlPanel {
             let color = Self::route_color_for_route(self.route_source_select_row);
 
             let [target_column, target_row] = self.route_target_hover_cell.unwrap();
-            let (pos_x, pos_y) = Self::route_cell_pos(target_column + column_index as u8, target_row, false);
 
-            let rect = egui::Rect::from_min_size(
-                egui::pos2(pos_x as f32, pos_y as f32),
-                egui::vec2(29.0, 14.0),
+            Self::draw_route_rect_with_label(
+                ui,
+                target_column + column_index as u8,
+                target_row,
+                false,
+                color,
+                label,
             );
-
-            ui.painter().rect_filled(rect, 0.0, color);
-
-            Self::draw_text(ui, pos_x + 15, pos_y, (0xff, 0xff, 0xff), label);
         }
     }
 
@@ -726,7 +718,7 @@ impl ControlPanel {
         }
     }
 
-    fn route_cell_pos(column: u8, row: u8, is_source: bool) -> (u16, u16) {
+    fn route_cell_pos(column: u8, row: u8, is_source: bool) -> (f32, f32) {
         let base_pos_y = if is_source {
             ControlPanelRouteDimensions::START_Y_SOURCE
         } else {
@@ -734,10 +726,41 @@ impl ControlPanel {
         };
 
         let pos_x = ControlPanelRouteDimensions::START_X
-            + column as u16 * ControlPanelRouteDimensions::WIDTH;
-        let pos_y = base_pos_y + row as u16 * ControlPanelRouteDimensions::HEIGHT;
+            + column as f32 * ControlPanelRouteDimensions::STEP_X;
+        let pos_y = base_pos_y + row as f32 * ControlPanelRouteDimensions::STEP_Y;
 
         (pos_x, pos_y)
+    }
+
+    fn draw_route_rect_with_label(
+        ui: &mut egui::Ui,
+        column: u8,
+        row: u8,
+        is_source: bool,
+        color: egui::Color32,
+        label: &String,
+    ) -> egui::Rect {
+        let (pos_x, pos_y) = Self::route_cell_pos(column, row, is_source);
+
+        let rect = egui::Rect::from_min_size(
+            egui::pos2(pos_x, pos_y),
+            egui::vec2(
+                ControlPanelRouteDimensions::SIZE_X,
+                ControlPanelRouteDimensions::SIZE_Y,
+            ),
+        );
+
+        ui.painter().rect_filled(rect, 0.0, color);
+
+        Self::draw_text(
+            ui,
+            pos_x as u16 + 15,
+            pos_y as u16,
+            (0xff, 0xff, 0xff),
+            label,
+        );
+
+        rect
     }
 }
 
