@@ -46,6 +46,9 @@ pub struct ControlPanel {
     route_source_select_columns: BTreeSet<u8>,
 
     route_target_select_cell: Option<[u8; 2]>,
+
+    route_source_mousedown: bool,
+    route_target_hover_cell: Option<[u8; 2]>,
 }
 
 macro_rules! render_asset {
@@ -157,6 +160,9 @@ impl ControlPanel {
             route_source_select_columns: BTreeSet::new(),
 
             route_target_select_cell: None,
+
+            route_source_mousedown: false,
+            route_target_hover_cell: None,
         }
     }
 
@@ -235,6 +241,7 @@ impl ControlPanel {
                 self.draw_route_targets(ui, &orion_state.routes);
 
                 self.draw_route_selections(ui);
+                self.draw_route_drag(ui);
                 self.clear_target_selection_when_outside(ui);
 
                 if self.route_label_edit_cell.is_some() {
@@ -303,8 +310,6 @@ impl ControlPanel {
     }
 
     fn draw_route_sources(&mut self, ui: &mut egui::Ui) {
-        let mut source_clicked = false;
-
         for row in 0..self.route_source_counts.len() {
             for column in 0..self.route_source_counts[row] as u8 {
                 let label = &self.route_labels[row][column as usize].clone();
@@ -324,7 +329,7 @@ impl ControlPanel {
                 let response = ui.interact(rect, id, egui::Sense::click());
 
                 if response.hovered() && ui.input(|i| i.pointer.primary_pressed()) {
-                    source_clicked = true;
+                    self.route_source_mousedown = true;
 
                     self.update_source_selections(ui, column, row as u8);
                 }
@@ -338,12 +343,19 @@ impl ControlPanel {
             }
         }
 
-        if ui.input(|i| i.pointer.any_pressed()) && !source_clicked {
+        if ui.input(|i| i.pointer.primary_released()) {
+            self.route_source_mousedown = false;
+        }
+
+        if ui.input(|i| i.pointer.any_pressed()) && !self.route_source_mousedown {
             self.clear_selections(ui);
         }
     }
 
     fn update_source_selections(&mut self, ui: &mut egui::Ui, column: u8, row: u8) {
+        let shift_held = ui.input(|i| i.modifiers.shift);
+        let ctrl_held = ui.input(|i| i.modifiers.ctrl);
+
         self.route_target_select_cell = None;
 
         if self.route_source_select_row != row {
@@ -353,25 +365,33 @@ impl ControlPanel {
             self.route_source_select_columns.clear();
         }
 
-        if ui.input(|i| i.modifiers.shift) {
-            self.route_source_select_columns.clear();
+        'done: {
+            if shift_held {
+                self.route_source_select_columns.clear();
 
-            if self.route_source_select_range_row == Some(row) {
-                self.route_source_select_columns.extend(
-                    self.route_source_select_range_column.min(column)
-                        ..=self.route_source_select_range_column.max(column),
-                );
-            } else {
-                self.route_source_select_columns.insert(column);
+                if self.route_source_select_range_row == Some(row) {
+                    self.route_source_select_columns.extend(
+                        self.route_source_select_range_column.min(column)
+                            ..=self.route_source_select_range_column.max(column),
+                    );
+                } else {
+                    self.route_source_select_columns.insert(column);
+                }
+
+                break 'done;
             }
-        } else {
+
             self.route_source_select_range_row = Some(row);
             self.route_source_select_range_column = column;
 
-            if ui.input(|i| i.modifiers.ctrl) {
+            if ctrl_held {
                 self.route_source_select_toggle_columns =
                     self.route_source_select_columns.iter().copied().collect();
             } else {
+                if self.route_source_select_toggle_columns.contains(&column) {
+                    break 'done;
+                }
+
                 self.route_source_select_toggle_columns.clear();
             }
 
@@ -387,6 +407,8 @@ impl ControlPanel {
     }
 
     fn draw_route_targets(&mut self, ui: &mut egui::Ui, routes: &[[u8; 32]; 7]) {
+        self.route_target_hover_cell = None;
+
         for row in 0..self.route_target_counts.len() {
             for column in 0..self.route_target_counts[row] {
                 let route = routes[row][column];
@@ -406,8 +428,12 @@ impl ControlPanel {
                 let id = ui.id().with(("route_target", column, row as u8));
                 let response = ui.interact(rect, id, egui::Sense::click());
 
-                if response.hovered() && ui.input(|i| i.pointer.primary_pressed()) {
-                    self.update_target_selections(ui, column as u8, row as u8, route);
+                if response.contains_pointer() {
+                    self.route_target_hover_cell = Some([column as u8, row as u8]);
+
+                    if ui.input(|i| i.pointer.primary_pressed()) {
+                        self.update_target_selections(ui, column as u8, row as u8, route);
+                    }
                 }
 
                 Self::draw_text(ui, pos_x + 15, pos_y, (0xff, 0xff, 0xff), label);
@@ -468,6 +494,32 @@ impl ControlPanel {
     fn clear_selections(&mut self, ui: &mut egui::Ui) {
         self.route_target_select_cell = None;
         self.route_source_select_columns.clear();
+    }
+
+    fn draw_route_drag(&mut self, ui: &mut egui::Ui) {
+        if !self.route_source_mousedown || self.route_target_hover_cell.is_none() {
+            return;
+        }
+
+        for (column_index, &source_column) in self.route_source_select_columns.iter().enumerate() {
+            let label =
+                &self.route_labels[self.route_source_select_row as usize][source_column as usize];
+            let color = Self::route_color_for_route(self.route_source_select_row);
+
+            let [target_column, target_row] = self.route_target_hover_cell.unwrap();
+
+            let pos_x = 127 + (target_column + column_index as u8) as u16 * 30;
+            let pos_y = 448 + target_row as u16 * 15;
+
+            let rect = egui::Rect::from_min_size(
+                egui::pos2(pos_x as f32, pos_y as f32),
+                egui::vec2(29.0, 14.0),
+            );
+
+            ui.painter().rect_filled(rect, 0.0, color);
+
+            Self::draw_text(ui, pos_x + 15, pos_y, (0xff, 0xff, 0xff), label);
+        }
     }
 
     fn draw_route_editor(&mut self, ui: &mut egui::Ui) {
