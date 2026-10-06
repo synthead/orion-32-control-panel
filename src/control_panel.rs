@@ -514,12 +514,12 @@ impl ControlPanel {
             return;
         }
 
+        let [target_column, target_row] = self.route_target_hover_cell.unwrap();
+
         for (column_index, &source_column) in self.route_source_select_columns.iter().enumerate() {
             let label =
                 &self.route_labels[self.route_source_select_row as usize][source_column as usize];
             let color = Self::route_color_for_route(self.route_source_select_row);
-
-            let [target_column, target_row] = self.route_target_hover_cell.unwrap();
 
             Self::draw_route_rect_with_label(
                 ui,
