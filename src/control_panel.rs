@@ -490,12 +490,13 @@ impl ControlPanel {
             if let Some([target_column, target_row]) = self.route_target_hover_cell {
                 let mut new_routes = routes[target_row as usize];
 
-                for (column_index, &source_column) in self.route_source_select_columns.iter().enumerate() {
+                for (column_index, &source_column) in
+                    self.route_source_select_columns.iter().enumerate()
+                {
                     let route = source_column * 0x08 + self.route_source_select_row;
 
                     new_routes[target_column as usize + column_index] = route;
                 }
-
 
                 self.orion_hid.queue_routes(target_row, &new_routes);
             }
