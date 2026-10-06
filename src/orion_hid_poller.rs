@@ -34,6 +34,9 @@ impl OrionHidPoller {
             self.orion_hid()
                 .write(&packet)
                 .expect("Failed to write HID packet");
+
+            let mut state = self.orion_state.lock().unwrap();
+            Self::update_orion_state(&packet, &mut state);
         }
 
         let mut hid_data = [0u8; 64];
@@ -49,6 +52,9 @@ impl OrionHidPoller {
 
     pub fn update_orion_state(hid_data: &[u8; 64], orion_state: &mut OrionState) {
         match (hid_data[0], hid_data[4], hid_data[12]) {
+            (0x70, 0x33, 0x00) => {
+                Self::transform_written_routes(hid_data, orion_state);
+            }
             (0x73, 0x00, 0x00) => {
                 Self::transform_vu(hid_data, orion_state);
             }
@@ -86,6 +92,12 @@ impl OrionHidPoller {
         let source_index = hid_data[16] as usize;
 
         orion_state.routes[source_index] = hid_data[17..49].try_into().unwrap()
+    }
+
+    fn transform_written_routes(hid_data: &[u8; 64], orion_state: &mut OrionState) {
+        let source_index = hid_data[18] as usize;
+
+        orion_state.routes[source_index] = hid_data[19..51].try_into().unwrap()
     }
 
     fn hid_api(&mut self) -> &mut HidApi {
