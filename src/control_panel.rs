@@ -256,7 +256,9 @@ impl ControlPanel {
 
                 self.draw_route_selections(ui);
                 self.draw_route_drag(ui);
+
                 self.clear_target_selection_when_outside(ui);
+                self.update_route_targets_on_mouseup(ui, &orion_state.routes);
 
                 if self.route_label_edit_cell.is_some() {
                     self.draw_route_editor(ui);
@@ -346,10 +348,6 @@ impl ControlPanel {
                     self.route_label_edit_cell = Some([column, row as u8]);
                 }
             }
-        }
-
-        if ui.input(|i| i.pointer.primary_released()) {
-            self.route_source_mousedown = false;
         }
 
         if ui.input(|i| i.pointer.any_pressed()) && !self.route_source_mousedown {
@@ -484,6 +482,25 @@ impl ControlPanel {
 
         if self.route_target_select_cell.is_some() && !hover {
             self.clear_selections(ui);
+        }
+    }
+
+    fn update_route_targets_on_mouseup(&mut self, ui: &mut egui::Ui, routes: &[[u8; 32]; 7]) {
+        if self.route_source_mousedown && ui.input(|i| i.pointer.primary_released()) {
+            if let Some([target_column, target_row]) = self.route_target_hover_cell {
+                let mut new_routes = routes[target_row as usize];
+
+                for (column_index, &source_column) in self.route_source_select_columns.iter().enumerate() {
+                    let route = source_column * 0x08 + self.route_source_select_row;
+
+                    new_routes[target_column as usize + column_index] = route;
+                }
+
+
+                self.orion_hid.queue_routes(target_row, &new_routes);
+            }
+
+            self.route_source_mousedown = false;
         }
     }
 
