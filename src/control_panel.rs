@@ -269,6 +269,7 @@ impl ControlPanel {
                 self.draw_route_text(ui);
 
                 self.draw_signals(ui, orion_state.signals);
+                self.draw_route_navbar(ui);
 
                 self.clear_target_selection_when_outside(ui);
                 self.update_route_targets_on_mouseup(ui, &orion_state.routes);
@@ -530,6 +531,13 @@ impl ControlPanel {
         render_asset!(ui, 1095, 346, "PresenceLed/default/released");
         render_asset!(ui, 1112, 346, "PresenceLed/default/released");
         render_asset!(ui, 1095, 361, "PresenceLed/default/released");
+    }
+
+    fn draw_route_navbar(&self, ui: &mut egui::Ui) {
+        render_asset!(ui, 1106, 410, "UndoButton/default/released");
+        render_asset!(ui, 1106, 436, "RedoButton/default/released");
+        render_asset!(ui, 1106, 462, "SaveRoutingButton/default/released");
+        render_asset!(ui, 1106, 488, "LoadRoutingButton/default/released");
     }
 
     fn clear_target_selection_when_outside(&mut self, ui: &mut egui::Ui) {
