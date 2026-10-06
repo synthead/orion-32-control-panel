@@ -8,11 +8,15 @@ use std::sync::Mutex;
 use std::thread;
 
 mod control_panel;
+mod control_panel_helpers;
+mod control_panel_routing;
+
 mod orion_hid;
 mod orion_hid_poller;
 mod orion_state;
 
 use crate::control_panel::ControlPanel;
+
 use crate::orion_hid::OrionHid;
 use crate::orion_hid_poller::OrionHidPoller;
 use crate::orion_state::OrionState;
@@ -33,7 +37,8 @@ fn main() -> eframe::Result {
 
     orion_hid.queue_init();
 
-    let control_panel = ControlPanel::new(Arc::clone(&orion_state), orion_hid);
+    let control_panel =
+        ControlPanel::new(Arc::clone(&orion_state), Arc::new(Mutex::new(orion_hid)));
 
     eframe::run_native(
         "Orion 32 Control Panel",
