@@ -105,6 +105,7 @@ impl ControlPanel {
                 let orion_state = self.orion_state.lock().unwrap().clone();
 
                 Self::draw_base_graphics(ui);
+                self.draw_tab_buttons(ui);
                 Self::draw_preset_labels(ui);
 
                 Self::draw_vu_meters(
@@ -148,14 +149,42 @@ impl ControlPanel {
         render_asset!(ui, 1100, 9, "AboutButton/default/released", 1.0);
         render_asset!(ui, 1149, 9, "CloseButton/default/released", 1.0);
 
-        render_asset!(ui, 82, 209, "RoutingNavButton/default/pressed@2x", 0.5);
-        render_asset!(ui, 178, 209, "MixerNavButton/default/released@2x", 0.5);
-        render_asset!(ui, 257, 209, "PhaseInvNavButton/default/released", 1.0);
-
         render_asset!(ui, 1094, 652, "HowtoButton/default/released", 1.0);
 
         render_asset!(ui, 79, 683, "FeedLeftArrow/default/released", 1.0);
         render_asset!(ui, 1093, 683, "FeedRightArrow/default/released", 1.0);
+    }
+
+    fn draw_tab_buttons(&mut self, ui: &mut egui::Ui) {
+        let routing_button = if self.current_tab == 0 {
+            render_asset!(ui, 82, 209, "RoutingNavButton/default/pressed@2x", 0.5)
+        } else {
+            render_asset!(ui, 82, 209, "RoutingNavButton/default/released@2x", 0.5)
+        };
+
+        let mixer_button = if self.current_tab == 1 {
+            render_asset!(ui, 178, 209, "MixerNavButton/default/pressed@2x", 0.5)
+        } else {
+            render_asset!(ui, 178, 209, "MixerNavButton/default/released@2x", 0.5)
+        };
+
+        let ad_phase_button = if self.current_tab == 2 {
+            render_asset!(ui, 257, 209, "PhaseInvNavButton/default/pressed", 1.0)
+        } else {
+            render_asset!(ui, 257, 209, "PhaseInvNavButton/default/released", 1.0)
+        };
+
+        if routing_button.clicked() {
+            self.current_tab = 0;
+        }
+
+        if mixer_button.clicked() {
+            self.current_tab = 1;
+        }
+
+        if ad_phase_button.clicked() {
+            self.current_tab = 2;
+        }
     }
 
     fn draw_preset_labels(ui: &mut egui::Ui) {
