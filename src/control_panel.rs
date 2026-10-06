@@ -489,10 +489,15 @@ impl ControlPanel {
         if self.route_source_mousedown && ui.input(|i| i.pointer.primary_released()) {
             if let Some([target_column, target_row]) = self.route_target_hover_cell {
                 let mut new_routes = routes[target_row as usize];
+                let target_row_count = self.route_target_counts[target_row as usize];
 
                 for (column_index, &source_column) in
                     self.route_source_select_columns.iter().enumerate()
                 {
+                    if target_column as usize + column_index >= target_row_count {
+                        break;
+                    }
+
                     let route = source_column * 0x08 + self.route_source_select_row;
 
                     new_routes[target_column as usize + column_index] = route;
