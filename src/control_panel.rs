@@ -101,64 +101,18 @@ impl ControlPanel {
 
                 let orion_state = self.orion_state.lock().unwrap().clone();
 
-                ControlPanelHelpers::draw_combobox(
-                    ui,
-                    396,
-                    38,
-                    83,
-                    orion_state.left_vu_source,
-                    &Self::VU_SELECTIONS,
-                    |selected| {
-                        self.orion_hid
-                            .lock()
-                            .unwrap()
-                            .queue_vu_source_left(selected);
-                    },
-                );
-
-                ControlPanelHelpers::draw_combobox(
-                    ui,
-                    977,
-                    38,
-                    83,
-                    orion_state.right_vu_source,
-                    &Self::VU_SELECTIONS,
-                    |selected| {
-                        self.orion_hid
-                            .lock()
-                            .unwrap()
-                            .queue_vu_source_right(selected);
-                    },
-                );
-
-                ControlPanelHelpers::draw_combobox(
-                    ui,
-                    508,
-                    92,
-                    72,
-                    orion_state.clock_source,
-                    &Self::CLOCK_SOURCE_SELECTIONS,
-                    |selected| {
-                        self.orion_hid.lock().unwrap().queue_clock_source(selected);
-                    },
-                );
-
-                ControlPanelHelpers::draw_combobox(
-                    ui,
-                    597,
-                    92,
-                    72,
-                    orion_state.sample_rate,
-                    &Self::SAMPLE_RATE_SELECTIONS,
-                    |selected| {
-                        self.orion_hid.lock().unwrap().queue_sample_rate(selected);
-                    },
-                );
-
                 Self::draw_vu_meters(
                     ui,
                     &orion_state.left_vu_values,
                     &orion_state.right_vu_values,
+                );
+
+                self.draw_clock_comboboxes(ui, orion_state.clock_source, orion_state.sample_rate);
+
+                self.draw_vu_meter_comboboxes(
+                    ui,
+                    orion_state.left_vu_source,
+                    orion_state.right_vu_source,
                 );
 
                 Self::draw_serial_combobox(ui, &orion_state.serial);
@@ -189,6 +143,64 @@ impl ControlPanel {
                 "MonitorPeakMeter/default/background"
             );
         }
+    }
+
+    fn draw_vu_meter_comboboxes(&self, ui: &mut egui::Ui, left_vu_source: u8, right_vu_source: u8) {
+        ControlPanelHelpers::draw_combobox(
+            ui,
+            396,
+            38,
+            83,
+            left_vu_source,
+            &Self::VU_SELECTIONS,
+            |selected| {
+                self.orion_hid
+                    .lock()
+                    .unwrap()
+                    .queue_vu_source_left(selected);
+            },
+        );
+
+        ControlPanelHelpers::draw_combobox(
+            ui,
+            977,
+            38,
+            83,
+            right_vu_source,
+            &Self::VU_SELECTIONS,
+            |selected| {
+                self.orion_hid
+                    .lock()
+                    .unwrap()
+                    .queue_vu_source_right(selected);
+            },
+        );
+    }
+
+    fn draw_clock_comboboxes(&self, ui: &mut egui::Ui, clock_source: u8, sample_rate: u8) {
+        ControlPanelHelpers::draw_combobox(
+            ui,
+            508,
+            92,
+            72,
+            clock_source,
+            &Self::CLOCK_SOURCE_SELECTIONS,
+            |selected| {
+                self.orion_hid.lock().unwrap().queue_clock_source(selected);
+            },
+        );
+
+        ControlPanelHelpers::draw_combobox(
+            ui,
+            597,
+            92,
+            72,
+            sample_rate,
+            &Self::SAMPLE_RATE_SELECTIONS,
+            |selected| {
+                self.orion_hid.lock().unwrap().queue_sample_rate(selected);
+            },
+        );
     }
 
     fn draw_line_out(ui: &mut egui::Ui, line_out: u8) {
