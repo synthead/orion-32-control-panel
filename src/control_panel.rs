@@ -220,7 +220,7 @@ impl ControlPanel {
         let line_out_value = -(line_out as f32 * 96.0 / 255.0) as i8;
         let line_out_text = format!("{} dB", line_out_value);
 
-        ControlPanelHelpers::draw_text(ui, 1134, 101, (0x95, 0x95, 0x95), &line_out_text);
+        ControlPanelHelpers::draw_text(ui, 1134, 101, (0x95, 0x95, 0x95), &line_out_text, 12.0);
     }
 
     fn draw_serial_combobox(ui: &mut egui::Ui, serial: &[u8; 13]) {
