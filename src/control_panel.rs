@@ -387,10 +387,10 @@ impl ControlPanel {
             self.route_source_select_range_row = Some(row);
             self.route_source_select_range_column = column;
 
-            if ctrl_held {
-                self.route_source_select_toggle_columns =
-                    self.route_source_select_columns.iter().copied().collect();
-            } else {
+            self.route_source_select_toggle_columns =
+                self.route_source_select_columns.iter().copied().collect();
+
+            if !ctrl_held {
                 if self.route_source_select_toggle_columns.contains(&column) {
                     break 'done;
                 }
