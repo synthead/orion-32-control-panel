@@ -90,16 +90,9 @@ impl ControlPanel {
         egui::CentralPanel::default()
             .frame(egui::Frame::NONE)
             .show(ui, |ui| {
-                render_asset!(ui, 0, 0, "ControlPanel/default/background");
-
-                render_asset!(ui, 0, 226, "Routing/default/background");
-                render_asset!(ui, 20, 8, "StandbyButton/default/pressed");
-                render_asset!(ui, 1075, 9, "SettingsButton/default/released");
-                render_asset!(ui, 1124, 9, "MinimizeButton/default/released");
-                render_asset!(ui, 1100, 9, "AboutButton/default/released");
-                render_asset!(ui, 1149, 9, "CloseButton/default/released");
-
                 let orion_state = self.orion_state.lock().unwrap().clone();
+
+                Self::draw_base_graphics(ui);
 
                 Self::draw_vu_meters(
                     ui,
@@ -120,6 +113,17 @@ impl ControlPanel {
 
                 self.routing.draw(ui);
             });
+    }
+
+    fn draw_base_graphics(ui: &mut egui::Ui) {
+        render_asset!(ui, 0, 0, "ControlPanel/default/background");
+        render_asset!(ui, 0, 226, "Routing/default/background");
+
+        render_asset!(ui, 20, 8, "StandbyButton/default/pressed");
+        render_asset!(ui, 1075, 9, "SettingsButton/default/released");
+        render_asset!(ui, 1124, 9, "MinimizeButton/default/released");
+        render_asset!(ui, 1100, 9, "AboutButton/default/released");
+        render_asset!(ui, 1149, 9, "CloseButton/default/released");
     }
 
     fn draw_vu_meters(ui: &mut egui::Ui, left_vu_values: &[u8; 32], right_vu_values: &[u8; 32]) {
