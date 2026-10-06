@@ -101,26 +101,6 @@ impl ControlPanel {
 
                 let orion_state = self.orion_state.lock().unwrap().clone();
 
-                for peak_x in 0..32 {
-                    let pos_x_1 = 135 + peak_x * 11;
-                    let pos_x_2 = pos_x_1 + 581;
-
-                    render_peak!(
-                        ui,
-                        pos_x_1,
-                        60,
-                        orion_state.left_vu_values[peak_x],
-                        "MonitorPeakMeter/default/background"
-                    );
-                    render_peak!(
-                        ui,
-                        pos_x_2,
-                        60,
-                        orion_state.right_vu_values[peak_x],
-                        "MonitorPeakMeter/default/background"
-                    );
-                }
-
                 let line_out_value = (((orion_state.line_out) as f32 / 255.0) * -96.0) as i8;
                 let line_out_text = format!("{} dB", line_out_value);
 
@@ -186,8 +166,37 @@ impl ControlPanel {
                     },
                 );
 
+                Self::draw_peaks(
+                    ui,
+                    &orion_state.left_vu_values,
+                    &orion_state.right_vu_values,
+                );
+
                 self.routing.draw(ui);
             });
+    }
+
+    fn draw_peaks(ui: &mut egui::Ui, left_vu_values: &[u8; 32], right_vu_values: &[u8; 32]) {
+        for peak_x in 0..32 {
+            let pos_x_1 = 135 + peak_x * 11;
+            let pos_x_2 = pos_x_1 + 581;
+
+            render_peak!(
+                ui,
+                pos_x_1,
+                60,
+                left_vu_values[peak_x],
+                "MonitorPeakMeter/default/background"
+            );
+
+            render_peak!(
+                ui,
+                pos_x_2,
+                60,
+                right_vu_values[peak_x],
+                "MonitorPeakMeter/default/background"
+            );
+        }
     }
 
     fn draw_text(ui: &mut egui::Ui, center_x: u16, pos_y: u16, color: (u8, u8, u8), text: &str) {
