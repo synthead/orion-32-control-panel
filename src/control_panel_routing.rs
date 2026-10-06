@@ -196,7 +196,7 @@ impl ControlPanelRouting {
         }
 
         if ui.input(|i| i.pointer.any_pressed()) && !self.route_source_mousedown {
-            self.clear_selections(ui);
+            self.clear_selections();
         }
     }
 
@@ -376,7 +376,7 @@ impl ControlPanelRouting {
         let hover = ui.rect_contains_pointer(rect);
 
         if self.route_target_select_cell.is_some() && !hover {
-            self.clear_selections(ui);
+            self.clear_selections();
         }
     }
 
@@ -408,7 +408,7 @@ impl ControlPanelRouting {
         }
     }
 
-    fn clear_selections(&mut self, ui: &mut egui::Ui) {
+    fn clear_selections(&mut self) {
         self.route_target_select_cell = None;
         self.route_source_select_columns.clear();
     }
