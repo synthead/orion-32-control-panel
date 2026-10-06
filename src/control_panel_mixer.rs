@@ -64,6 +64,8 @@ impl ControlPanelMixer {
         for mixer_channel in 0..32 {
             let pos_x = 7 + mixer_channel * 35;
 
+            render_asset!(ui, pos_x - 2, 283, "MixerPan/default/layers/pointer", 1.0);
+
             render_asset!(ui, pos_x, 604, "SoloButton/default/released", 1.0);
             render_asset!(ui, pos_x, 622, "MuteButton/default/released", 1.0);
 
