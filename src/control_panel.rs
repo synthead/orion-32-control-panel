@@ -129,10 +129,10 @@ impl ControlPanel {
         render_asset!(ui, 176, 209, "MixerNavButton/default/released@2x", 0.5);
         render_asset!(ui, 255, 209, "PhaseInvNavButton/default/released", 1.0);
 
+        render_asset!(ui, 1092, 652, "HowtoButton/default/released", 1.0);
+
         render_asset!(ui, 77, 683, "FeedLeftArrow/default/released", 1.0);
         render_asset!(ui, 1091, 683, "FeedRightArrow/default/released", 1.0);
-
-        render_asset!(ui, 1092, 652, "HowtoButton/default/released", 1.0);
     }
 
     fn draw_vu_meters(ui: &mut egui::Ui, left_vu_values: &[u8; 32], right_vu_values: &[u8; 32]) {
