@@ -1,6 +1,3 @@
-// Hide console window on Windows.
-#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
-
 use std::sync::Arc;
 use std::sync::Mutex;
 
