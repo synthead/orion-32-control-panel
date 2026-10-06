@@ -104,7 +104,7 @@ impl ControlPanel {
                 let line_out_value = (((orion_state.line_out) as f32 / 255.0) * -96.0) as i8;
                 let line_out_text = format!("{} dB", line_out_value);
 
-                Self::draw_text(ui, 1134, 101, (0x95, 0x95, 0x95), &line_out_text);
+                ControlPanelHelpers::draw_text(ui, 1134, 101, (0x95, 0x95, 0x95), &line_out_text);
 
                 let serial = String::from_utf8_lossy(&orion_state.serial);
 
@@ -197,20 +197,6 @@ impl ControlPanel {
                 "MonitorPeakMeter/default/background"
             );
         }
-    }
-
-    fn draw_text(ui: &mut egui::Ui, center_x: u16, pos_y: u16, color: (u8, u8, u8), text: &str) {
-        let color = egui::Color32::from_rgb(color.0, color.1, color.2);
-        let label = egui::Label::new(egui::RichText::new(text).strong().size(12.0).color(color));
-        let (_, galley, _) = label.layout_in_ui(ui);
-
-        let pos_x = center_x as f32 - galley.size().x / 2.0;
-
-        ui.painter().galley(
-            egui::pos2(pos_x, pos_y as f32),
-            galley,
-            egui::Color32::PLACEHOLDER,
-        );
     }
 }
 
