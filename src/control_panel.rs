@@ -521,7 +521,7 @@ impl ControlPanel {
         let color = Self::route_color_for_route(row);
 
         let rect = egui::Rect::from_min_size(
-            egui::pos2(pos_x as f32 - 14.0, pos_y as f32 - 2.0),
+            egui::pos2(pos_x - 14.0, pos_y - 2.0),
             egui::vec2(58.0, 18.0),
         );
 
