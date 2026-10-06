@@ -146,6 +146,16 @@ impl ControlPanel {
         "192.0 kHz",
     ];
 
+    const SOURCE_ROW_LABELS: [&str; 7] = [
+        "ADC",
+        "USB PLAY",
+        "MADI IN 1-32",
+        "MADI IN 33-64",
+        "ADAT IN",
+        "S/PDIF IN",
+        "MIX 1 L/R",
+    ];
+
     pub fn new(orion_state: Arc<Mutex<OrionState>>, orion_hid: OrionHid) -> Self {
         let route_labels = std::array::from_fn(|group| {
             let start_at = if group == 3 { 33 } else { 1 };
@@ -256,6 +266,7 @@ impl ControlPanel {
 
                 self.draw_route_selections(ui);
                 self.draw_route_drag(ui);
+                self.draw_route_text(ui);
 
                 self.clear_target_selection_when_outside(ui);
                 self.update_route_targets_on_mouseup(ui, &orion_state.routes);
@@ -474,6 +485,34 @@ impl ControlPanel {
         if let Some([target_column, target_row]) = self.route_target_select_cell {
             self.draw_route_selection(ui, target_column, target_row, false);
         }
+    }
+
+    fn draw_route_text(&self, ui: &mut egui::Ui) {
+        if self.route_source_select_columns.is_empty() {
+            return;
+        }
+
+        let text = format!(
+            "{}: {}",
+            Self::SOURCE_ROW_LABELS[self.route_source_select_row as usize],
+            self.route_source_select_columns
+                .iter()
+                .map(
+                    |&column| self.route_labels[self.route_source_select_row as usize]
+                        [column as usize]
+                        .as_str()
+                )
+                .collect::<Vec<_>>()
+                .join(", ")
+        );
+
+        ui.painter().text(
+            egui::pos2(128.0, 409.0),
+            egui::Align2::LEFT_TOP,
+            text,
+            egui::FontId::proportional(12.0),
+            egui::Color32::WHITE,
+        );
     }
 
     fn clear_target_selection_when_outside(&mut self, ui: &mut egui::Ui) {
