@@ -14,10 +14,11 @@ macro_rules! render_asset {
                         ".png"
                     )))
                     .fit_to_original_size($scale)
-                    .show_loading_spinner(false),
-                );
+                    .show_loading_spinner(false)
+                    .sense(egui::Sense::click()),
+                )
             },
-        );
+        ).inner
     };
 }
 
