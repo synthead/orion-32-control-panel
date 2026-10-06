@@ -631,7 +631,7 @@ impl ControlPanelRouting {
             pos_y as u16,
             (0xff, 0xff, 0xff),
             label,
-            12.0
+            12.0,
         );
 
         rect
