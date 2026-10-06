@@ -268,6 +268,8 @@ impl ControlPanel {
                 self.draw_route_drag(ui);
                 self.draw_route_text(ui);
 
+                self.draw_signals(ui, orion_state.signals);
+
                 self.clear_target_selection_when_outside(ui);
                 self.update_route_targets_on_mouseup(ui, &orion_state.routes);
 
@@ -513,6 +515,21 @@ impl ControlPanel {
             egui::FontId::proportional(12.0),
             egui::Color32::WHITE,
         );
+    }
+
+    fn draw_signals(&self, ui: &mut egui::Ui, signals: u8) {
+        // TODO: Figure out the rest of these signals.
+
+        if signals == 0x09 {
+            render_asset!(ui, 1095, 301, "PresenceLed/default/pressed");
+        } else {
+            render_asset!(ui, 1095, 301, "PresenceLed/default/released");
+        }
+
+        render_asset!(ui, 1095, 323, "PresenceLed/default/released");
+        render_asset!(ui, 1095, 346, "PresenceLed/default/released");
+        render_asset!(ui, 1112, 346, "PresenceLed/default/released");
+        render_asset!(ui, 1095, 361, "PresenceLed/default/released");
     }
 
     fn clear_target_selection_when_outside(&mut self, ui: &mut egui::Ui) {
