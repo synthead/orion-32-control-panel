@@ -279,14 +279,14 @@ impl ControlPanelRouting {
                     self.route_target_hover_cell = Some([column as u8, row as u8]);
 
                     if ui.input(|i| i.pointer.primary_pressed()) {
-                        self.update_target_selections(ui, column as u8, row as u8, route);
+                        self.update_target_selections(column as u8, row as u8, route);
                     }
                 }
             }
         }
     }
 
-    fn update_target_selections(&mut self, ui: &mut egui::Ui, column: u8, row: u8, route: u8) {
+    fn update_target_selections(&mut self, column: u8, row: u8, route: u8) {
         self.route_target_select_cell = Some([column, row]);
 
         self.route_source_select_toggle_columns.clear();
