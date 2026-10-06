@@ -1,6 +1,6 @@
 #[macro_export]
 macro_rules! render_asset {
-    ($ui:expr, $x:expr, $y:expr, $subpath:literal) => {
+    ($ui:expr, $x:expr, $y:expr, $subpath:literal, $scale:expr) => {
         $ui.scope_builder(
             egui::UiBuilder::new().max_rect(egui::Rect::from_min_size(
                 egui::pos2($x as f32, $y as f32),
@@ -13,7 +13,7 @@ macro_rules! render_asset {
                         $subpath,
                         ".png"
                     )))
-                    .fit_to_original_size(1.0)
+                    .fit_to_original_size($scale)
                     .show_loading_spinner(false),
                 );
             },

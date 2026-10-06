@@ -116,14 +116,14 @@ impl ControlPanel {
     }
 
     fn draw_base_graphics(ui: &mut egui::Ui) {
-        render_asset!(ui, 0, 0, "ControlPanel/default/background");
-        render_asset!(ui, 0, 226, "Routing/default/background");
+        render_asset!(ui, 0, 0, "ControlPanel/default/background", 1.0);
+        render_asset!(ui, 0, 226, "Routing/default/background", 1.0);
 
-        render_asset!(ui, 20, 8, "StandbyButton/default/pressed");
-        render_asset!(ui, 1075, 9, "SettingsButton/default/released");
-        render_asset!(ui, 1124, 9, "MinimizeButton/default/released");
-        render_asset!(ui, 1100, 9, "AboutButton/default/released");
-        render_asset!(ui, 1149, 9, "CloseButton/default/released");
+        render_asset!(ui, 20, 8, "StandbyButton/default/pressed", 1.0);
+        render_asset!(ui, 1075, 9, "SettingsButton/default/released", 1.0);
+        render_asset!(ui, 1124, 9, "MinimizeButton/default/released", 1.0);
+        render_asset!(ui, 1100, 9, "AboutButton/default/released", 1.0);
+        render_asset!(ui, 1149, 9, "CloseButton/default/released", 1.0);
     }
 
     fn draw_vu_meters(ui: &mut egui::Ui, left_vu_values: &[u8; 32], right_vu_values: &[u8; 32]) {
