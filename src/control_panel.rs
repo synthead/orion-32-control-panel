@@ -25,6 +25,17 @@ impl ControlPanelRouteColors {
     const SELECT: egui::Color32 = egui::Color32::from_rgb(0x91, 0xb4, 0xdf);
 }
 
+struct ControlPanelRouteDimensions;
+
+impl ControlPanelRouteDimensions {
+    const START_X: u16 = 127;
+    const START_Y_SOURCE: u16 = 284;
+    const START_Y_TARGET: u16 = 448;
+
+    const WIDTH: u16 = 30;
+    const HEIGHT: u16 = 15;
+}
+
 pub struct ControlPanel {
     pub orion_state: Arc<Mutex<OrionState>>,
     pub orion_hid: OrionHid,
@@ -314,9 +325,7 @@ impl ControlPanel {
             for column in 0..self.route_source_counts[row] as u8 {
                 let label = &self.route_labels[row][column as usize].clone();
                 let color = Self::route_color_for_route(row as u8);
-
-                let pos_x = 127 + column as u16 * 30;
-                let pos_y = 284 + row as u16 * 15;
+                let (pos_x, pos_y) = Self::route_cell_pos(column, row as u8, true);
 
                 let rect = egui::Rect::from_min_size(
                     egui::pos2(pos_x as f32, pos_y as f32),
@@ -414,9 +423,7 @@ impl ControlPanel {
                 let route = routes[row][column];
                 let color = Self::route_color_for_route(route);
                 let label = &self.route_label_for_route(route);
-
-                let pos_x = 127 + column as u16 * 30;
-                let pos_y = 448 + row as u16 * 15;
+                let (pos_x, pos_y) = Self::route_cell_pos(column as u8, row as u8, false);
 
                 let rect = egui::Rect::from_min_size(
                     egui::pos2(pos_x as f32, pos_y as f32),
@@ -455,11 +462,7 @@ impl ControlPanel {
 
     fn draw_route_selection(&self, ui: &mut egui::Ui, column: u8, row: u8, is_source: bool) {
         let label = &self.route_labels[row as usize][column as usize];
-
-        let pos_y_base = if is_source { 284 } else { 448 };
-
-        let pos_x = 127 + column as u16 * 30;
-        let pos_y = pos_y_base + row as u16 * 15;
+        let (pos_x, pos_y) = Self::route_cell_pos(column, row, is_source);
 
         let rect = egui::Rect::from_min_size(
             egui::pos2(pos_x as f32, pos_y as f32),
@@ -507,9 +510,7 @@ impl ControlPanel {
             let color = Self::route_color_for_route(self.route_source_select_row);
 
             let [target_column, target_row] = self.route_target_hover_cell.unwrap();
-
-            let pos_x = 127 + (target_column + column_index as u8) as u16 * 30;
-            let pos_y = 448 + target_row as u16 * 15;
+            let (pos_x, pos_y) = Self::route_cell_pos(target_column + column_index as u8, target_row, false);
 
             let rect = egui::Rect::from_min_size(
                 egui::pos2(pos_x as f32, pos_y as f32),
@@ -524,14 +525,11 @@ impl ControlPanel {
 
     fn draw_route_editor(&mut self, ui: &mut egui::Ui) {
         let [column, row] = self.route_label_edit_cell.unwrap();
-
-        let pos_x = 113 + column as u16 * 30;
-        let pos_y = 282 + row as u16 * 15;
-
+        let (pos_x, pos_y) = Self::route_cell_pos(column, row, true);
         let color = Self::route_color_for_route(row);
 
         let rect = egui::Rect::from_min_size(
-            egui::pos2(pos_x as f32, pos_y as f32),
+            egui::pos2(pos_x as f32 - 14.0, pos_y as f32 - 2.0),
             egui::vec2(58.0, 18.0),
         );
 
@@ -726,6 +724,20 @@ impl ControlPanel {
                 _ => egui::Color32::BLACK,
             },
         }
+    }
+
+    fn route_cell_pos(column: u8, row: u8, is_source: bool) -> (u16, u16) {
+        let base_pos_y = if is_source {
+            ControlPanelRouteDimensions::START_Y_SOURCE
+        } else {
+            ControlPanelRouteDimensions::START_Y_TARGET
+        };
+
+        let pos_x = ControlPanelRouteDimensions::START_X
+            + column as u16 * ControlPanelRouteDimensions::WIDTH;
+        let pos_y = base_pos_y + row as u16 * ControlPanelRouteDimensions::HEIGHT;
+
+        (pos_x, pos_y)
     }
 }
 
