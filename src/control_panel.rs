@@ -197,7 +197,7 @@ impl ControlPanel {
     }
 
     fn draw_line_out(ui: &mut egui::Ui, line_out: u8) {
-        let line_out_value = (((line_out) as f32 / 255.0) * -96.0) as i8;
+        let line_out_value = -(line_out as f32 * 96.0 / 255.0) as i8;
         let line_out_text = format!("{} dB", line_out_value);
 
         ControlPanelHelpers::draw_text(ui, 1134, 101, (0x95, 0x95, 0x95), &line_out_text);
