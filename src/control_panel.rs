@@ -9,7 +9,7 @@ use crate::control_panel_routing::ControlPanelRouting;
 
 use crate::render_asset;
 
-macro_rules! render_peak {
+macro_rules! render_vu_meter {
     ($ui:expr, $x:expr, $y:expr, $db:expr, $subpath:literal) => {{
         let image = egui::Image::new(egui::include_image!(concat!(
             "../assets/images/",
@@ -166,7 +166,7 @@ impl ControlPanel {
                     },
                 );
 
-                Self::draw_peaks(
+                Self::draw_vu_meters(
                     ui,
                     &orion_state.left_vu_values,
                     &orion_state.right_vu_values,
@@ -176,24 +176,24 @@ impl ControlPanel {
             });
     }
 
-    fn draw_peaks(ui: &mut egui::Ui, left_vu_values: &[u8; 32], right_vu_values: &[u8; 32]) {
-        for peak_x in 0..32 {
-            let pos_x_1 = 135 + peak_x * 11;
+    fn draw_vu_meters(ui: &mut egui::Ui, left_vu_values: &[u8; 32], right_vu_values: &[u8; 32]) {
+        for vu_meter_x in 0..32 {
+            let pos_x_1 = 135 + vu_meter_x * 11;
             let pos_x_2 = pos_x_1 + 581;
 
-            render_peak!(
+            render_vu_meter!(
                 ui,
                 pos_x_1,
                 60,
-                left_vu_values[peak_x],
+                left_vu_values[vu_meter_x],
                 "MonitorPeakMeter/default/background"
             );
 
-            render_peak!(
+            render_vu_meter!(
                 ui,
                 pos_x_2,
                 60,
-                right_vu_values[peak_x],
+                right_vu_values[vu_meter_x],
                 "MonitorPeakMeter/default/background"
             );
         }
