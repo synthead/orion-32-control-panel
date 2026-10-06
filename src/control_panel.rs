@@ -515,8 +515,13 @@ impl ControlPanel {
         }
 
         let [target_column, target_row] = self.route_target_hover_cell.unwrap();
+        let target_row_count = self.route_target_counts[target_row as usize];
 
         for (column_index, &source_column) in self.route_source_select_columns.iter().enumerate() {
+            if target_column as usize + column_index >= target_row_count {
+                return;
+            }
+
             let label =
                 &self.route_labels[self.route_source_select_row as usize][source_column as usize];
             let color = Self::route_color_for_route(self.route_source_select_row);
