@@ -34,6 +34,15 @@ impl OrionHid {
         self.queue_packet(0x70, 0x16, 0x00, &[0xc2, 0x04, sample_rate]);
     }
 
+    pub fn queue_routes(&mut self, target: u8, routes: &[u8; 32]) {
+        let mut routes_payload = [0u8; 35];
+
+        routes_payload[..3].copy_from_slice(&[0xc1, 0x21, target]);
+        routes_payload[3..].copy_from_slice(routes);
+
+        self.queue_packet(0x70, 0x33, 0x00, &routes_payload);
+    }
+
     fn queue_packet(&mut self, byte_0: u8, byte_4: u8, byte_12: u8, payload: &[u8]) {
         let mut packet = [0u8; 64];
 
