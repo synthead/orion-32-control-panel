@@ -4,7 +4,9 @@ use std::sync::Mutex;
 use crate::orion_hid::OrionHid;
 use crate::orion_state::OrionState;
 
+use crate::control_panel_ad_phase::ControlPanelAdPhase;
 use crate::control_panel_helpers::ControlPanelHelpers;
+use crate::control_panel_mixer::ControlPanelMixer;
 use crate::control_panel_routing::ControlPanelRouting;
 
 use crate::render_asset;
@@ -41,6 +43,10 @@ pub(crate) struct ControlPanel {
     orion_hid: Arc<Mutex<OrionHid>>,
 
     routing: ControlPanelRouting,
+    mixer: ControlPanelMixer,
+    ad_phase: ControlPanelAdPhase,
+
+    current_tab: u8,
 }
 
 impl ControlPanel {
@@ -77,12 +83,18 @@ impl ControlPanel {
 
     pub fn new(orion_state: Arc<Mutex<OrionState>>, orion_hid: Arc<Mutex<OrionHid>>) -> Self {
         let routing = ControlPanelRouting::new(Arc::clone(&orion_state), Arc::clone(&orion_hid));
+        let mixer = ControlPanelMixer::new(Arc::clone(&orion_state), Arc::clone(&orion_hid));
+        let ad_phase = ControlPanelAdPhase::new(Arc::clone(&orion_state), Arc::clone(&orion_hid));
 
         Self {
             orion_state,
             orion_hid,
 
             routing,
+            mixer,
+            ad_phase,
+
+            current_tab: 0,
         }
     }
 
@@ -112,7 +124,17 @@ impl ControlPanel {
                 Self::draw_serial_combobox(ui, &orion_state.serial);
                 Self::draw_line_out(ui, orion_state.line_out);
 
-                self.routing.draw(ui);
+                match self.current_tab {
+                    1 => {
+                        self.mixer.draw(ui);
+                    }
+                    2 => {
+                        self.ad_phase.draw(ui);
+                    }
+                    _ => {
+                        self.routing.draw(ui);
+                    }
+                };
             });
     }
 
