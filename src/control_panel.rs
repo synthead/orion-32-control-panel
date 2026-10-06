@@ -141,15 +141,12 @@ impl ControlPanel {
 
     fn draw_base_graphics(ui: &mut egui::Ui) {
         render_asset!(ui, 0, 0, "ControlPanel/default/background", 1.0);
-        render_asset!(ui, 0, 226, "Routing/default/background", 1.0);
 
         render_asset!(ui, 20, 8, "StandbyButton/default/pressed", 1.0);
         render_asset!(ui, 1075, 9, "SettingsButton/default/released", 1.0);
         render_asset!(ui, 1124, 9, "MinimizeButton/default/released", 1.0);
         render_asset!(ui, 1100, 9, "AboutButton/default/released", 1.0);
         render_asset!(ui, 1149, 9, "CloseButton/default/released", 1.0);
-
-        render_asset!(ui, 1094, 652, "HowtoButton/default/released", 1.0);
 
         render_asset!(ui, 79, 683, "FeedLeftArrow/default/released", 1.0);
         render_asset!(ui, 1093, 683, "FeedRightArrow/default/released", 1.0);

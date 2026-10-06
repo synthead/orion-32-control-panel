@@ -152,6 +152,8 @@ impl ControlPanelRouting {
             32,
         ];
 
+        Self::draw_base_graphics(ui);
+
         self.draw_route_sources(ui);
         self.draw_route_targets(ui, &orion_state.routes);
 
@@ -160,7 +162,6 @@ impl ControlPanelRouting {
         self.draw_route_text(ui);
 
         self.draw_signals(ui, orion_state.signals);
-        self.draw_route_navbar(ui);
 
         self.clear_target_selection_when_outside(ui);
         self.update_route_targets_on_mouseup(ui, &orion_state.routes);
@@ -168,6 +169,16 @@ impl ControlPanelRouting {
         if self.route_label_edit_cell.is_some() {
             self.draw_route_editor(ui);
         }
+    }
+
+    fn draw_base_graphics(ui: &mut egui::Ui) {
+        render_asset!(ui, 0, 226, "Routing/default/background", 1.0);
+        render_asset!(ui, 1094, 652, "HowtoButton/default/released", 1.0);
+
+        render_asset!(ui, 1106, 410, "UndoButton/default/released", 1.0);
+        render_asset!(ui, 1106, 436, "RedoButton/default/released", 1.0);
+        render_asset!(ui, 1106, 462, "SaveRoutingButton/default/released", 1.0);
+        render_asset!(ui, 1106, 488, "LoadRoutingButton/default/released", 1.0);
     }
 
     fn draw_route_sources(&mut self, ui: &mut egui::Ui) {
@@ -362,13 +373,6 @@ impl ControlPanelRouting {
         render_asset!(ui, 1095, 346, "PresenceLed/default/released", 1.0);
         render_asset!(ui, 1112, 346, "PresenceLed/default/released", 1.0);
         render_asset!(ui, 1095, 361, "PresenceLed/default/released", 1.0);
-    }
-
-    fn draw_route_navbar(&self, ui: &mut egui::Ui) {
-        render_asset!(ui, 1106, 410, "UndoButton/default/released", 1.0);
-        render_asset!(ui, 1106, 436, "RedoButton/default/released", 1.0);
-        render_asset!(ui, 1106, 462, "SaveRoutingButton/default/released", 1.0);
-        render_asset!(ui, 1106, 488, "LoadRoutingButton/default/released", 1.0);
     }
 
     fn clear_target_selection_when_outside(&mut self, ui: &mut egui::Ui) {
