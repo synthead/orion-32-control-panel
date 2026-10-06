@@ -533,12 +533,12 @@ impl ControlPanel {
             egui::StrokeKind::Inside,
         );
 
-        let hitbox_pos_x = 127 + column as u16 * 30;
-        let hitbox_pos_y = 284 + row as u16 * 15;
-
         let hitbox_rect = egui::Rect::from_min_size(
-            egui::pos2(hitbox_pos_x as f32, hitbox_pos_y as f32),
-            egui::vec2(29.0, 14.0),
+            egui::pos2(pos_x, pos_y),
+            egui::vec2(
+                ControlPanelRouteDimensions::SIZE_X,
+                ControlPanelRouteDimensions::SIZE_Y,
+            ),
         );
 
         if ui.input(|i| {
