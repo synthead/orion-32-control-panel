@@ -101,11 +101,6 @@ impl ControlPanel {
 
                 let orion_state = self.orion_state.lock().unwrap().clone();
 
-                let line_out_value = (((orion_state.line_out) as f32 / 255.0) * -96.0) as i8;
-                let line_out_text = format!("{} dB", line_out_value);
-
-                ControlPanelHelpers::draw_text(ui, 1134, 101, (0x95, 0x95, 0x95), &line_out_text);
-
                 let serial = String::from_utf8_lossy(&orion_state.serial);
 
                 ControlPanelHelpers::draw_combobox(ui, 950, 7, 110, 0, &[&serial], |_selected| {
@@ -172,6 +167,8 @@ impl ControlPanel {
                     &orion_state.right_vu_values,
                 );
 
+                Self::draw_line_out(ui, orion_state.line_out);
+
                 self.routing.draw(ui);
             });
     }
@@ -197,6 +194,13 @@ impl ControlPanel {
                 "MonitorPeakMeter/default/background"
             );
         }
+    }
+
+    fn draw_line_out(ui: &mut egui::Ui, line_out: u8) {
+        let line_out_value = (((line_out) as f32 / 255.0) * -96.0) as i8;
+        let line_out_text = format!("{} dB", line_out_value);
+
+        ControlPanelHelpers::draw_text(ui, 1134, 101, (0x95, 0x95, 0x95), &line_out_text);
     }
 }
 
