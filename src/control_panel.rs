@@ -93,6 +93,7 @@ impl ControlPanel {
                 let orion_state = self.orion_state.lock().unwrap().clone();
 
                 Self::draw_base_graphics(ui);
+                Self::draw_preset_labels(ui);
 
                 Self::draw_vu_meters(
                     ui,
@@ -133,6 +134,15 @@ impl ControlPanel {
 
         render_asset!(ui, 79, 683, "FeedLeftArrow/default/released", 1.0);
         render_asset!(ui, 1093, 683, "FeedRightArrow/default/released", 1.0);
+    }
+
+    fn draw_preset_labels(ui: &mut egui::Ui) {
+        for preset in 0..5 {
+            let label = format!("PRESET {}", preset + 1);
+            let pos_x = 845 + preset * 65;
+
+            ControlPanelHelpers::draw_text(ui, pos_x, 210, (0x95, 0x95, 0x95), &label, 9.5);
+        }
     }
 
     fn draw_vu_meters(ui: &mut egui::Ui, left_vu_values: &[u8; 32], right_vu_values: &[u8; 32]) {
