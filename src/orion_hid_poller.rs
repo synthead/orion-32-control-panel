@@ -6,7 +6,7 @@ use std::sync::Mutex;
 
 use crate::orion_state::OrionState;
 
-pub struct OrionHidPoller {
+pub(crate) struct OrionHidPoller {
     hid_api: Option<HidApi>,
     orion_hid: Option<HidDevice>,
     orion_state: Arc<Mutex<OrionState>>,
@@ -17,7 +17,7 @@ impl OrionHidPoller {
     const USB_VENDOR: u16 = 0x23e5;
     const USB_PRODUCT: u16 = 0xa040;
 
-    pub fn new(
+    pub(crate) fn new(
         orion_state: Arc<Mutex<OrionState>>,
         hid_write_rx: mpsc::Receiver<[u8; 64]>,
     ) -> Self {
@@ -29,7 +29,7 @@ impl OrionHidPoller {
         }
     }
 
-    pub fn poll_and_update_state(&mut self) {
+    pub(crate) fn poll_and_update_state(&mut self) {
         while let Ok(packet) = self.hid_write_rx.try_recv() {
             self.orion_hid()
                 .write(&packet)
@@ -50,7 +50,7 @@ impl OrionHidPoller {
         Self::update_orion_state(&hid_data, &mut state);
     }
 
-    pub fn update_orion_state(hid_data: &[u8; 64], orion_state: &mut OrionState) {
+    fn update_orion_state(hid_data: &[u8; 64], orion_state: &mut OrionState) {
         match (hid_data[0], hid_data[4], hid_data[12]) {
             (0x70, 0x33, 0x00) => {
                 Self::transform_written_routes(hid_data, orion_state);
