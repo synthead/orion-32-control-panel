@@ -18,7 +18,8 @@ macro_rules! render_asset {
                     .sense(egui::Sense::click()),
                 )
             },
-        ).inner
+        )
+        .inner
     };
 }
 
