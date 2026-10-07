@@ -89,7 +89,7 @@ impl ControlPanelMixer {
             &orion_state.mixer_pans_solos_mutes,
         );
 
-        Self::draw_master(
+        self.draw_master(
             ui,
             orion_state.mixer_levels[0],
             orion_state.mixer_pans_solos_mutes[0],
@@ -281,7 +281,7 @@ impl ControlPanelMixer {
         }
     }
 
-    fn draw_master(ui: &mut egui::Ui, level: u8, mute: u8) {
+    fn draw_master(&self, ui: &mut egui::Ui, level: u8, mute: u8) {
         let slider_pos_y = ControlPanelMixerDimensions::MSATER_SLIDER_START_Y
             + level as u16 * ControlPanelMixerDimensions::MSATER_SLIDER_DEPTH_Y / 95;
 
@@ -306,7 +306,7 @@ impl ControlPanelMixer {
             ControlPanelMixerColors::VALUE_TEXT,
         );
 
-        if mute & 0x40 != 0 {
+        let mute_button = if mute & 0x40 != 0 {
             render_asset!(
                 ui,
                 ControlPanelMixerDimensions::MASTER_MUTE_X,
@@ -314,8 +314,8 @@ impl ControlPanelMixer {
                 "MuteButton/default/pressed",
                 1.0,
                 0.0,
-                None
-            );
+                Some(egui::Sense::click())
+            )
         } else {
             render_asset!(
                 ui,
@@ -324,8 +324,15 @@ impl ControlPanelMixer {
                 "MuteButton/default/released",
                 1.0,
                 0.0,
-                None
-            );
+                Some(egui::Sense::click())
+            )
+        };
+
+        if mute_button.clicked() {
+            self.orion_hid
+                .lock()
+                .unwrap()
+                .queue_mixer_channel(0, level, mute ^ 0x40);
         }
     }
 
