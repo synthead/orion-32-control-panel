@@ -76,8 +76,18 @@ impl ControlPanelMixer {
 
         Self::draw_base_graphics(ui);
         Self::draw_labels(ui);
-        Self::draw_levels(ui, &orion_state.mixer_levels);
-        Self::draw_pans_solos_mutes(ui, &orion_state.mixer_pans_solos_mutes);
+
+        Self::draw_levels(
+            ui,
+            &orion_state.mixer_levels,
+            &orion_state.mixer_pans_solos_mutes,
+        );
+
+        self.draw_pans_solos_mutes(
+            ui,
+            &orion_state.mixer_levels,
+            &orion_state.mixer_pans_solos_mutes,
+        );
 
         Self::draw_master(
             ui,
@@ -132,11 +142,11 @@ impl ControlPanelMixer {
         }
     }
 
-    fn draw_levels(ui: &mut egui::Ui, levels: &[u8; 33]) {
-        for channel in 0..32 {
-            let level = levels[channel + 1];
+    fn draw_levels(ui: &mut egui::Ui, levels: &[u8; 33], pans_solos_mutes: &[u8; 33]) {
+        for channel in 1..33 {
+            let level = levels[channel];
 
-            let base_pos_x = channel as f32 * ControlPanelMixerDimensions::STEP_X;
+            let base_pos_x = (channel - 1) as f32 * ControlPanelMixerDimensions::STEP_X;
 
             let slider_pos_x = base_pos_x as u16 + ControlPanelMixerDimensions::SLIDER_START_X;
             let slider_pos_y = ControlPanelMixerDimensions::SLIDER_START_Y
@@ -165,17 +175,22 @@ impl ControlPanelMixer {
         }
     }
 
-    fn draw_pans_solos_mutes(ui: &mut egui::Ui, pans_solos_mutes: &[u8; 33]) {
+    fn draw_pans_solos_mutes(
+        &self,
+        ui: &mut egui::Ui,
+        levels: &[u8; 33],
+        pans_solos_mutes: &[u8; 33],
+    ) {
         let any_solo = pans_solos_mutes.iter().any(|value| value & 0x80 != 0);
 
-        for channel in 0..32 {
-            let pan_solo_mute = pans_solos_mutes[channel + 1];
+        for channel in 1..33 {
+            let pan_solo_mute = pans_solos_mutes[channel];
 
             let pan = (pan_solo_mute & 0x3f) as i8 - 32;
             let solo = pan_solo_mute & 0x80 != 0;
             let mute = pan_solo_mute & 0x40 != 0;
 
-            let base_pos_x = channel as f32 * ControlPanelMixerDimensions::STEP_X;
+            let base_pos_x = (channel - 1) as f32 * ControlPanelMixerDimensions::STEP_X;
 
             let text_x = base_pos_x + ControlPanelMixerDimensions::TEXT_X;
 
@@ -202,7 +217,7 @@ impl ControlPanelMixer {
 
             let solo_mute_x = base_pos_x as u16 + ControlPanelMixerDimensions::SOLO_MUTE_X;
 
-            if solo {
+            let solo_button = if solo {
                 render_asset!(
                     ui,
                     solo_mute_x,
@@ -210,8 +225,8 @@ impl ControlPanelMixer {
                     "SoloButton/default/pressed",
                     1.0,
                     0.0,
-                    None
-                );
+                    Some(egui::Sense::click())
+                )
             } else {
                 render_asset!(
                     ui,
@@ -220,11 +235,11 @@ impl ControlPanelMixer {
                     "SoloButton/default/released",
                     1.0,
                     0.0,
-                    None
-                );
-            }
+                    Some(egui::Sense::click())
+                )
+            };
 
-            if !solo && any_solo || mute {
+            let mute_button = if !solo && any_solo || mute {
                 render_asset!(
                     ui,
                     solo_mute_x,
@@ -232,8 +247,8 @@ impl ControlPanelMixer {
                     "MuteButton/default/pressed",
                     1.0,
                     0.0,
-                    None
-                );
+                    Some(egui::Sense::click())
+                )
             } else {
                 render_asset!(
                     ui,
@@ -242,7 +257,25 @@ impl ControlPanelMixer {
                     "MuteButton/default/released",
                     1.0,
                     0.0,
-                    None
+                    Some(egui::Sense::click())
+                )
+            };
+
+            let level = levels[channel];
+
+            if solo_button.clicked() {
+                self.orion_hid.lock().unwrap().queue_mixer_channel(
+                    channel as u8,
+                    level,
+                    pan_solo_mute ^ 0x80,
+                );
+            }
+
+            if mute_button.clicked() {
+                self.orion_hid.lock().unwrap().queue_mixer_channel(
+                    channel as u8,
+                    level,
+                    pan_solo_mute ^ 0x40,
                 );
             }
         }
