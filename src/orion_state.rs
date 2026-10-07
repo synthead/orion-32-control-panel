@@ -1,4 +1,4 @@
-#[derive(Clone, Default)]
+#[derive(Clone)]
 pub(crate) struct OrionState {
     pub(crate) serial: [u8; 13],
     pub(crate) left_vu_source: u8,
@@ -11,4 +11,28 @@ pub(crate) struct OrionState {
     pub(crate) signals: u8,
 
     pub(crate) routes: [[u8; 32]; 7],
+
+    pub(crate) mixer_levels: [u8; 33],
+    pub(crate) mixer_pans: [u8; 33],
+}
+
+impl Default for OrionState {
+    fn default() -> Self {
+        Self {
+            serial: [0; 13],
+            left_vu_source: 0,
+            left_vu_values: [0; 32],
+            right_vu_source: 0,
+            right_vu_values: [0; 32],
+            clock_source: 0,
+            sample_rate: 0,
+            line_out: 0,
+            signals: 0,
+
+            routes: [[0; 32]; 7],
+
+            mixer_levels: [0x00; 33],
+            mixer_pans: [0x20; 33],
+        }
+    }
 }
