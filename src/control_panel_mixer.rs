@@ -31,7 +31,7 @@ impl ControlPanelMixerDimensions {
     const SLIDER_DEPTH_Y: u16 = 178;
 
     const TEXT_X: f32 = 21.0;
-    const LEVEL_Y: f32 = 347.0;
+    const LEVEL_Y: f32 = 348.0;
 
     const PAN_Y_OFFSET: f32 = 17.0;
     const LEVEL_Y_OFFSET: f32 = 96.0;
