@@ -95,6 +95,43 @@ impl ControlPanelMixer {
         render_asset!(ui, 1136, 639, "MuteButton/default/released", 1.0, 0.0);
     }
 
+    fn draw_labels(ui: &mut egui::Ui) {
+        for channel in 0..32 {
+            let pos_x = ControlPanelMixerDimensions::LABEL_X
+                + channel as f32 * ControlPanelMixerDimensions::STEP_X;
+
+            let rect = egui::Rect::from_min_size(
+                egui::pos2(pos_x, ControlPanelMixerDimensions::LABEL_Y),
+                egui::vec2(
+                    ControlPanelMixerDimensions::LABEL_WIDTH,
+                    ControlPanelMixerDimensions::LABEL_HEIGHT,
+                ),
+            );
+
+            ui.painter()
+                .rect_filled(rect, 0.0, ControlPanelMixerColors::LABEL);
+
+            ui.painter().text(
+                rect.center(),
+                egui::Align2::CENTER_CENTER,
+                (channel + 1).to_string(),
+                egui::FontId::proportional(ControlPanelMixerDimensions::FONT_SIZE_LABEL),
+                ControlPanelMixerColors::LABEL_TEXT,
+            );
+        }
+
+        ui.painter().text(
+            egui::pos2(
+                ControlPanelMixerDimensions::MASTER_TEXT_X,
+                ControlPanelMixerDimensions::MASTER_TEXT_Y,
+            ),
+            egui::Align2::CENTER_CENTER,
+            "0",
+            egui::FontId::proportional(ControlPanelMixerDimensions::FONT_SIZE_VALUE),
+            ControlPanelMixerColors::VALUE_TEXT,
+        );
+    }
+
     fn draw_levels(ui: &mut egui::Ui, levels: &[u8; 33]) {
         for channel in 0..32 {
             let level = levels[channel + 1];
@@ -209,42 +246,5 @@ impl ControlPanelMixer {
                 );
             }
         }
-    }
-
-    fn draw_labels(ui: &mut egui::Ui) {
-        for channel in 0..32 {
-            let pos_x = ControlPanelMixerDimensions::LABEL_X
-                + channel as f32 * ControlPanelMixerDimensions::STEP_X;
-
-            let rect = egui::Rect::from_min_size(
-                egui::pos2(pos_x, ControlPanelMixerDimensions::LABEL_Y),
-                egui::vec2(
-                    ControlPanelMixerDimensions::LABEL_WIDTH,
-                    ControlPanelMixerDimensions::LABEL_HEIGHT,
-                ),
-            );
-
-            ui.painter()
-                .rect_filled(rect, 0.0, ControlPanelMixerColors::LABEL);
-
-            ui.painter().text(
-                rect.center(),
-                egui::Align2::CENTER_CENTER,
-                (channel + 1).to_string(),
-                egui::FontId::proportional(ControlPanelMixerDimensions::FONT_SIZE_LABEL),
-                ControlPanelMixerColors::LABEL_TEXT,
-            );
-        }
-
-        ui.painter().text(
-            egui::pos2(
-                ControlPanelMixerDimensions::MASTER_TEXT_X,
-                ControlPanelMixerDimensions::MASTER_TEXT_Y,
-            ),
-            egui::Align2::CENTER_CENTER,
-            "0",
-            egui::FontId::proportional(ControlPanelMixerDimensions::FONT_SIZE_VALUE),
-            ControlPanelMixerColors::VALUE_TEXT,
-        );
     }
 }
