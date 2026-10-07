@@ -105,7 +105,7 @@ impl ControlPanelMixer {
 
     fn draw_mixer_levels(ui: &mut egui::Ui, mixer_levels: &[u8; 33]) {
         for mixer_channel in 0..32 {
-            let mixer_level = mixer_levels[mixer_channel + 1] as i8;
+            let mixer_level = mixer_levels[mixer_channel + 1];
 
             let base_pos_x = mixer_channel as f32 * ControlPanelMixerDimensions::STEP_X;
 
@@ -122,13 +122,15 @@ impl ControlPanelMixer {
                 0.0
             );
 
+            let text = if mixer_level == 0x5f { "-inf".to_string() } else { (-(mixer_level as i8)).to_string() };
+
             ui.painter().text(
                 egui::pos2(
                     base_pos_x + ControlPanelMixerDimensions::TEXT_X,
                     ControlPanelMixerDimensions::LEVEL_Y,
                 ),
                 egui::Align2::CENTER_CENTER,
-                (-mixer_level).to_string(),
+                text,
                 egui::FontId::proportional(ControlPanelMixerDimensions::FONT_SIZE_VALUE),
                 ControlPanelMixerColors::FONT_VALUE,
             );
