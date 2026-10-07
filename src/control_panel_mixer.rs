@@ -22,45 +22,45 @@ impl ControlPanelMixerDimensions {
     const FONT_SIZE_VALUE: f32 = 12.0;
 
     const LABEL_X: f32 = 5.0;
-    const LABEL_Y: f32 = 239.0;
+    const LABEL_Y: f32 = 243.0;
     const LABEL_WIDTH: f32 = 33.0;
     const LABEL_HEIGHT: f32 = 13.0;
 
     const PAN_KNOB_X: u16 = 5;
-    const PAN_KNOB_Y: u16 = 283;
+    const PAN_KNOB_Y: u16 = 287;
     const PAN_KNOB_RAD: f32 = 2.35;
 
     const SLIDER_X: u16 = 11;
-    const SLIDER_Y: u16 = 366;
+    const SLIDER_Y: u16 = 370;
     const SLIDER_TRAVEL: u16 = 178;
 
     const SLIDER_HITBOX_X: f32 = 11.0;
-    const SLIDER_HITBOX_Y: f32 = 366.0;
+    const SLIDER_HITBOX_Y: f32 = 370.0;
     const SLIDER_HITBOX_WIDTH: f32 = 22.0;
     const SLIDER_HITBOX_HEIGHT: f32 = 222.0;
 
     const SOLO_MUTE_X: u16 = 7;
-    const SOLO_Y: u16 = 604;
-    const MUTE_Y: u16 = 622;
+    const SOLO_Y: u16 = 608;
+    const MUTE_Y: u16 = 626;
 
     const TEXT_X: f32 = 21.0;
-    const PAN_TEXT_Y: f32 = 270.0;
-    const LEVEL_TEXT_Y: f32 = 348.0;
+    const PAN_TEXT_Y: f32 = 274.0;
+    const LEVEL_TEXT_Y: f32 = 352.0;
 
     const MASTER_TEXT_X: f32 = 1150.0;
-    const MASTER_TEXT_Y: f32 = 342.0;
+    const MASTER_TEXT_Y: f32 = 346.0;
 
     const MASTER_SLIDER_X: u16 = 1136;
-    const MASTER_SLIDER_Y: u16 = 356;
+    const MASTER_SLIDER_Y: u16 = 360;
     const MASTER_SLIDER_TRAVEL: u16 = 233;
 
     const MASTER_SLIDER_HITBOX_X: f32 = 1136.0;
-    const MASTER_SLIDER_HITBOX_Y: f32 = 356.0;
+    const MASTER_SLIDER_HITBOX_Y: f32 = 360.0;
     const MASTER_SLIDER_HITBOX_WIDTH: f32 = 32.0;
     const MASTER_SLIDER_HITBOX_HEIGHT: f32 = 283.0;
 
     const MASTER_MUTE_X: u16 = 1136;
-    const MASTER_MUTE_Y: u16 = 639;
+    const MASTER_MUTE_Y: u16 = 643;
 }
 
 pub(crate) struct ControlPanelMixer {
@@ -111,7 +111,7 @@ impl ControlPanelMixer {
     }
 
     fn draw_base_graphics(ui: &mut egui::Ui) {
-        render_asset!(ui, 0, 222, "Mixer/default/background", 1.0, 0.0, None);
+        render_asset!(ui, 0, 226, "Mixer/default/background", 1.0, 0.0, None);
 
         for channel in 0..32 {
             let pos_x = 7 + channel * 35;
@@ -120,7 +120,7 @@ impl ControlPanelMixer {
                 render_asset!(
                     ui,
                     pos_x,
-                    640,
+                    644,
                     "LinkButton/default/released",
                     1.0,
                     0.0,
