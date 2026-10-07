@@ -46,6 +46,13 @@ impl ControlPanelMixerDimensions {
 
     const MASTER_TEXT_X: f32 = 1150.0;
     const MASTER_TEXT_Y: f32 = 342.0;
+
+    const MSATER_SLIDER_START_X: u16 = 1136;
+    const MSATER_SLIDER_START_Y: u16 = 356;
+    const MSATER_SLIDER_DEPTH_Y: u16 = 233;
+
+    const MASTER_MUTE_X: u16 = 1136;
+    const MASTER_MUTE_Y: u16 = 639;
 }
 
 pub(crate) struct ControlPanelMixer {
@@ -71,6 +78,12 @@ impl ControlPanelMixer {
         Self::draw_labels(ui);
         Self::draw_levels(ui, &orion_state.mixer_levels);
         Self::draw_pans_solos_mutes(ui, &orion_state.mixer_pans_solos_mutes);
+
+        Self::draw_master(
+            ui,
+            orion_state.mixer_levels[0],
+            orion_state.mixer_pans_solos_mutes[0],
+        );
     }
 
     fn draw_base_graphics(ui: &mut egui::Ui) {
@@ -91,16 +104,6 @@ impl ControlPanelMixer {
                 );
             }
         }
-
-        render_asset!(
-            ui,
-            1136,
-            356,
-            "MasterMixerSlider/default/layers/handle",
-            1.0,
-            0.0
-        );
-        render_asset!(ui, 1136, 639, "MuteButton/default/released", 1.0, 0.0);
     }
 
     fn draw_labels(ui: &mut egui::Ui) {
@@ -127,17 +130,6 @@ impl ControlPanelMixer {
                 ControlPanelMixerColors::LABEL_TEXT,
             );
         }
-
-        ui.painter().text(
-            egui::pos2(
-                ControlPanelMixerDimensions::MASTER_TEXT_X,
-                ControlPanelMixerDimensions::MASTER_TEXT_Y,
-            ),
-            egui::Align2::CENTER_CENTER,
-            "0",
-            egui::FontId::proportional(ControlPanelMixerDimensions::FONT_SIZE_VALUE),
-            ControlPanelMixerColors::VALUE_TEXT,
-        );
     }
 
     fn draw_levels(ui: &mut egui::Ui, levels: &[u8; 33]) {
@@ -160,19 +152,13 @@ impl ControlPanelMixer {
                 None
             );
 
-            let text = if level == 0x5f {
-                "-inf".to_string()
-            } else {
-                (-(level as i8)).to_string()
-            };
-
             ui.painter().text(
                 egui::pos2(
                     base_pos_x + ControlPanelMixerDimensions::TEXT_X,
                     ControlPanelMixerDimensions::LEVEL_TEXT_Y,
                 ),
                 egui::Align2::CENTER_CENTER,
-                text,
+                Self::text_for_level(level),
                 egui::FontId::proportional(ControlPanelMixerDimensions::FONT_SIZE_VALUE),
                 ControlPanelMixerColors::VALUE_TEXT,
             );
@@ -260,5 +246,61 @@ impl ControlPanelMixer {
                 );
             }
         }
+    }
+
+    fn draw_master(ui: &mut egui::Ui, level: u8, mute: u8) {
+        let slider_pos_y = ControlPanelMixerDimensions::MSATER_SLIDER_START_Y
+            + level as u16 * ControlPanelMixerDimensions::MSATER_SLIDER_DEPTH_Y / 95;
+
+        render_asset!(
+            ui,
+            ControlPanelMixerDimensions::MSATER_SLIDER_START_X,
+            slider_pos_y,
+            "MasterMixerSlider/default/layers/handle",
+            1.0,
+            0.0,
+            None
+        );
+
+        ui.painter().text(
+            egui::pos2(
+                ControlPanelMixerDimensions::MASTER_TEXT_X,
+                ControlPanelMixerDimensions::MASTER_TEXT_Y,
+            ),
+            egui::Align2::CENTER_CENTER,
+            Self::text_for_level(level),
+            egui::FontId::proportional(ControlPanelMixerDimensions::FONT_SIZE_VALUE),
+            ControlPanelMixerColors::VALUE_TEXT,
+        );
+
+        if mute & 0x40 != 0 {
+            render_asset!(
+                ui,
+                ControlPanelMixerDimensions::MASTER_MUTE_X,
+                ControlPanelMixerDimensions::MASTER_MUTE_Y,
+                "MuteButton/default/pressed",
+                1.0,
+                0.0,
+                None
+            );
+        } else {
+            render_asset!(
+                ui,
+                ControlPanelMixerDimensions::MASTER_MUTE_X,
+                ControlPanelMixerDimensions::MASTER_MUTE_Y,
+                "MuteButton/default/released",
+                1.0,
+                0.0,
+                None
+            );
+        }
+    }
+
+    fn text_for_level(level: u8) -> String {
+        if level == 0x5f {
+            return "-inf".to_string();
+        };
+
+        (-(level as i8)).to_string()
     }
 }
