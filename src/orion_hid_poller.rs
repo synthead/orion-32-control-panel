@@ -68,7 +68,7 @@ impl OrionHidPoller {
                 Self::transform_mixer_levels(hid_data, orion_state);
             }
             (0x75, 0x10, 0x05) => {
-                Self::transform_mixer_pans(hid_data, orion_state);
+                Self::transform_mixer_pans_solos_mutes(hid_data, orion_state);
             }
             _ => {}
         }
@@ -111,8 +111,8 @@ impl OrionHidPoller {
         orion_state.mixer_levels = hid_data[16..49].try_into().unwrap()
     }
 
-    fn transform_mixer_pans(hid_data: &[u8; 64], orion_state: &mut OrionState) {
-        orion_state.mixer_pans = hid_data[16..49].try_into().unwrap()
+    fn transform_mixer_pans_solos_mutes(hid_data: &[u8; 64], orion_state: &mut OrionState) {
+        orion_state.mixer_pans_solos_mutes = hid_data[16..49].try_into().unwrap()
     }
 
     fn hid_api(&mut self) -> &mut HidApi {

@@ -13,7 +13,7 @@ pub(crate) struct OrionState {
     pub(crate) routes: [[u8; 32]; 7],
 
     pub(crate) mixer_levels: [u8; 33],
-    pub(crate) mixer_pans: [u8; 33],
+    pub(crate) mixer_pans_solos_mutes: [u8; 33],
 }
 
 impl Default for OrionState {
@@ -32,7 +32,7 @@ impl Default for OrionState {
             routes: [[0; 32]; 7],
 
             mixer_levels: [0x00; 33],
-            mixer_pans: [0x20; 33],
+            mixer_pans_solos_mutes: [0x20; 33],
         }
     }
 }
