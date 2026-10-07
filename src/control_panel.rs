@@ -140,35 +140,42 @@ impl ControlPanel {
     }
 
     fn draw_base_graphics(ui: &mut egui::Ui) {
-        render_asset!(ui, 0, 0, "ControlPanel/default/background", 1.0);
+        render_asset!(ui, 0, 0, "ControlPanel/default/background", 1.0, 0.0);
 
-        render_asset!(ui, 20, 8, "StandbyButton/default/pressed", 1.0);
-        render_asset!(ui, 1075, 9, "SettingsButton/default/released", 1.0);
-        render_asset!(ui, 1124, 9, "MinimizeButton/default/released", 1.0);
-        render_asset!(ui, 1100, 9, "AboutButton/default/released", 1.0);
-        render_asset!(ui, 1149, 9, "CloseButton/default/released", 1.0);
+        render_asset!(ui, 20, 8, "StandbyButton/default/pressed", 1.0, 0.0);
+        render_asset!(ui, 1075, 9, "SettingsButton/default/released", 1.0, 0.0);
+        render_asset!(ui, 1124, 9, "MinimizeButton/default/released", 1.0, 0.0);
+        render_asset!(ui, 1100, 9, "AboutButton/default/released", 1.0, 0.0);
+        render_asset!(ui, 1149, 9, "CloseButton/default/released", 1.0, 0.0);
 
-        render_asset!(ui, 79, 683, "FeedLeftArrow/default/released", 1.0);
-        render_asset!(ui, 1093, 683, "FeedRightArrow/default/released", 1.0);
+        render_asset!(ui, 79, 683, "FeedLeftArrow/default/released", 1.0, 0.0);
+        render_asset!(ui, 1093, 683, "FeedRightArrow/default/released", 1.0, 0.0);
     }
 
     fn draw_tab_buttons(&mut self, ui: &mut egui::Ui) {
         let routing_button = if self.current_tab == 0 {
-            render_asset!(ui, 82, 209, "RoutingNavButton/default/pressed@2x", 0.5)
+            render_asset!(ui, 82, 209, "RoutingNavButton/default/pressed@2x", 0.5, 0.0)
         } else {
-            render_asset!(ui, 82, 209, "RoutingNavButton/default/released@2x", 0.5)
+            render_asset!(
+                ui,
+                82,
+                209,
+                "RoutingNavButton/default/released@2x",
+                0.5,
+                0.0
+            )
         };
 
         let mixer_button = if self.current_tab == 1 {
-            render_asset!(ui, 178, 209, "MixerNavButton/default/pressed@2x", 0.5)
+            render_asset!(ui, 178, 209, "MixerNavButton/default/pressed@2x", 0.5, 0.0)
         } else {
-            render_asset!(ui, 178, 209, "MixerNavButton/default/released@2x", 0.5)
+            render_asset!(ui, 178, 209, "MixerNavButton/default/released@2x", 0.5, 0.0)
         };
 
         let ad_phase_button = if self.current_tab == 2 {
-            render_asset!(ui, 257, 209, "PhaseInvNavButton/default/pressed", 1.0)
+            render_asset!(ui, 257, 209, "PhaseInvNavButton/default/pressed", 1.0, 0.0)
         } else {
-            render_asset!(ui, 257, 209, "PhaseInvNavButton/default/released", 1.0)
+            render_asset!(ui, 257, 209, "PhaseInvNavButton/default/released", 1.0, 0.0)
         };
 
         if routing_button.clicked() {

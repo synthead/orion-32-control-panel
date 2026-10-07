@@ -1,22 +1,28 @@
 #[macro_export]
 macro_rules! render_asset {
-    ($ui:expr, $x:expr, $y:expr, $subpath:literal, $scale:expr) => {
+    ($ui:expr, $x:expr, $y:expr, $subpath:literal, $scale:expr, $rotation:expr) => {
         $ui.scope_builder(
             egui::UiBuilder::new().max_rect(egui::Rect::from_min_size(
                 egui::pos2($x as f32, $y as f32),
                 $ui.available_size(),
             )),
             |ui| {
-                ui.add(
-                    egui::Image::new(egui::include_image!(concat!(
-                        "../assets/images/",
-                        $subpath,
-                        ".png"
-                    )))
-                    .fit_to_original_size($scale)
-                    .show_loading_spinner(false)
-                    .sense(egui::Sense::click()),
-                )
+                let image = egui::Image::new(egui::include_image!(concat!(
+                    "../assets/images/",
+                    $subpath,
+                    ".png"
+                )))
+                .fit_to_original_size($scale)
+                .show_loading_spinner(false)
+                .sense(egui::Sense::click());
+
+                let image = if $rotation == 0.0 {
+                    image
+                } else {
+                    image.rotate($rotation, egui::Vec2::splat(0.5))
+                };
+
+                ui.add(image)
             },
         )
         .inner
