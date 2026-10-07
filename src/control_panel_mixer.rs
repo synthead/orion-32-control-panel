@@ -30,7 +30,16 @@ impl ControlPanelMixerDimensions {
     const SLIDER_START_Y: u16 = 366;
     const SLIDER_DEPTH_Y: u16 = 178;
 
+    const PAN_KNOB_X: u16 = 5;
+    const PAN_KNOB_Y: u16 = 283;
+    const PAN_RAD: f32 = 2.35;
+
+    const SOLO_MUTE_X: u16 = 7;
+    const SOLO_Y: u16 = 604;
+    const MUTE_Y: u16 = 622;
+
     const TEXT_X: f32 = 21.0;
+    const PAN_TEXT_Y: f32 = 270.0;
     const LEVEL_Y: f32 = 348.0;
 
     const PAN_Y_OFFSET: f32 = 17.0;
@@ -41,8 +50,6 @@ impl ControlPanelMixerDimensions {
 
     const FONT_SIZE_LABEL: f32 = 10.0;
     const FONT_SIZE_VALUE: f32 = 12.0;
-
-    const POINTER_SWEEP_RAD: f32 = 17.26;
 }
 
 pub(crate) struct ControlPanelMixer {
@@ -67,6 +74,7 @@ impl ControlPanelMixer {
         Self::draw_base_graphics(ui);
         Self::draw_labels(ui);
         Self::draw_mixer_levels(ui, &orion_state.mixer_levels);
+        Self::draw_mixer_pans_solos_mutes(ui, &orion_state.mixer_pans_solos_mutes);
     }
 
     fn draw_base_graphics(ui: &mut egui::Ui) {
@@ -74,18 +82,6 @@ impl ControlPanelMixer {
 
         for mixer_channel in 0..32 {
             let pos_x = 7 + mixer_channel * 35;
-
-            render_asset!(
-                ui,
-                pos_x - 2,
-                283,
-                "MixerPan/default/layers/pointer",
-                1.0,
-                0.0
-            );
-
-            render_asset!(ui, pos_x, 604, "SoloButton/default/released", 1.0, 0.0);
-            render_asset!(ui, pos_x, 622, "MuteButton/default/released", 1.0, 0.0);
 
             if mixer_channel % 2 == 0 {
                 render_asset!(ui, pos_x, 640, "LinkButton/default/released", 1.0, 0.0);
@@ -137,6 +133,84 @@ impl ControlPanelMixer {
         }
     }
 
+    fn draw_mixer_pans_solos_mutes(ui: &mut egui::Ui, pans_solos_mutes: &[u8; 33]) {
+        let any_solo = pans_solos_mutes.iter().any(|value| value & 0x80 != 0);
+
+        for mixer_channel in 0..32 {
+            let pan_solo_mute = pans_solos_mutes[mixer_channel + 1];
+
+            let pan = (pan_solo_mute & 0x3f) as i8 - 32;
+            let solo = pan_solo_mute & 0x80 != 0;
+            let mute = pan_solo_mute & 0x40 != 0;
+
+            let base_pos_x = mixer_channel as f32 * ControlPanelMixerDimensions::STEP_X;
+
+            let text_x = base_pos_x + ControlPanelMixerDimensions::TEXT_X;
+
+            ui.painter().text(
+                egui::pos2(text_x, ControlPanelMixerDimensions::PAN_TEXT_Y),
+                egui::Align2::CENTER_CENTER,
+                pan.to_string(),
+                egui::FontId::proportional(ControlPanelMixerDimensions::FONT_SIZE_VALUE),
+                ControlPanelMixerColors::FONT_VALUE,
+            );
+
+            let knob_pos_x = base_pos_x as u16 + ControlPanelMixerDimensions::PAN_KNOB_X;
+            let knob_rad = (pan as f32 / 30.0) * ControlPanelMixerDimensions::PAN_RAD;
+
+            render_asset!(
+                ui,
+                knob_pos_x,
+                ControlPanelMixerDimensions::PAN_KNOB_Y,
+                "MixerPan/default/layers/pointer",
+                1.0,
+                knob_rad
+            );
+
+            let solo_mute_x = base_pos_x as u16 + ControlPanelMixerDimensions::SOLO_MUTE_X;
+
+            if solo {
+                render_asset!(
+                    ui,
+                    solo_mute_x,
+                    ControlPanelMixerDimensions::SOLO_Y,
+                    "SoloButton/default/pressed",
+                    1.0,
+                    0.0
+                );
+            } else {
+                render_asset!(
+                    ui,
+                    solo_mute_x,
+                    ControlPanelMixerDimensions::SOLO_Y,
+                    "SoloButton/default/released",
+                    1.0,
+                    0.0
+                );
+            }
+
+            if !solo && any_solo || mute {
+                render_asset!(
+                    ui,
+                    solo_mute_x,
+                    ControlPanelMixerDimensions::MUTE_Y,
+                    "MuteButton/default/pressed",
+                    1.0,
+                    0.0
+                );
+            } else {
+                render_asset!(
+                    ui,
+                    solo_mute_x,
+                    ControlPanelMixerDimensions::MUTE_Y,
+                    "MuteButton/default/released",
+                    1.0,
+                    0.0
+                );
+            }
+        }
+    }
+
     fn draw_labels(ui: &mut egui::Ui) {
         for mixer_channel in 0..32 {
             let pos_x = ControlPanelMixerDimensions::LABEL_X
@@ -159,14 +233,6 @@ impl ControlPanelMixer {
                 (mixer_channel + 1).to_string(),
                 egui::FontId::proportional(ControlPanelMixerDimensions::FONT_SIZE_LABEL),
                 ControlPanelMixerColors::FONT_LABEL,
-            );
-
-            ui.painter().text(
-                rect.center_bottom() + egui::vec2(0.0, ControlPanelMixerDimensions::PAN_Y_OFFSET),
-                egui::Align2::CENTER_CENTER,
-                "0",
-                egui::FontId::proportional(ControlPanelMixerDimensions::FONT_SIZE_VALUE),
-                ControlPanelMixerColors::FONT_VALUE,
             );
         }
 
