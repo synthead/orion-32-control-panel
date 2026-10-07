@@ -61,6 +61,14 @@ impl OrionHid {
         self.queue_packet(0x70, 0x33, 0x00, &routes_payload);
     }
 
+    pub fn queue_mixer_channel(&mut self, channel: u8, level: u8, pan: u8, solo: bool, mute: bool) {
+        let mut pan_solo_mute = pan;
+        pan_solo_mute += 0x80 * solo as u8;
+        pan_solo_mute += 0x40 * mute as u8;
+
+        self.queue_packet(0x70, 0x14, 0x00, &[0x90, channel, level, pan_solo_mute]);
+    }
+
     fn queue_packet(&mut self, byte_0: u8, byte_4: u8, byte_12: u8, payload: &[u8]) {
         let mut packet = [0u8; 64];
 
