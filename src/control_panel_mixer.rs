@@ -4,8 +4,6 @@ use std::sync::Mutex;
 use crate::orion_hid::OrionHid;
 use crate::orion_state::OrionState;
 
-// use crate::control_panel_helpers::ControlPanelHelpers;
-
 use crate::render_asset;
 
 struct ControlPanelMixerColors;
