@@ -50,9 +50,14 @@ impl ControlPanelMixerDimensions {
     const MASTER_TEXT_X: f32 = 1150.0;
     const MASTER_TEXT_Y: f32 = 342.0;
 
-    const MSATER_SLIDER_X: u16 = 1136;
-    const MSATER_SLIDER_Y: u16 = 356;
-    const MSATER_SLIDER_TRAVEL: u16 = 233;
+    const MASTER_SLIDER_X: u16 = 1136;
+    const MASTER_SLIDER_Y: u16 = 356;
+    const MASTER_SLIDER_TRAVEL: u16 = 233;
+
+    const MASTER_SLIDER_HITBOX_X: f32 = 1136.0;
+    const MASTER_SLIDER_HITBOX_Y: f32 = 356.0;
+    const MASTER_SLIDER_HITBOX_WIDTH: f32 = 32.0;
+    const MASTER_SLIDER_HITBOX_HEIGHT: f32 = 283.0;
 
     const MASTER_MUTE_X: u16 = 1136;
     const MASTER_MUTE_Y: u16 = 639;
@@ -344,13 +349,71 @@ impl ControlPanelMixer {
         }
     }
 
-    fn draw_master(&self, ui: &mut egui::Ui, level: u8, mute: u8) {
-        let slider_pos_y = ControlPanelMixerDimensions::MSATER_SLIDER_Y
-            + level as u16 * ControlPanelMixerDimensions::MSATER_SLIDER_TRAVEL / 95;
+    fn draw_master(&mut self, ui: &mut egui::Ui, level: u8, mute: u8) {
+        let mut level_mut = level;
+
+        let slider_pos_y = ControlPanelMixerDimensions::MASTER_SLIDER_Y
+            + level_mut as u16 * ControlPanelMixerDimensions::MASTER_SLIDER_TRAVEL / 95;
+
+        let hitbox_rect = egui::Rect::from_min_size(
+            egui::pos2(
+                ControlPanelMixerDimensions::MASTER_SLIDER_HITBOX_X,
+                ControlPanelMixerDimensions::MASTER_SLIDER_HITBOX_Y,
+            ),
+            egui::vec2(
+                ControlPanelMixerDimensions::MASTER_SLIDER_HITBOX_WIDTH,
+                ControlPanelMixerDimensions::MASTER_SLIDER_HITBOX_HEIGHT,
+            ),
+        );
+
+        let response = ui.allocate_rect(hitbox_rect, egui::Sense::click_and_drag());
+
+        if response.drag_started() {
+            self.drag_offset = 0.0;
+        }
+
+        if response.drag_stopped() {
+            level_mut = self.drag_value;
+
+            self.orion_hid
+                .lock()
+                .unwrap()
+                .queue_mixer_channel(0, level_mut, mute);
+        }
+
+        let mut slider_pos_y = ControlPanelMixerDimensions::MASTER_SLIDER_Y
+            + level_mut as u16 * ControlPanelMixerDimensions::MASTER_SLIDER_TRAVEL / 95;
+
+        if response.dragged() {
+            let slider_min_y = ControlPanelMixerDimensions::MASTER_SLIDER_Y as f32;
+            let slider_max_y =
+                slider_min_y + ControlPanelMixerDimensions::MASTER_SLIDER_TRAVEL as f32;
+
+            let raw_y =
+                slider_pos_y as f32 + response.total_drag_delta().unwrap().y + self.drag_offset;
+
+            if raw_y < slider_min_y {
+                self.drag_offset += slider_min_y - raw_y;
+                slider_pos_y = slider_min_y as u16;
+            } else if raw_y > slider_max_y {
+                self.drag_offset += slider_max_y - raw_y;
+                slider_pos_y = slider_max_y as u16;
+            } else {
+                slider_pos_y = raw_y as u16;
+            }
+
+            level_mut = ((slider_pos_y - ControlPanelMixerDimensions::MASTER_SLIDER_Y) * 95
+                / ControlPanelMixerDimensions::MASTER_SLIDER_TRAVEL) as u8;
+
+            slider_pos_y = ControlPanelMixerDimensions::MASTER_SLIDER_Y
+                + level_mut as u16 * ControlPanelMixerDimensions::MASTER_SLIDER_TRAVEL / 95;
+
+            self.drag_value = level_mut;
+        }
 
         render_asset!(
             ui,
-            ControlPanelMixerDimensions::MSATER_SLIDER_X,
+            ControlPanelMixerDimensions::MASTER_SLIDER_X,
             slider_pos_y,
             "MasterMixerSlider/default/layers/handle",
             1.0,
@@ -364,7 +427,7 @@ impl ControlPanelMixer {
                 ControlPanelMixerDimensions::MASTER_TEXT_Y,
             ),
             egui::Align2::CENTER_CENTER,
-            Self::text_for_level(level),
+            Self::text_for_level(level_mut),
             egui::FontId::proportional(ControlPanelMixerDimensions::FONT_SIZE_VALUE),
             ControlPanelMixerColors::VALUE_TEXT,
         );
@@ -395,7 +458,7 @@ impl ControlPanelMixer {
             self.orion_hid
                 .lock()
                 .unwrap()
-                .queue_mixer_channel(0, level, mute ^ 0x40);
+                .queue_mixer_channel(0, level_mut, mute ^ 0x40);
         }
     }
 
