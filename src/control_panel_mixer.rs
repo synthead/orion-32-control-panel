@@ -12,27 +12,29 @@ struct ControlPanelMixerColors;
 
 impl ControlPanelMixerColors {
     const LABEL: egui::Color32 = egui::Color32::from_rgb(0x20, 0xa4, 0xf7);
-    const FONT_LABEL: egui::Color32 = egui::Color32::WHITE;
-    const FONT_VALUE: egui::Color32 = egui::Color32::from_rgb(0x95, 0x95, 0x95);
+    const LABEL_TEXT: egui::Color32 = egui::Color32::WHITE;
+    const VALUE_TEXT: egui::Color32 = egui::Color32::from_rgb(0x95, 0x95, 0x95);
 }
 
 struct ControlPanelMixerDimensions;
 
 impl ControlPanelMixerDimensions {
     const STEP_X: f32 = 35.0;
+    const FONT_SIZE_LABEL: f32 = 10.0;
+    const FONT_SIZE_VALUE: f32 = 12.0;
 
     const LABEL_X: f32 = 5.0;
     const LABEL_Y: f32 = 239.0;
     const LABEL_WIDTH: f32 = 33.0;
     const LABEL_HEIGHT: f32 = 13.0;
 
-    const SLIDER_START_X: u16 = 11;
-    const SLIDER_START_Y: u16 = 366;
-    const SLIDER_DEPTH_Y: u16 = 178;
-
     const PAN_KNOB_X: u16 = 5;
     const PAN_KNOB_Y: u16 = 283;
     const PAN_RAD: f32 = 2.35;
+
+    const SLIDER_START_X: u16 = 11;
+    const SLIDER_START_Y: u16 = 366;
+    const SLIDER_DEPTH_Y: u16 = 178;
 
     const SOLO_MUTE_X: u16 = 7;
     const SOLO_Y: u16 = 604;
@@ -40,16 +42,10 @@ impl ControlPanelMixerDimensions {
 
     const TEXT_X: f32 = 21.0;
     const PAN_TEXT_Y: f32 = 270.0;
-    const LEVEL_Y: f32 = 348.0;
+    const LEVEL_TEXT_Y: f32 = 348.0;
 
-    const PAN_Y_OFFSET: f32 = 17.0;
-    const LEVEL_Y_OFFSET: f32 = 96.0;
-
-    const MASTER_FONT_X: f32 = 1150.0;
-    const MASTER_FONT_Y: f32 = 342.0;
-
-    const FONT_SIZE_LABEL: f32 = 10.0;
-    const FONT_SIZE_VALUE: f32 = 12.0;
+    const MASTER_TEXT_X: f32 = 1150.0;
+    const MASTER_TEXT_Y: f32 = 342.0;
 }
 
 pub(crate) struct ControlPanelMixer {
@@ -123,12 +119,12 @@ impl ControlPanelMixer {
             ui.painter().text(
                 egui::pos2(
                     base_pos_x + ControlPanelMixerDimensions::TEXT_X,
-                    ControlPanelMixerDimensions::LEVEL_Y,
+                    ControlPanelMixerDimensions::LEVEL_TEXT_Y,
                 ),
                 egui::Align2::CENTER_CENTER,
                 text,
                 egui::FontId::proportional(ControlPanelMixerDimensions::FONT_SIZE_VALUE),
-                ControlPanelMixerColors::FONT_VALUE,
+                ControlPanelMixerColors::VALUE_TEXT,
             );
         }
     }
@@ -152,7 +148,7 @@ impl ControlPanelMixer {
                 egui::Align2::CENTER_CENTER,
                 pan.to_string(),
                 egui::FontId::proportional(ControlPanelMixerDimensions::FONT_SIZE_VALUE),
-                ControlPanelMixerColors::FONT_VALUE,
+                ControlPanelMixerColors::VALUE_TEXT,
             );
 
             let knob_pos_x = base_pos_x as u16 + ControlPanelMixerDimensions::PAN_KNOB_X;
@@ -232,19 +228,19 @@ impl ControlPanelMixer {
                 egui::Align2::CENTER_CENTER,
                 (mixer_channel + 1).to_string(),
                 egui::FontId::proportional(ControlPanelMixerDimensions::FONT_SIZE_LABEL),
-                ControlPanelMixerColors::FONT_LABEL,
+                ControlPanelMixerColors::LABEL_TEXT,
             );
         }
 
         ui.painter().text(
             egui::pos2(
-                ControlPanelMixerDimensions::MASTER_FONT_X,
-                ControlPanelMixerDimensions::MASTER_FONT_Y,
+                ControlPanelMixerDimensions::MASTER_TEXT_X,
+                ControlPanelMixerDimensions::MASTER_TEXT_Y,
             ),
             egui::Align2::CENTER_CENTER,
             "0",
             egui::FontId::proportional(ControlPanelMixerDimensions::FONT_SIZE_VALUE),
-            ControlPanelMixerColors::FONT_VALUE,
+            ControlPanelMixerColors::VALUE_TEXT,
         );
     }
 }
