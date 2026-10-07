@@ -30,11 +30,11 @@ impl ControlPanelMixerDimensions {
 
     const PAN_KNOB_X: u16 = 5;
     const PAN_KNOB_Y: u16 = 283;
-    const PAN_RAD: f32 = 2.35;
+    const PAN_KNOB_RAD: f32 = 2.35;
 
-    const SLIDER_START_X: u16 = 11;
-    const SLIDER_START_Y: u16 = 366;
-    const SLIDER_DEPTH_Y: u16 = 178;
+    const SLIDER_X: u16 = 11;
+    const SLIDER_Y: u16 = 366;
+    const SLIDER_TRAVEL: u16 = 178;
 
     const SOLO_MUTE_X: u16 = 7;
     const SOLO_Y: u16 = 604;
@@ -47,9 +47,9 @@ impl ControlPanelMixerDimensions {
     const MASTER_TEXT_X: f32 = 1150.0;
     const MASTER_TEXT_Y: f32 = 342.0;
 
-    const MSATER_SLIDER_START_X: u16 = 1136;
-    const MSATER_SLIDER_START_Y: u16 = 356;
-    const MSATER_SLIDER_DEPTH_Y: u16 = 233;
+    const MSATER_SLIDER_X: u16 = 1136;
+    const MSATER_SLIDER_Y: u16 = 356;
+    const MSATER_SLIDER_TRAVEL: u16 = 233;
 
     const MASTER_MUTE_X: u16 = 1136;
     const MASTER_MUTE_Y: u16 = 639;
@@ -148,9 +148,9 @@ impl ControlPanelMixer {
 
             let base_pos_x = (channel - 1) as f32 * ControlPanelMixerDimensions::STEP_X;
 
-            let slider_pos_x = base_pos_x as u16 + ControlPanelMixerDimensions::SLIDER_START_X;
-            let slider_pos_y = ControlPanelMixerDimensions::SLIDER_START_Y
-                + level as u16 * ControlPanelMixerDimensions::SLIDER_DEPTH_Y / 95;
+            let slider_pos_x = base_pos_x as u16 + ControlPanelMixerDimensions::SLIDER_X;
+            let slider_pos_y = ControlPanelMixerDimensions::SLIDER_Y
+                + level as u16 * ControlPanelMixerDimensions::SLIDER_TRAVEL / 95;
 
             render_asset!(
                 ui,
@@ -203,7 +203,7 @@ impl ControlPanelMixer {
             );
 
             let knob_pos_x = base_pos_x as u16 + ControlPanelMixerDimensions::PAN_KNOB_X;
-            let knob_rad = (pan as f32 / 30.0) * ControlPanelMixerDimensions::PAN_RAD;
+            let knob_rad = (pan as f32 / 30.0) * ControlPanelMixerDimensions::PAN_KNOB_RAD;
 
             render_asset!(
                 ui,
@@ -282,12 +282,12 @@ impl ControlPanelMixer {
     }
 
     fn draw_master(&self, ui: &mut egui::Ui, level: u8, mute: u8) {
-        let slider_pos_y = ControlPanelMixerDimensions::MSATER_SLIDER_START_Y
-            + level as u16 * ControlPanelMixerDimensions::MSATER_SLIDER_DEPTH_Y / 95;
+        let slider_pos_y = ControlPanelMixerDimensions::MSATER_SLIDER_Y
+            + level as u16 * ControlPanelMixerDimensions::MSATER_SLIDER_TRAVEL / 95;
 
         render_asset!(
             ui,
-            ControlPanelMixerDimensions::MSATER_SLIDER_START_X,
+            ControlPanelMixerDimensions::MSATER_SLIDER_X,
             slider_pos_y,
             "MasterMixerSlider/default/layers/handle",
             1.0,
