@@ -34,6 +34,11 @@ impl ControlPanelMixerDimensions {
     const SLIDER_Y: u16 = 366;
     const SLIDER_TRAVEL: u16 = 178;
 
+    const SLIDER_HITBOX_X: f32 = 11.0;
+    const SLIDER_HITBOX_Y: f32 = 366.0;
+    const SLIDER_HITBOX_WIDTH: f32 = 22.0;
+    const SLIDER_HITBOX_HEIGHT: f32 = 222.0;
+
     const SOLO_MUTE_X: u16 = 7;
     const SOLO_Y: u16 = 604;
     const MUTE_Y: u16 = 622;
@@ -56,6 +61,9 @@ impl ControlPanelMixerDimensions {
 pub(crate) struct ControlPanelMixer {
     orion_state: Arc<Mutex<OrionState>>,
     orion_hid: Arc<Mutex<OrionHid>>,
+
+    drag_offset: f32,
+    drag_value: u8,
 }
 
 impl ControlPanelMixer {
@@ -66,6 +74,9 @@ impl ControlPanelMixer {
         Self {
             orion_state,
             orion_hid,
+
+            drag_offset: 0.0,
+            drag_value: 0,
         }
     }
 
@@ -75,7 +86,7 @@ impl ControlPanelMixer {
         Self::draw_base_graphics(ui);
         Self::draw_labels(ui);
 
-        Self::draw_levels(
+        self.draw_levels(
             ui,
             &orion_state.mixer_levels,
             &orion_state.mixer_pans_solos_mutes,
@@ -140,15 +151,69 @@ impl ControlPanelMixer {
         }
     }
 
-    fn draw_levels(ui: &mut egui::Ui, levels: &[u8; 33], pans_solos_mutes: &[u8; 33]) {
+    fn draw_levels(&mut self, ui: &mut egui::Ui, levels: &[u8; 33], pans_solos_mutes: &[u8; 33]) {
         for channel in 1..33 {
-            let level = levels[channel];
+            let mut level = levels[channel];
 
             let base_pos_x = (channel - 1) as f32 * ControlPanelMixerDimensions::STEP_X;
-
             let slider_pos_x = base_pos_x as u16 + ControlPanelMixerDimensions::SLIDER_X;
-            let slider_pos_y = ControlPanelMixerDimensions::SLIDER_Y
+
+            let hitbox_rect = egui::Rect::from_min_size(
+                egui::pos2(
+                    base_pos_x + ControlPanelMixerDimensions::SLIDER_HITBOX_X,
+                    ControlPanelMixerDimensions::SLIDER_HITBOX_Y,
+                ),
+                egui::vec2(
+                    ControlPanelMixerDimensions::SLIDER_HITBOX_WIDTH,
+                    ControlPanelMixerDimensions::SLIDER_HITBOX_HEIGHT,
+                ),
+            );
+
+            let response = ui.allocate_rect(hitbox_rect, egui::Sense::click_and_drag());
+
+            if response.drag_started() {
+                self.drag_offset = 0.0;
+            }
+
+            if response.drag_stopped() {
+                level = self.drag_value;
+                let pan_solo_mute = pans_solos_mutes[channel];
+
+                self.orion_hid.lock().unwrap().queue_mixer_channel(
+                    channel as u8,
+                    level,
+                    pan_solo_mute,
+                );
+            }
+
+            let mut slider_pos_y = ControlPanelMixerDimensions::SLIDER_Y
                 + level as u16 * ControlPanelMixerDimensions::SLIDER_TRAVEL / 95;
+
+            if response.dragged() {
+                let slider_min_y = ControlPanelMixerDimensions::SLIDER_Y as f32;
+                let slider_max_y = slider_min_y + ControlPanelMixerDimensions::SLIDER_TRAVEL as f32;
+
+                let raw_y =
+                    slider_pos_y as f32 + response.total_drag_delta().unwrap().y + self.drag_offset;
+
+                if raw_y < slider_min_y {
+                    self.drag_offset += slider_min_y - raw_y;
+                    slider_pos_y = slider_min_y as u16;
+                } else if raw_y > slider_max_y {
+                    self.drag_offset += slider_max_y - raw_y;
+                    slider_pos_y = slider_max_y as u16;
+                } else {
+                    slider_pos_y = raw_y as u16;
+                }
+
+                level = ((slider_pos_y - ControlPanelMixerDimensions::SLIDER_Y) * 95
+                    / ControlPanelMixerDimensions::SLIDER_TRAVEL) as u8;
+
+                slider_pos_y = ControlPanelMixerDimensions::SLIDER_Y
+                    + level as u16 * ControlPanelMixerDimensions::SLIDER_TRAVEL / 95;
+
+                self.drag_value = level;
+            }
 
             render_asset!(
                 ui,
