@@ -1,12 +1,20 @@
+use std::sync::Arc;
+use std::sync::Mutex;
 use std::sync::mpsc;
+
+use crate::orion_state::OrionState;
 
 pub struct OrionHid {
     hid_write_tx: mpsc::Sender<[u8; 64]>,
+    orion_state: Arc<Mutex<OrionState>>,
 }
 
 impl OrionHid {
-    pub fn new(hid_write_tx: mpsc::Sender<[u8; 64]>) -> Self {
-        Self { hid_write_tx }
+    pub fn new(hid_write_tx: mpsc::Sender<[u8; 64]>, orion_state: Arc<Mutex<OrionState>>) -> Self {
+        Self {
+            hid_write_tx,
+            orion_state,
+        }
     }
 
     pub fn queue_init(&mut self) {
@@ -59,6 +67,9 @@ impl OrionHid {
         routes_payload[3..].copy_from_slice(routes);
 
         self.queue_packet(0x70, 0x33, 0x00, &routes_payload);
+
+        let mut orion_state = self.orion_state.lock().unwrap();
+        orion_state.routes[target as usize] = *routes;
     }
 
     pub fn queue_mixer_channel(&mut self, channel: u8, level: u8, pan: u8, solo: bool, mute: bool) {

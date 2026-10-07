@@ -35,7 +35,7 @@ fn main() -> eframe::Result {
     let orion_state = Arc::new(Mutex::new(OrionState::default()));
     let (hid_write_tx, hid_write_rx) = mpsc::channel::<[u8; 64]>();
     let mut orion_hid_poller = OrionHidPoller::new(Arc::clone(&orion_state), hid_write_rx);
-    let mut orion_hid = OrionHid::new(hid_write_tx);
+    let mut orion_hid = OrionHid::new(hid_write_tx, Arc::clone(&orion_state));
 
     orion_hid.queue_init();
 
