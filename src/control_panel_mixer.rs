@@ -302,7 +302,7 @@ impl ControlPanelMixer {
                 )
             };
 
-            let mute_button = if !solo && any_solo || mute {
+            let mute_button = if !solo && (any_solo || mute) {
                 render_asset!(
                     ui,
                     solo_mute_x,
