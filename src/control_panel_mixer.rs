@@ -114,7 +114,11 @@ impl ControlPanelMixer {
                 0.0
             );
 
-            let text = if mixer_level == 0x5f { "-inf".to_string() } else { (-(mixer_level as i8)).to_string() };
+            let text = if mixer_level == 0x5f {
+                "-inf".to_string()
+            } else {
+                (-(mixer_level as i8)).to_string()
+            };
 
             ui.painter().text(
                 egui::pos2(
