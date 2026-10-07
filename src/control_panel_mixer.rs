@@ -69,17 +69,17 @@ impl ControlPanelMixer {
 
         Self::draw_base_graphics(ui);
         Self::draw_labels(ui);
-        Self::draw_mixer_levels(ui, &orion_state.mixer_levels);
-        Self::draw_mixer_pans_solos_mutes(ui, &orion_state.mixer_pans_solos_mutes);
+        Self::draw_levels(ui, &orion_state.mixer_levels);
+        Self::draw_pans_solos_mutes(ui, &orion_state.mixer_pans_solos_mutes);
     }
 
     fn draw_base_graphics(ui: &mut egui::Ui) {
         render_asset!(ui, 0, 222, "Mixer/default/background", 1.0, 0.0);
 
-        for mixer_channel in 0..32 {
-            let pos_x = 7 + mixer_channel * 35;
+        for channel in 0..32 {
+            let pos_x = 7 + channel * 35;
 
-            if mixer_channel % 2 == 0 {
+            if channel % 2 == 0 {
                 render_asset!(ui, pos_x, 640, "LinkButton/default/released", 1.0, 0.0);
             }
         }
@@ -95,15 +95,15 @@ impl ControlPanelMixer {
         render_asset!(ui, 1136, 639, "MuteButton/default/released", 1.0, 0.0);
     }
 
-    fn draw_mixer_levels(ui: &mut egui::Ui, mixer_levels: &[u8; 33]) {
-        for mixer_channel in 0..32 {
-            let mixer_level = mixer_levels[mixer_channel + 1];
+    fn draw_levels(ui: &mut egui::Ui, levels: &[u8; 33]) {
+        for channel in 0..32 {
+            let level = levels[channel + 1];
 
-            let base_pos_x = mixer_channel as f32 * ControlPanelMixerDimensions::STEP_X;
+            let base_pos_x = channel as f32 * ControlPanelMixerDimensions::STEP_X;
 
             let slider_pos_x = base_pos_x as u16 + ControlPanelMixerDimensions::SLIDER_START_X;
             let slider_pos_y = ControlPanelMixerDimensions::SLIDER_START_Y
-                + mixer_level as u16 * ControlPanelMixerDimensions::SLIDER_DEPTH_Y / 95;
+                + level as u16 * ControlPanelMixerDimensions::SLIDER_DEPTH_Y / 95;
 
             render_asset!(
                 ui,
@@ -114,10 +114,10 @@ impl ControlPanelMixer {
                 0.0
             );
 
-            let text = if mixer_level == 0x5f {
+            let text = if level == 0x5f {
                 "-inf".to_string()
             } else {
-                (-(mixer_level as i8)).to_string()
+                (-(level as i8)).to_string()
             };
 
             ui.painter().text(
@@ -133,17 +133,17 @@ impl ControlPanelMixer {
         }
     }
 
-    fn draw_mixer_pans_solos_mutes(ui: &mut egui::Ui, pans_solos_mutes: &[u8; 33]) {
+    fn draw_pans_solos_mutes(ui: &mut egui::Ui, pans_solos_mutes: &[u8; 33]) {
         let any_solo = pans_solos_mutes.iter().any(|value| value & 0x80 != 0);
 
-        for mixer_channel in 0..32 {
-            let pan_solo_mute = pans_solos_mutes[mixer_channel + 1];
+        for channel in 0..32 {
+            let pan_solo_mute = pans_solos_mutes[channel + 1];
 
             let pan = (pan_solo_mute & 0x3f) as i8 - 32;
             let solo = pan_solo_mute & 0x80 != 0;
             let mute = pan_solo_mute & 0x40 != 0;
 
-            let base_pos_x = mixer_channel as f32 * ControlPanelMixerDimensions::STEP_X;
+            let base_pos_x = channel as f32 * ControlPanelMixerDimensions::STEP_X;
 
             let text_x = base_pos_x + ControlPanelMixerDimensions::TEXT_X;
 
@@ -212,9 +212,9 @@ impl ControlPanelMixer {
     }
 
     fn draw_labels(ui: &mut egui::Ui) {
-        for mixer_channel in 0..32 {
+        for channel in 0..32 {
             let pos_x = ControlPanelMixerDimensions::LABEL_X
-                + mixer_channel as f32 * ControlPanelMixerDimensions::STEP_X;
+                + channel as f32 * ControlPanelMixerDimensions::STEP_X;
 
             let rect = egui::Rect::from_min_size(
                 egui::pos2(pos_x, ControlPanelMixerDimensions::LABEL_Y),
@@ -230,7 +230,7 @@ impl ControlPanelMixer {
             ui.painter().text(
                 rect.center(),
                 egui::Align2::CENTER_CENTER,
-                (mixer_channel + 1).to_string(),
+                (channel + 1).to_string(),
                 egui::FontId::proportional(ControlPanelMixerDimensions::FONT_SIZE_LABEL),
                 ControlPanelMixerColors::LABEL_TEXT,
             );
