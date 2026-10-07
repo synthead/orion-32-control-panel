@@ -72,12 +72,12 @@ impl OrionHid {
         orion_state.routes[target as usize] = *routes;
     }
 
-    pub fn queue_mixer_channel(&mut self, channel: u8, level: u8, pan: u8, solo: bool, mute: bool) {
-        let mut pan_solo_mute = pan;
-        pan_solo_mute += 0x80 * solo as u8;
-        pan_solo_mute += 0x40 * mute as u8;
-
+    pub fn queue_mixer_channel(&mut self, channel: u8, level: u8, pan_solo_mute: u8) {
         self.queue_packet(0x70, 0x14, 0x00, &[0x90, channel, level, pan_solo_mute]);
+
+        let mut orion_state = self.orion_state.lock().unwrap();
+        orion_state.mixer_levels[channel as usize] = level;
+        orion_state.mixer_pans_solos_mutes[channel as usize] = pan_solo_mute;
     }
 
     fn queue_packet(&mut self, byte_0: u8, byte_4: u8, byte_12: u8, payload: &[u8]) {
