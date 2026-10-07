@@ -74,13 +74,21 @@ impl ControlPanelMixer {
     }
 
     fn draw_base_graphics(ui: &mut egui::Ui) {
-        render_asset!(ui, 0, 222, "Mixer/default/background", 1.0, 0.0);
+        render_asset!(ui, 0, 222, "Mixer/default/background", 1.0, 0.0, None);
 
         for channel in 0..32 {
             let pos_x = 7 + channel * 35;
 
             if channel % 2 == 0 {
-                render_asset!(ui, pos_x, 640, "LinkButton/default/released", 1.0, 0.0);
+                render_asset!(
+                    ui,
+                    pos_x,
+                    640,
+                    "LinkButton/default/released",
+                    1.0,
+                    0.0,
+                    None
+                );
             }
         }
 
@@ -148,7 +156,8 @@ impl ControlPanelMixer {
                 slider_pos_y,
                 "MixerSlider/default/layers/handle",
                 1.0,
-                0.0
+                0.0,
+                None
             );
 
             let text = if level == 0x5f {
@@ -201,7 +210,8 @@ impl ControlPanelMixer {
                 ControlPanelMixerDimensions::PAN_KNOB_Y,
                 "MixerPan/default/layers/pointer",
                 1.0,
-                knob_rad
+                knob_rad,
+                None
             );
 
             let solo_mute_x = base_pos_x as u16 + ControlPanelMixerDimensions::SOLO_MUTE_X;
@@ -213,7 +223,8 @@ impl ControlPanelMixer {
                     ControlPanelMixerDimensions::SOLO_Y,
                     "SoloButton/default/pressed",
                     1.0,
-                    0.0
+                    0.0,
+                    None
                 );
             } else {
                 render_asset!(
@@ -222,7 +233,8 @@ impl ControlPanelMixer {
                     ControlPanelMixerDimensions::SOLO_Y,
                     "SoloButton/default/released",
                     1.0,
-                    0.0
+                    0.0,
+                    None
                 );
             }
 
@@ -233,7 +245,8 @@ impl ControlPanelMixer {
                     ControlPanelMixerDimensions::MUTE_Y,
                     "MuteButton/default/pressed",
                     1.0,
-                    0.0
+                    0.0,
+                    None
                 );
             } else {
                 render_asset!(
@@ -242,7 +255,8 @@ impl ControlPanelMixer {
                     ControlPanelMixerDimensions::MUTE_Y,
                     "MuteButton/default/released",
                     1.0,
-                    0.0
+                    0.0,
+                    None
                 );
             }
         }

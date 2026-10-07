@@ -172,18 +172,27 @@ impl ControlPanelRouting {
     }
 
     fn draw_base_graphics(ui: &mut egui::Ui) {
-        render_asset!(ui, 0, 226, "Routing/default/background", 1.0, 0.0);
-        render_asset!(ui, 1094, 652, "HowtoButton/default/released", 1.0, 0.0);
+        render_asset!(ui, 0, 226, "Routing/default/background", 1.0, 0.0, None);
+        render_asset!(
+            ui,
+            1094,
+            652,
+            "HowtoButton/default/released",
+            1.0,
+            0.0,
+            None
+        );
 
-        render_asset!(ui, 1106, 410, "UndoButton/default/released", 1.0, 0.0);
-        render_asset!(ui, 1106, 436, "RedoButton/default/released", 1.0, 0.0);
+        render_asset!(ui, 1106, 410, "UndoButton/default/released", 1.0, 0.0, None);
+        render_asset!(ui, 1106, 436, "RedoButton/default/released", 1.0, 0.0, None);
         render_asset!(
             ui,
             1106,
             462,
             "SaveRoutingButton/default/released",
             1.0,
-            0.0
+            0.0,
+            None
         );
         render_asset!(
             ui,
@@ -191,7 +200,8 @@ impl ControlPanelRouting {
             488,
             "LoadRoutingButton/default/released",
             1.0,
-            0.0
+            0.0,
+            None
         );
     }
 
@@ -378,15 +388,55 @@ impl ControlPanelRouting {
         // TODO: Figure out the rest of these signals.
 
         if signals == 0x09 {
-            render_asset!(ui, 1095, 301, "PresenceLed/default/pressed", 1.0, 0.0);
+            render_asset!(ui, 1095, 301, "PresenceLed/default/pressed", 1.0, 0.0, None);
         } else {
-            render_asset!(ui, 1095, 301, "PresenceLed/default/released", 1.0, 0.0);
+            render_asset!(
+                ui,
+                1095,
+                301,
+                "PresenceLed/default/released",
+                1.0,
+                0.0,
+                None
+            );
         }
 
-        render_asset!(ui, 1095, 323, "PresenceLed/default/released", 1.0, 0.0);
-        render_asset!(ui, 1095, 346, "PresenceLed/default/released", 1.0, 0.0);
-        render_asset!(ui, 1112, 346, "PresenceLed/default/released", 1.0, 0.0);
-        render_asset!(ui, 1095, 361, "PresenceLed/default/released", 1.0, 0.0);
+        render_asset!(
+            ui,
+            1095,
+            323,
+            "PresenceLed/default/released",
+            1.0,
+            0.0,
+            None
+        );
+        render_asset!(
+            ui,
+            1095,
+            346,
+            "PresenceLed/default/released",
+            1.0,
+            0.0,
+            None
+        );
+        render_asset!(
+            ui,
+            1112,
+            346,
+            "PresenceLed/default/released",
+            1.0,
+            0.0,
+            None
+        );
+        render_asset!(
+            ui,
+            1095,
+            361,
+            "PresenceLed/default/released",
+            1.0,
+            0.0,
+            None
+        );
     }
 
     fn clear_target_selection_when_outside(&mut self, ui: &mut egui::Ui) {

@@ -1,6 +1,6 @@
 #[macro_export]
 macro_rules! render_asset {
-    ($ui:expr, $x:expr, $y:expr, $subpath:literal, $scale:expr, $rotation:expr) => {
+    ($ui:expr, $x:expr, $y:expr, $subpath:literal, $scale:expr, $rotation:expr, $sense:expr) => {
         $ui.scope_builder(
             egui::UiBuilder::new().max_rect(egui::Rect::from_min_size(
                 egui::pos2($x as f32, $y as f32),
@@ -13,13 +13,18 @@ macro_rules! render_asset {
                     ".png"
                 )))
                 .fit_to_original_size($scale)
-                .show_loading_spinner(false)
-                .sense(egui::Sense::click());
+                .show_loading_spinner(false);
 
                 let image = if $rotation == 0.0 {
                     image
                 } else {
                     image.rotate($rotation, egui::Vec2::splat(0.5))
+                };
+
+                let image = if let Some(sense) = $sense {
+                    image.sense(sense)
+                } else {
+                    image
                 };
 
                 ui.add(image)
