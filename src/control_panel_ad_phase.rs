@@ -6,7 +6,7 @@ use crate::orion_state::OrionState;
 
 // use crate::control_panel_helpers::ControlPanelHelpers;
 
-// use crate::render_asset;
+use crate::render_asset;
 
 pub(crate) struct ControlPanelAdPhase {
     orion_state: Arc<Mutex<OrionState>>,
@@ -24,5 +24,19 @@ impl ControlPanelAdPhase {
         }
     }
 
-    pub(crate) fn draw(&mut self, ui: &mut egui::Ui) {}
+    pub(crate) fn draw(&mut self, ui: &mut egui::Ui) {
+        Self::draw_base_graphics(ui);
+    }
+
+    fn draw_base_graphics(ui: &mut egui::Ui) {
+        render_asset!(
+            ui,
+            0,
+            226,
+            "PhaseInvertView/default/background",
+            1.0,
+            0.0,
+            None
+        );
+    }
 }
