@@ -178,7 +178,7 @@ impl ControlPanelMixer {
                 ),
             );
 
-            let level = self.level_with_drag(
+            let level = self.value_with_drag(
                 ui,
                 levels[channel],
                 0x00,
@@ -243,7 +243,7 @@ impl ControlPanelMixer {
             let solo = pan_solo_mute & 0x80;
             let mute = pan_solo_mute & 0x40;
 
-            let pan = self.level_with_drag(
+            let pan = self.value_with_drag(
                 ui,
                 pan_solo_mute & 0x3f,
                 0x02,
@@ -364,7 +364,7 @@ impl ControlPanelMixer {
             ),
         );
 
-        let level = self.level_with_drag(
+        let level = self.value_with_drag(
             ui,
             level,
             0x00,
@@ -431,12 +431,12 @@ impl ControlPanelMixer {
         }
     }
 
-    fn level_with_drag(
+    fn value_with_drag(
         &mut self,
         ui: &mut egui::Ui,
-        level: u8,
-        level_min: u8,
-        level_max: u8,
+        value: u8,
+        value_min: u8,
+        value_max: u8,
         drag_travel: u16,
         drag_scale: f32,
         hitbox_rect: egui::Rect,
@@ -446,23 +446,23 @@ impl ControlPanelMixer {
 
         if response.drag_started() {
             self.drag_offset = 0.0;
-            self.drag_value = level;
+            self.drag_value = value;
         }
 
         if response.dragged() {
-            let level_span = (level_max - level_min) as f32;
-            let pixels_per_level = drag_travel as f32 / level_span;
-            let level_offset = (level - level_min) as f32;
+            let value_span = (value_max - value_min) as f32;
+            let pixels_per_value = drag_travel as f32 / value_span;
+            let value_offset = (value - value_min) as f32;
 
-            let current_pos = level_offset * pixels_per_level;
+            let current_pos = value_offset * pixels_per_value;
             let drag_delta = response.total_drag_delta().unwrap().y * drag_scale;
             let raw_pos = current_pos + self.drag_offset - drag_delta;
             let clamped_pos = raw_pos.clamp(0.0, drag_travel as f32);
 
-            let level_unclamped = (level_min as f32 + clamped_pos / pixels_per_level).round() as u8;
+            let value_unclamped = (value_min as f32 + clamped_pos / pixels_per_value).round() as u8;
 
             self.drag_offset += clamped_pos - raw_pos;
-            self.drag_value = level_unclamped.clamp(level_min, level_max);
+            self.drag_value = value_unclamped.clamp(value_min, value_max);
 
             return self.drag_value;
         }
@@ -475,7 +475,7 @@ impl ControlPanelMixer {
             return self.drag_value;
         }
 
-        level
+        value
     }
 
     fn text_for_level(level: u8) -> String {
