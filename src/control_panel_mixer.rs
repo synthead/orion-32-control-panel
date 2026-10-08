@@ -223,7 +223,11 @@ impl ControlPanelMixer {
                 channel as u8,
                 |orion_hid, text| {
                     if let Some(parsed_level) = Self::level_for_text(&text) {
-                        orion_hid.queue_mixer_channel(channel as u8, parsed_level, pans_solos_mutes[channel]);
+                        orion_hid.queue_mixer_channel(
+                            channel as u8,
+                            parsed_level,
+                            pans_solos_mutes[channel],
+                        );
                     }
                 },
             );
@@ -285,7 +289,11 @@ impl ControlPanelMixer {
                 channel as u8,
                 |orion_hid, text| {
                     if let Some(parsed_pan) = Self::pan_for_text(&text) {
-                        orion_hid.queue_mixer_channel(channel as u8, levels[channel], parsed_pan | solo | mute);
+                        orion_hid.queue_mixer_channel(
+                            channel as u8,
+                            levels[channel],
+                            parsed_pan | solo | mute,
+                        );
                     }
                 },
             );
