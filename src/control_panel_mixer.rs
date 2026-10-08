@@ -221,24 +221,25 @@ impl ControlPanelMixer {
         for channel in 1..33 {
             let pan_solo_mute = pans_solos_mutes[channel];
 
-            let pan = (pan_solo_mute & 0x3f) as i8 - 32;
+            let pan = pan_solo_mute & 0x3f;
             let solo = pan_solo_mute & 0x80 != 0;
             let mute = pan_solo_mute & 0x40 != 0;
 
             let base_pos_x = (channel - 1) as f32 * ControlPanelMixerDimensions::STEP_X;
 
             let text_x = base_pos_x + ControlPanelMixerDimensions::TEXT_X;
+            let pan_float = (pan as f32 - 32.0);
 
             ui.painter().text(
                 egui::pos2(text_x, ControlPanelMixerDimensions::PAN_TEXT_Y),
                 egui::Align2::CENTER_CENTER,
-                pan.to_string(),
+                pan_float.to_string(),
                 egui::FontId::proportional(ControlPanelMixerDimensions::FONT_SIZE_VALUE),
                 ControlPanelMixerColors::VALUE_TEXT,
             );
 
             let knob_pos_x = base_pos_x as u16 + ControlPanelMixerDimensions::PAN_KNOB_X;
-            let knob_rad = (pan as f32 / 30.0) * ControlPanelMixerDimensions::PAN_KNOB_RAD;
+            let knob_rad = pan_float * ControlPanelMixerDimensions::PAN_KNOB_RAD / 30.0;
 
             render_asset!(
                 ui,
