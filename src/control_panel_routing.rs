@@ -213,7 +213,7 @@ impl ControlPanelRouting {
 
                 let rect = Self::draw_rect_with_label(ui, column, row as u8, true, color, label);
 
-                let id = ui.id().with(("route_source", column, row as u8));
+                let id = ui.id().with(("route_source", column, row));
                 let response = ui.interact(rect, id, egui::Sense::click());
 
                 if response.hovered() && ui.input(|i| i.pointer.primary_pressed()) {
@@ -300,7 +300,7 @@ impl ControlPanelRouting {
                 let rect =
                     Self::draw_rect_with_label(ui, column as u8, row as u8, false, color, label);
 
-                let id = ui.id().with(("route_target", column, row as u8));
+                let id = ui.id().with(("route_target", column, row));
                 let response = ui.interact(rect, id, egui::Sense::click());
 
                 if response.contains_pointer() {
