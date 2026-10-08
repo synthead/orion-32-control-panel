@@ -38,6 +38,23 @@ macro_rules! render_vu_meter {
     }};
 }
 
+struct ControlPanelColors;
+
+impl ControlPanelColors {
+    const LINE_OUT: egui::Color32 = egui::Color32::from_rgb(0x95, 0x95, 0x95);
+}
+
+struct ControlPanelDimensions;
+
+impl ControlPanelDimensions {
+    const LINE_OUT_HITBOX_X: f32 = 1118.0;
+    const LINE_OUT_HITBOX_Y: f32 = 101.0;
+    const LINE_OUT_HITBOX_WIDTH: f32 = 31.0;
+    const LINE_OUT_HITBOX_HEIGHT: f32 = 14.0;
+
+    const FONT_SIZE_LINE_OUT: f32 = 11.0;
+}
+
 pub(crate) struct ControlPanel {
     orion_state: Arc<Mutex<OrionState>>,
     orion_hid: Arc<Mutex<OrionHid>>,
@@ -47,6 +64,9 @@ pub(crate) struct ControlPanel {
     ad_phase: ControlPanelAdPhase,
 
     current_tab: u8,
+
+    edit_line_out: bool,
+    edit_string: String,
 }
 
 impl ControlPanel {
@@ -95,6 +115,9 @@ impl ControlPanel {
             ad_phase,
 
             current_tab: 0,
+
+            edit_line_out: false,
+            edit_string: String::new(),
         }
     }
 
@@ -123,7 +146,7 @@ impl ControlPanel {
                 );
 
                 Self::draw_serial_combobox(ui, &orion_state.serial);
-                Self::draw_line_out(ui, orion_state.line_out);
+                self.draw_line_out(ui, orion_state.line_out);
 
                 match self.current_tab {
                     1 => {
@@ -354,11 +377,9 @@ impl ControlPanel {
         );
     }
 
-    fn draw_line_out(ui: &mut egui::Ui, line_out: u8) {
-        let line_out_value = -(line_out as f32 * 96.0 / 255.0) as i8;
+    fn draw_line_out(&mut self, ui: &mut egui::Ui, line_out: u8) {
+        let line_out_value = -(line_out as f32 * 96.0 / 255.0).round() as i16;
         let line_out_text = format!("{} dB", line_out_value);
-
-        ControlPanelHelpers::draw_text(ui, 1134, 101, (0x95, 0x95, 0x95), &line_out_text, 12.0);
 
         render_asset!(
             ui,
@@ -369,6 +390,96 @@ impl ControlPanel {
             0.0,
             None
         );
+
+        let hitbox_rect = egui::Rect::from_min_size(
+            egui::pos2(
+                ControlPanelDimensions::LINE_OUT_HITBOX_X,
+                ControlPanelDimensions::LINE_OUT_HITBOX_Y,
+            ),
+            egui::vec2(
+                ControlPanelDimensions::LINE_OUT_HITBOX_WIDTH,
+                ControlPanelDimensions::LINE_OUT_HITBOX_HEIGHT,
+            ),
+        );
+
+        let hitbox_id = ui.id().with("line_out_edit");
+        let text_response = ui.interact(hitbox_rect, hitbox_id, egui::Sense::click());
+
+        if text_response.double_clicked() {
+            self.edit_line_out = true;
+            self.edit_string = line_out_text.clone();
+        }
+
+        if !self.edit_line_out {
+            ui.put(
+                hitbox_rect,
+                egui::Label::new(
+                    egui::RichText::new(line_out_text)
+                        .font(egui::FontId::proportional(
+                            ControlPanelDimensions::FONT_SIZE_LINE_OUT,
+                        ))
+                        .color(ControlPanelColors::LINE_OUT),
+                )
+                .selectable(false),
+            );
+
+            return;
+        }
+
+        if ui.input(|i| {
+            i.pointer.any_click()
+                && i.pointer
+                    .interact_pos()
+                    .is_some_and(|pos| !hitbox_rect.contains(pos))
+        }) {
+            if let Some(line_out_new) = Self::line_out_for_text(&self.edit_string) {
+                self.orion_hid.lock().unwrap().queue_line_out(line_out_new);
+            }
+
+            self.edit_line_out = false;
+        }
+
+        let response = ui.put(
+            hitbox_rect,
+            egui::TextEdit::singleline(&mut self.edit_string)
+                .id(hitbox_id)
+                .font(egui::FontId::proportional(
+                    ControlPanelDimensions::FONT_SIZE_LINE_OUT,
+                ))
+                .horizontal_align(egui::Align::Center)
+                .vertical_align(egui::Align::Center)
+                .text_color(ControlPanelColors::LINE_OUT)
+                .frame(egui::Frame::NONE),
+        );
+
+        if response.has_focus() && response.gained_focus() {
+            let mut state =
+                egui::widgets::text_edit::TextEditState::load(ui.ctx(), hitbox_id).unwrap();
+
+            let label_chars = self.edit_string.chars().count();
+
+            state
+                .cursor
+                .set_char_range(Some(egui::text::CCursorRange::two(
+                    egui::text::CCursor::new(0),
+                    egui::text::CCursor::new(label_chars),
+                )));
+
+            state.store(ui.ctx(), hitbox_id);
+        }
+
+        if ui.input(|i| i.key_pressed(egui::Key::Enter)) {
+            if let Some(line_out_new) = Self::line_out_for_text(&self.edit_string) {
+                self.orion_hid.lock().unwrap().queue_line_out(line_out_new);
+            }
+
+            self.edit_line_out = false;
+        }
+
+        if ui.input(|i| i.key_pressed(egui::Key::Escape)) {
+            println!("hit esc");
+            self.edit_line_out = false;
+        }
     }
 
     fn draw_serial_combobox(ui: &mut egui::Ui, serial: &[u8; 13]) {
@@ -377,6 +488,28 @@ impl ControlPanel {
         ControlPanelHelpers::draw_combobox(ui, 950, 7, 110, 0, &[&serial_text], |_selected| {
             // TODO: Implement multi-interface control, and switch it here.
         });
+    }
+
+    fn line_out_for_text(text: &String) -> Option<u8> {
+        let text_parsed = text.trim();
+        let text_parsed = text_parsed.strip_suffix("dB").unwrap_or(text_parsed);
+        let text_parsed = text_parsed.strip_suffix("db").unwrap_or(text_parsed);
+        let text_parsed = text_parsed.trim();
+
+        if text_parsed == "-inf" {
+            return Some(0xff);
+        }
+
+        let text_parsed = match text_parsed.parse::<i16>() {
+            Ok(value) => value,
+            Err(_) => return None,
+        };
+
+        if text_parsed < -96 || text_parsed > 0 {
+            return None;
+        }
+
+        Some((text_parsed.abs() * 0xff / 96) as u8)
     }
 }
 
