@@ -29,6 +29,12 @@ impl ControlPanelMixerDimensions {
     const PAN_KNOB_X: u16 = 5;
     const PAN_KNOB_Y: u16 = 287;
     const PAN_KNOB_RAD: f32 = 2.35;
+    const PAN_KNOB_TRAVEL: u16 = 233;
+
+    const PAN_KNOB_HITBOX_X: f32 = 5.0;
+    const PAN_KNOB_HITBOX_Y: f32 = 284.0;
+    const PAN_KNOB_HITBOX_WIDTH: f32 = 28.0;
+    const PAN_KNOB_HITBOX_HEIGHT: f32 = 34.0;
 
     const SLIDER_X: u16 = 11;
     const SLIDER_Y: u16 = 370;
@@ -212,7 +218,7 @@ impl ControlPanelMixer {
     }
 
     fn draw_pans_solos_mutes(
-        &self,
+        &mut self,
         ui: &mut egui::Ui,
         levels: &[u8; 33],
         pans_solos_mutes: &[u8; 33],
@@ -220,16 +226,42 @@ impl ControlPanelMixer {
         let any_solo = pans_solos_mutes.iter().any(|value| value & 0x80 != 0);
 
         for channel in 1..33 {
-            let pan_solo_mute = pans_solos_mutes[channel];
-
-            let pan = pan_solo_mute & 0x3f;
-            let solo = pan_solo_mute & 0x80 != 0;
-            let mute = pan_solo_mute & 0x40 != 0;
-
             let base_pos_x = (channel - 1) as f32 * ControlPanelMixerDimensions::STEP_X;
 
+            let hitbox_rect = egui::Rect::from_min_size(
+                egui::pos2(
+                    base_pos_x + ControlPanelMixerDimensions::PAN_KNOB_HITBOX_X,
+                    ControlPanelMixerDimensions::PAN_KNOB_HITBOX_Y,
+                ),
+                egui::vec2(
+                    ControlPanelMixerDimensions::PAN_KNOB_HITBOX_WIDTH,
+                    ControlPanelMixerDimensions::PAN_KNOB_HITBOX_HEIGHT,
+                ),
+            );
+
+            let pan_solo_mute = pans_solos_mutes[channel];
+            let solo = pan_solo_mute & 0x80;
+            let mute = pan_solo_mute & 0x40;
+
+            let pan = self.level_with_drag(
+                ui,
+                pan_solo_mute & 0x3f,
+                0x02,
+                0x3e,
+                ControlPanelMixerDimensions::PAN_KNOB_TRAVEL,
+                1.0,
+                hitbox_rect,
+                |orion_hid, pan| {
+                    orion_hid.queue_mixer_channel(
+                        channel as u8,
+                        levels[channel],
+                        pan | solo | mute,
+                    );
+                },
+            );
+
             let text_x = base_pos_x + ControlPanelMixerDimensions::TEXT_X;
-            let pan_float = (pan as f32 - 32.0);
+            let pan_float = pan as f32 - 32.0;
 
             ui.painter().text(
                 egui::pos2(text_x, ControlPanelMixerDimensions::PAN_TEXT_Y),
@@ -253,8 +285,10 @@ impl ControlPanelMixer {
             );
 
             let solo_mute_x = base_pos_x as u16 + ControlPanelMixerDimensions::SOLO_MUTE_X;
+            let solo_bool = solo != 0;
+            let mute_bool = mute != 0;
 
-            let solo_button = if solo {
+            let solo_button = if solo_bool {
                 render_asset!(
                     ui,
                     solo_mute_x,
@@ -276,7 +310,7 @@ impl ControlPanelMixer {
                 )
             };
 
-            let mute_button = if !solo && (any_solo || mute) {
+            let mute_button = if !solo_bool && (any_solo || mute_bool) {
                 render_asset!(
                     ui,
                     solo_mute_x,
