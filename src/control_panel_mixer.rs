@@ -178,6 +178,7 @@ impl ControlPanelMixer {
                 0x00,
                 0x5f,
                 ControlPanelMixerDimensions::SLIDER_TRAVEL,
+                -1.0,
                 hitbox_rect,
                 |orion_hid, level| {
                     orion_hid.queue_mixer_channel(channel as u8, level, pans_solos_mutes[channel]);
@@ -335,6 +336,7 @@ impl ControlPanelMixer {
             0x00,
             0x5f,
             ControlPanelMixerDimensions::MASTER_SLIDER_TRAVEL,
+            -1.0,
             hitbox_rect,
             |orion_hid, level| {
                 orion_hid.queue_mixer_channel(0, level, mute);
@@ -402,6 +404,7 @@ impl ControlPanelMixer {
         level_min: u8,
         level_max: u8,
         drag_travel: u16,
+        drag_scale: f32,
         hitbox_rect: egui::Rect,
         mut drag_stopped_callback: impl FnMut(&mut OrionHid, u8),
     ) -> u8 {
@@ -418,7 +421,8 @@ impl ControlPanelMixer {
             let level_offset = (level - level_min) as f32;
 
             let current_pos = level_offset * pixels_per_level;
-            let raw_pos = current_pos + response.total_drag_delta().unwrap().y + self.drag_offset;
+            let drag_delta = response.total_drag_delta().unwrap().y * drag_scale;
+            let raw_pos = current_pos + self.drag_offset - drag_delta;
             let clamped_pos = raw_pos.clamp(0.0, drag_travel as f32);
 
             let level_unclamped = (level_min as f32 + clamped_pos / pixels_per_level).round() as u8;
