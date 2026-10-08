@@ -85,6 +85,22 @@ impl OrionHid {
         orion_state.mixer_pans_solos_mutes[channel as usize] = pan_solo_mute;
     }
 
+    pub fn queue_ad_phase(&mut self, ad_phase: u8) {
+        self.queue_packet(0x70, 0x12, 0x00, &[0x11, ad_phase]);
+
+        let mut orion_state = self.orion_state.lock().unwrap();
+
+        let ad_phase_i = (ad_phase & 0x7f) as usize;
+        let byte_i = ad_phase_i / 8;
+        let bit_i = ad_phase_i % 8;
+
+        if ad_phase & 0x80 != 0 {
+            orion_state.ad_phases[byte_i] |= 1 << bit_i;
+        } else {
+            orion_state.ad_phases[byte_i] &= !(1 << bit_i);
+        }
+    }
+
     fn queue_packet(&mut self, byte_0: u8, byte_4: u8, byte_12: u8, payload: &[u8]) {
         let mut packet = [0u8; 64];
 
