@@ -477,7 +477,6 @@ impl ControlPanel {
         }
 
         if ui.input(|i| i.key_pressed(egui::Key::Escape)) {
-            println!("hit esc");
             self.edit_line_out = false;
         }
     }
