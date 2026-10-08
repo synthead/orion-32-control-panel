@@ -22,6 +22,7 @@ impl OrionHid {
         self.queue_get_routes();
         self.queue_get_mixer_levels();
         self.queue_get_mixer_pans();
+        self.queue_get_ad_phases();
     }
 
     pub fn queue_get_serial(&mut self) {
@@ -38,6 +39,10 @@ impl OrionHid {
 
     pub fn queue_get_mixer_pans(&mut self) {
         self.queue_packet(0x74, 0x10, 0x05, &[]);
+    }
+
+    pub fn queue_get_ad_phases(&mut self) {
+        self.queue_packet(0x74, 0x10, 0x06, &[]);
     }
 
     pub fn queue_line_out_volume(&mut self, line_out_volume: u8) {
