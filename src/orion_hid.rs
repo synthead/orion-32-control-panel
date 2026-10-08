@@ -45,8 +45,8 @@ impl OrionHid {
         self.queue_packet(0x74, 0x10, 0x06, &[]);
     }
 
-    pub fn queue_line_out_volume(&mut self, line_out_volume: u8) {
-        self.queue_packet(0x70, 0x12, 0x00, &[0x08, line_out_volume]);
+    pub fn queue_line_out(&mut self, line_out: u8) {
+        self.queue_packet(0x70, 0x12, 0x00, &[0x08, line_out]);
     }
 
     pub fn queue_vu_source_left(&mut self, vu_source_left: u8) {
