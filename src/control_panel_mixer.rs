@@ -221,6 +221,11 @@ impl ControlPanelMixer {
                 Self::text_for_level(level),
                 false,
                 channel as u8,
+                |orion_hid, text| {
+                    if let Some(parsed_level) = Self::level_for_text(&text) {
+                        orion_hid.queue_mixer_channel(channel as u8, parsed_level, pans_solos_mutes[channel]);
+                    }
+                },
             );
         }
     }
@@ -278,6 +283,11 @@ impl ControlPanelMixer {
                 pan_float.to_string(),
                 true,
                 channel as u8,
+                |orion_hid, text| {
+                    if let Some(parsed_pan) = Self::pan_for_text(&text) {
+                        orion_hid.queue_mixer_channel(channel as u8, levels[channel], parsed_pan | solo | mute);
+                    }
+                },
             );
 
             let knob_pos_x = base_pos_x as u16 + ControlPanelMixerDimensions::PAN_KNOB_X;
@@ -406,6 +416,11 @@ impl ControlPanelMixer {
             Self::text_for_level(level),
             false,
             0,
+            |orion_hid, text| {
+                if let Some(parsed_level) = Self::level_for_text(&text) {
+                    orion_hid.queue_mixer_channel(0, parsed_level, mute);
+                }
+            },
         );
 
         let mute_button = if mute & 0x40 != 0 {
@@ -493,6 +508,7 @@ impl ControlPanelMixer {
         text: String,
         is_pan: bool,
         channel: u8,
+        mut text_edit_callback: impl FnMut(&mut OrionHid, &String),
     ) {
         let hitbox_rect = egui::Rect::from_min_size(
             egui::pos2(pos_x, pos_y),
@@ -533,29 +549,14 @@ impl ControlPanelMixer {
                     .interact_pos()
                     .is_some_and(|pos| !hitbox_rect.contains(pos))
         }) {
-            // TODO: parse and write value
+            let mut orion_hid = self.orion_hid.lock().unwrap();
+
+            text_edit_callback(&mut orion_hid, &self.edit_string);
+
             self.edit_channel = None;
         }
 
-        if !ui.memory(|mem| mem.has_focus(hitbox_id)) {
-            let mut state = egui::widgets::text_edit::TextEditState::load(ui.ctx(), hitbox_id)
-                .unwrap_or_default();
-
-            let label_chars = self.edit_string.chars().count();
-
-            state
-                .cursor
-                .set_char_range(Some(egui::text::CCursorRange::two(
-                    egui::text::CCursor::new(0),
-                    egui::text::CCursor::new(label_chars),
-                )));
-
-            state.store(ui.ctx(), hitbox_id);
-
-            ui.memory_mut(|mem| mem.request_focus(hitbox_id));
-        }
-
-        ui.put(
+        let response = ui.put(
             hitbox_rect,
             egui::TextEdit::singleline(&mut self.edit_string)
                 .id(hitbox_id)
@@ -568,8 +569,27 @@ impl ControlPanelMixer {
                 .frame(egui::Frame::NONE),
         );
 
+        if response.has_focus() && response.gained_focus() {
+            let mut state =
+                egui::widgets::text_edit::TextEditState::load(ui.ctx(), hitbox_id).unwrap();
+
+            let label_chars = self.edit_string.chars().count();
+
+            state
+                .cursor
+                .set_char_range(Some(egui::text::CCursorRange::two(
+                    egui::text::CCursor::new(0),
+                    egui::text::CCursor::new(label_chars),
+                )));
+
+            state.store(ui.ctx(), hitbox_id);
+        }
+
         if ui.input(|i| i.key_pressed(egui::Key::Enter)) {
-            // TODO: parse and write value
+            let mut orion_hid = self.orion_hid.lock().unwrap();
+
+            text_edit_callback(&mut orion_hid, &self.edit_string);
+
             self.edit_channel = None;
         }
 
@@ -584,5 +604,39 @@ impl ControlPanelMixer {
         };
 
         (-(level as i8)).to_string()
+    }
+
+    fn level_for_text(text: &String) -> Option<u8> {
+        let text_trimmed = text.trim();
+
+        if text_trimmed == "-inf" {
+            return Some(0x5f);
+        }
+
+        let text_parsed = match text_trimmed.parse::<i8>() {
+            Ok(value) => value,
+            Err(_) => return None,
+        };
+
+        if text_parsed < -95 || text_parsed > 0 {
+            return None;
+        }
+
+        Some(text_parsed.abs() as u8)
+    }
+
+    fn pan_for_text(text: &String) -> Option<u8> {
+        let text_trimmed = text.trim();
+
+        let text_parsed = match text_trimmed.parse::<i8>() {
+            Ok(value) => value,
+            Err(_) => return None,
+        };
+
+        if text_parsed < -30 || text_parsed > 30 {
+            return None;
+        }
+
+        Some((text_parsed + 0x20) as u8)
     }
 }
