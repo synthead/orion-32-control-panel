@@ -398,7 +398,7 @@ impl ControlPanel {
             None
         );
 
-        let hitbox_rect = egui::Rect::from_min_size(
+        let line_out_rect = egui::Rect::from_min_size(
             egui::pos2(
                 ControlPanelDimensions::LINE_OUT_HITBOX_X,
                 ControlPanelDimensions::LINE_OUT_HITBOX_Y,
@@ -414,7 +414,7 @@ impl ControlPanel {
 
         if let Some((text, tab)) = self.text_editor.lock().unwrap().draw(
             ui,
-            hitbox_rect,
+            line_out_rect,
             "line_out",
             &line_out_text,
             ControlPanelDimensions::FONT_SIZE_LINE_OUT,
