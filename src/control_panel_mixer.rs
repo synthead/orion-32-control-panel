@@ -106,13 +106,7 @@ impl ControlPanelMixer {
         Self::draw_base_graphics(ui);
         Self::draw_labels(ui);
 
-        self.draw_levels(
-            ui,
-            &orion_state.mixer_levels,
-            &orion_state.mixer_pans_solos_mutes,
-        );
-
-        self.draw_pans_solos_mutes(
+        self.draw_channels(
             ui,
             &orion_state.mixer_levels,
             &orion_state.mixer_pans_solos_mutes,
@@ -171,12 +165,15 @@ impl ControlPanelMixer {
         }
     }
 
-    fn draw_levels(&mut self, ui: &mut egui::Ui, levels: &[u8; 33], pans_solos_mutes: &[u8; 33]) {
+    fn draw_channels(&mut self, ui: &mut egui::Ui, levels: &[u8; 33], pans_solos_mutes: &[u8; 33]) {
+        let any_solo = pans_solos_mutes.iter().any(|value| value & 0x80 != 0);
+        let mut edit_permitted = true;
+
         for channel in 1..33 {
             let base_pos_x = (channel - 1) as f32 * ControlPanelMixerDimensions::STEP_X;
             let slider_pos_x = base_pos_x as u16 + ControlPanelMixerDimensions::SLIDER_X;
 
-            let hitbox_rect = egui::Rect::from_min_size(
+            let slider_hitbox_rect = egui::Rect::from_min_size(
                 egui::pos2(
                     base_pos_x + ControlPanelMixerDimensions::SLIDER_HITBOX_X,
                     ControlPanelMixerDimensions::SLIDER_HITBOX_Y,
@@ -187,6 +184,8 @@ impl ControlPanelMixer {
                 ),
             );
 
+            let pan_solo_mute = pans_solos_mutes[channel];
+
             let level = self.value_with_drag(
                 ui,
                 levels[channel],
@@ -194,9 +193,9 @@ impl ControlPanelMixer {
                 0x5f,
                 ControlPanelMixerDimensions::SLIDER_TRAVEL,
                 -1.0,
-                hitbox_rect,
+                slider_hitbox_rect,
                 |orion_hid, level| {
-                    orion_hid.queue_mixer_channel(channel as u8, level, pans_solos_mutes[channel]);
+                    orion_hid.queue_mixer_channel(channel as u8, level, pan_solo_mute);
                 },
             );
 
@@ -215,7 +214,7 @@ impl ControlPanelMixer {
 
             let level_text = Self::text_for_level(level);
 
-            let text_rect = egui::Rect::from_min_size(
+            let level_text_rect = egui::Rect::from_min_size(
                 egui::pos2(
                     base_pos_x + ControlPanelMixerDimensions::TEXT_HITBOX_X,
                     ControlPanelMixerDimensions::TEXT_HITBOX_Y_LEVEL,
@@ -226,43 +225,39 @@ impl ControlPanelMixer {
                 ),
             );
 
-            let edit_result = self.text_editor.lock().unwrap().draw(
+            let level_edit_result = self.text_editor.lock().unwrap().draw(
                 ui,
-                text_rect,
+                level_text_rect,
                 &format!("level_{channel}"),
                 &level_text,
                 ControlPanelMixerDimensions::FONT_SIZE_VALUE,
                 ControlPanelMixerColors::VALUE_TEXT,
             );
 
-            if let Some((level_text, tab)) = edit_result {
-                if let Some(parsed_level) = Self::level_for_text(&level_text) {
-                    self.orion_hid.lock().unwrap().queue_mixer_channel(
-                        channel as u8,
-                        parsed_level,
-                        pans_solos_mutes[channel],
-                    );
-                }
+            if edit_permitted {
+                if let Some((level_text, tab)) = level_edit_result {
+                    if let Some(parsed_level) = Self::level_for_text(&level_text) {
+                        self.orion_hid.lock().unwrap().queue_mixer_channel(
+                            channel as u8,
+                            parsed_level,
+                            pan_solo_mute,
+                        );
+                    }
 
-                if let Some(_tab) = tab {
-                    // TODO: Implement tab support.
+                    if let Some(tab) = tab {
+                        let next_channel = (channel as isize - 1 + tab).rem_euclid(32) + 1;
+
+                        self.text_editor
+                            .lock()
+                            .unwrap()
+                            .set_editing_id(&format!("level_{next_channel}"));
+                    }
+
+                    edit_permitted = false;
                 }
             }
-        }
-    }
 
-    fn draw_pans_solos_mutes(
-        &mut self,
-        ui: &mut egui::Ui,
-        levels: &[u8; 33],
-        pans_solos_mutes: &[u8; 33],
-    ) {
-        let any_solo = pans_solos_mutes.iter().any(|value| value & 0x80 != 0);
-
-        for channel in 1..33 {
-            let base_pos_x = (channel - 1) as f32 * ControlPanelMixerDimensions::STEP_X;
-
-            let hitbox_rect = egui::Rect::from_min_size(
+            let pan_hitbox_rect = egui::Rect::from_min_size(
                 egui::pos2(
                     base_pos_x + ControlPanelMixerDimensions::PAN_KNOB_HITBOX_X,
                     ControlPanelMixerDimensions::PAN_KNOB_HITBOX_Y,
@@ -273,7 +268,6 @@ impl ControlPanelMixer {
                 ),
             );
 
-            let pan_solo_mute = pans_solos_mutes[channel];
             let solo = pan_solo_mute & 0x80;
             let mute = pan_solo_mute & 0x40;
 
@@ -284,60 +278,65 @@ impl ControlPanelMixer {
                 0x3e,
                 ControlPanelMixerDimensions::PAN_KNOB_TRAVEL,
                 1.0,
-                hitbox_rect,
+                pan_hitbox_rect,
                 |orion_hid, pan| {
-                    orion_hid.queue_mixer_channel(
-                        channel as u8,
-                        levels[channel],
-                        pan | solo | mute,
-                    );
+                    orion_hid.queue_mixer_channel(channel as u8, level, pan | solo | mute);
                 },
             );
 
-            let text_x = base_pos_x + ControlPanelMixerDimensions::TEXT_HITBOX_X;
+            let pan_text_x = base_pos_x + ControlPanelMixerDimensions::TEXT_HITBOX_X;
             let pan_float = pan as f32 - 32.0;
 
-            let text_rect = egui::Rect::from_min_size(
-                egui::pos2(text_x, ControlPanelMixerDimensions::TEXT_HITBOX_Y_PAN),
+            let pan_text_rect = egui::Rect::from_min_size(
+                egui::pos2(pan_text_x, ControlPanelMixerDimensions::TEXT_HITBOX_Y_PAN),
                 egui::vec2(
                     ControlPanelMixerDimensions::TEXT_HITBOX_WIDTH,
                     ControlPanelMixerDimensions::TEXT_HITBOX_HEIGHT,
                 ),
             );
 
-            let edit_result = self.text_editor.lock().unwrap().draw(
+            let pan_edit_result = self.text_editor.lock().unwrap().draw(
                 ui,
-                text_rect,
+                pan_text_rect,
                 &format!("pan_{channel}"),
                 &pan_float.to_string(),
                 ControlPanelMixerDimensions::FONT_SIZE_VALUE,
                 ControlPanelMixerColors::VALUE_TEXT,
             );
 
-            if let Some((text, tab)) = edit_result {
-                if let Some(parsed_pan) = Self::pan_for_text(&text) {
-                    self.orion_hid.lock().unwrap().queue_mixer_channel(
-                        channel as u8,
-                        levels[channel],
-                        parsed_pan | solo | mute,
-                    );
-                }
+            if edit_permitted {
+                if let Some((text, tab)) = pan_edit_result {
+                    if let Some(parsed_pan) = Self::pan_for_text(&text) {
+                        self.orion_hid.lock().unwrap().queue_mixer_channel(
+                            channel as u8,
+                            level,
+                            parsed_pan | solo | mute,
+                        );
+                    }
 
-                if let Some(_tab) = tab {
-                    // TODO: Implement tab support.
+                    if let Some(tab) = tab {
+                        let next_channel = (channel as isize - 1 + tab).rem_euclid(32) + 1;
+
+                        self.text_editor
+                            .lock()
+                            .unwrap()
+                            .set_editing_id(&format!("pan_{next_channel}"));
+                    }
+
+                    edit_permitted = false;
                 }
             }
 
-            let knob_pos_x = base_pos_x as u16 + ControlPanelMixerDimensions::PAN_KNOB_X;
-            let knob_rad = pan_float * ControlPanelMixerDimensions::PAN_KNOB_RAD / 30.0;
+            let pan_knob_pos_x = base_pos_x as u16 + ControlPanelMixerDimensions::PAN_KNOB_X;
+            let pan_knob_rad = pan_float * ControlPanelMixerDimensions::PAN_KNOB_RAD / 30.0;
 
             render_asset!(
                 ui,
-                knob_pos_x,
+                pan_knob_pos_x,
                 ControlPanelMixerDimensions::PAN_KNOB_Y,
                 "MixerPan/default/layers/pointer",
                 1.0,
-                knob_rad,
+                pan_knob_rad,
                 None
             );
 
@@ -388,8 +387,6 @@ impl ControlPanelMixer {
                     Some(egui::Sense::click())
                 )
             };
-
-            let level = levels[channel];
 
             if solo_button.clicked() {
                 self.orion_hid.lock().unwrap().queue_mixer_channel(
