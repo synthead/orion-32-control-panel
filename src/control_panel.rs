@@ -4,6 +4,8 @@ use std::sync::Mutex;
 use crate::orion_hid::OrionHid;
 use crate::orion_state::OrionState;
 
+use crate::text_editor::TextEditor;
+
 use crate::control_panel_ad_phase::ControlPanelAdPhase;
 use crate::control_panel_helpers::ControlPanelHelpers;
 use crate::control_panel_mixer::ControlPanelMixer;
@@ -63,10 +65,9 @@ pub(crate) struct ControlPanel {
     mixer: ControlPanelMixer,
     ad_phase: ControlPanelAdPhase,
 
-    current_tab: u8,
+    text_editor: TextEditor,
 
-    edit_line_out: bool,
-    edit_string: String,
+    current_tab: u8,
 }
 
 impl ControlPanel {
@@ -101,7 +102,11 @@ impl ControlPanel {
         "192.0 kHz",
     ];
 
-    pub fn new(orion_state: Arc<Mutex<OrionState>>, orion_hid: Arc<Mutex<OrionHid>>) -> Self {
+    pub fn new(
+        orion_state: Arc<Mutex<OrionState>>,
+        orion_hid: Arc<Mutex<OrionHid>>,
+        text_editor: TextEditor,
+    ) -> Self {
         let routing = ControlPanelRouting::new(Arc::clone(&orion_state), Arc::clone(&orion_hid));
         let mixer = ControlPanelMixer::new(Arc::clone(&orion_state), Arc::clone(&orion_hid));
         let ad_phase = ControlPanelAdPhase::new(Arc::clone(&orion_state), Arc::clone(&orion_hid));
@@ -114,10 +119,9 @@ impl ControlPanel {
             mixer,
             ad_phase,
 
-            current_tab: 0,
+            text_editor,
 
-            edit_line_out: false,
-            edit_string: String::new(),
+            current_tab: 0,
         }
     }
 
@@ -399,28 +403,23 @@ impl ControlPanel {
             ),
         );
 
-        let hitbox_id = ui.id().with("line_out_edit");
-
         let line_out_value = -(line_out as f32 * 96.0 / 255.0).round() as i16;
         let line_out_text = format!("{} dB", line_out_value);
 
-        ControlPanelHelpers::draw_text_editor(
+        if let Some((text, tab)) = self.text_editor.draw(
             ui,
             hitbox_rect,
-            hitbox_id,
+            "line_out",
             &line_out_text,
-            &mut self.edit_string,
-            &mut self.edit_line_out,
             ControlPanelDimensions::FONT_SIZE_LINE_OUT,
             ControlPanelColors::LINE_OUT,
-            &self.orion_hid,
-            move |orion_hid, text| {
-                if let Some(line_out_new) = Self::line_out_for_text(text) {
-                    orion_hid.queue_line_out(line_out_new);
+        ) {
+            if tab.is_none() {
+                if let Some(line_out_new) = Self::line_out_for_text(&text) {
+                    self.orion_hid.lock().unwrap().queue_line_out(line_out_new);
                 }
-            },
-            || {},
-        );
+            }
+        }
     }
 
     fn draw_serial_combobox(ui: &mut egui::Ui, serial: &[u8; 13]) {

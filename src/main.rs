@@ -13,11 +13,15 @@ mod control_panel_helpers;
 mod control_panel_mixer;
 mod control_panel_routing;
 
+mod text_editor;
+
 mod orion_hid;
 mod orion_hid_poller;
 mod orion_state;
 
 use crate::control_panel::ControlPanel;
+
+use crate::text_editor::TextEditor;
 
 use crate::orion_hid::OrionHid;
 use crate::orion_hid_poller::OrionHidPoller;
@@ -39,8 +43,13 @@ fn main() -> eframe::Result {
 
     orion_hid.queue_init();
 
-    let control_panel =
-        ControlPanel::new(Arc::clone(&orion_state), Arc::new(Mutex::new(orion_hid)));
+    let text_editor = TextEditor::new();
+
+    let control_panel = ControlPanel::new(
+        Arc::clone(&orion_state),
+        Arc::new(Mutex::new(orion_hid)),
+        text_editor,
+    );
 
     eframe::run_native(
         "Orion 32 Control Panel",
