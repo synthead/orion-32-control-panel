@@ -48,7 +48,7 @@ fn main() -> eframe::Result {
     let control_panel = ControlPanel::new(
         Arc::clone(&orion_state),
         Arc::new(Mutex::new(orion_hid)),
-        text_editor,
+        Arc::new(Mutex::new(text_editor)),
     );
 
     eframe::run_native(

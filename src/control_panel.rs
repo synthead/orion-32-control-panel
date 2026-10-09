@@ -65,7 +65,7 @@ pub(crate) struct ControlPanel {
     mixer: ControlPanelMixer,
     ad_phase: ControlPanelAdPhase,
 
-    text_editor: TextEditor,
+    text_editor: Arc<Mutex<TextEditor>>,
 
     current_tab: u8,
 }
@@ -105,7 +105,7 @@ impl ControlPanel {
     pub fn new(
         orion_state: Arc<Mutex<OrionState>>,
         orion_hid: Arc<Mutex<OrionHid>>,
-        text_editor: TextEditor,
+        text_editor: Arc<Mutex<TextEditor>>,
     ) -> Self {
         let routing = ControlPanelRouting::new(Arc::clone(&orion_state), Arc::clone(&orion_hid));
         let mixer = ControlPanelMixer::new(Arc::clone(&orion_state), Arc::clone(&orion_hid));
@@ -406,7 +406,7 @@ impl ControlPanel {
         let line_out_value = -(line_out as f32 * 96.0 / 255.0).round() as i16;
         let line_out_text = format!("{} dB", line_out_value);
 
-        if let Some((text, tab)) = self.text_editor.draw(
+        if let Some((text, tab)) = self.text_editor.lock().unwrap().draw(
             ui,
             hitbox_rect,
             "line_out",
