@@ -4,6 +4,8 @@ use std::sync::Mutex;
 use crate::orion_hid::OrionHid;
 use crate::orion_state::OrionState;
 
+use crate::text_editor::TextEditor;
+
 use crate::render_asset;
 
 struct ControlPanelMixerColors;
@@ -75,29 +77,26 @@ pub(crate) struct ControlPanelMixer {
     orion_state: Arc<Mutex<OrionState>>,
     orion_hid: Arc<Mutex<OrionHid>>,
 
+    text_editor: Arc<Mutex<TextEditor>>,
+
     drag_offset: f32,
     drag_value: u8,
-
-    edit_channel: Option<u8>,
-    edit_is_pan: bool,
-    edit_string: String,
 }
 
 impl ControlPanelMixer {
     pub(crate) fn new(
         orion_state: Arc<Mutex<OrionState>>,
         orion_hid: Arc<Mutex<OrionHid>>,
+        text_editor: Arc<Mutex<TextEditor>>,
     ) -> Self {
         Self {
             orion_state,
             orion_hid,
 
+            text_editor,
+
             drag_offset: 0.0,
             drag_value: 0,
-
-            edit_channel: None,
-            edit_is_pan: false,
-            edit_string: String::new(),
         }
     }
 
@@ -214,23 +213,41 @@ impl ControlPanelMixer {
                 None
             );
 
-            self.draw_text_or_editor(
-                ui,
-                base_pos_x + ControlPanelMixerDimensions::TEXT_HITBOX_X,
-                ControlPanelMixerDimensions::TEXT_HITBOX_Y_LEVEL,
-                Self::text_for_level(level),
-                false,
-                channel as u8,
-                |orion_hid, text| {
-                    if let Some(parsed_level) = Self::level_for_text(&text) {
-                        orion_hid.queue_mixer_channel(
-                            channel as u8,
-                            parsed_level,
-                            pans_solos_mutes[channel],
-                        );
-                    }
-                },
+            let level_text = Self::text_for_level(level);
+
+            let text_rect = egui::Rect::from_min_size(
+                egui::pos2(
+                    base_pos_x + ControlPanelMixerDimensions::TEXT_HITBOX_X,
+                    ControlPanelMixerDimensions::TEXT_HITBOX_Y_LEVEL,
+                ),
+                egui::vec2(
+                    ControlPanelMixerDimensions::TEXT_HITBOX_WIDTH,
+                    ControlPanelMixerDimensions::TEXT_HITBOX_HEIGHT,
+                ),
             );
+
+            let edit_result = self.text_editor.lock().unwrap().draw(
+                ui,
+                text_rect,
+                &format!("level_{channel}"),
+                &level_text,
+                ControlPanelMixerDimensions::FONT_SIZE_VALUE,
+                ControlPanelMixerColors::VALUE_TEXT,
+            );
+
+            if let Some((level_text, tab)) = edit_result {
+                if let Some(parsed_level) = Self::level_for_text(&level_text) {
+                    self.orion_hid.lock().unwrap().queue_mixer_channel(
+                        channel as u8,
+                        parsed_level,
+                        pans_solos_mutes[channel],
+                    );
+                }
+
+                if let Some(_tab) = tab {
+                    // TODO: Implement tab support.
+                }
+            }
         }
     }
 
@@ -280,23 +297,36 @@ impl ControlPanelMixer {
             let text_x = base_pos_x + ControlPanelMixerDimensions::TEXT_HITBOX_X;
             let pan_float = pan as f32 - 32.0;
 
-            self.draw_text_or_editor(
-                ui,
-                text_x,
-                ControlPanelMixerDimensions::TEXT_HITBOX_Y_PAN,
-                pan_float.to_string(),
-                true,
-                channel as u8,
-                |orion_hid, text| {
-                    if let Some(parsed_pan) = Self::pan_for_text(&text) {
-                        orion_hid.queue_mixer_channel(
-                            channel as u8,
-                            levels[channel],
-                            parsed_pan | solo | mute,
-                        );
-                    }
-                },
+            let text_rect = egui::Rect::from_min_size(
+                egui::pos2(text_x, ControlPanelMixerDimensions::TEXT_HITBOX_Y_PAN),
+                egui::vec2(
+                    ControlPanelMixerDimensions::TEXT_HITBOX_WIDTH,
+                    ControlPanelMixerDimensions::TEXT_HITBOX_HEIGHT,
+                ),
             );
+
+            let edit_result = self.text_editor.lock().unwrap().draw(
+                ui,
+                text_rect,
+                &format!("pan_{channel}"),
+                &pan_float.to_string(),
+                ControlPanelMixerDimensions::FONT_SIZE_VALUE,
+                ControlPanelMixerColors::VALUE_TEXT,
+            );
+
+            if let Some((text, tab)) = edit_result {
+                if let Some(parsed_pan) = Self::pan_for_text(&text) {
+                    self.orion_hid.lock().unwrap().queue_mixer_channel(
+                        channel as u8,
+                        levels[channel],
+                        parsed_pan | solo | mute,
+                    );
+                }
+
+                if let Some(_tab) = tab {
+                    // TODO: Implement tab support.
+                }
+            }
 
             let knob_pos_x = base_pos_x as u16 + ControlPanelMixerDimensions::PAN_KNOB_X;
             let knob_rad = pan_float * ControlPanelMixerDimensions::PAN_KNOB_RAD / 30.0;
@@ -417,19 +447,34 @@ impl ControlPanelMixer {
             None
         );
 
-        self.draw_text_or_editor(
-            ui,
-            ControlPanelMixerDimensions::MASTER_TEXT_HITBOX_X,
-            ControlPanelMixerDimensions::MASTER_TEXT_HITBOX_Y,
-            Self::text_for_level(level),
-            false,
-            0,
-            |orion_hid, text| {
-                if let Some(parsed_level) = Self::level_for_text(&text) {
-                    orion_hid.queue_mixer_channel(0, parsed_level, mute);
-                }
-            },
+        let text_rect = egui::Rect::from_min_size(
+            egui::pos2(
+                ControlPanelMixerDimensions::MASTER_TEXT_HITBOX_X,
+                ControlPanelMixerDimensions::MASTER_TEXT_HITBOX_Y,
+            ),
+            egui::vec2(
+                ControlPanelMixerDimensions::TEXT_HITBOX_WIDTH,
+                ControlPanelMixerDimensions::TEXT_HITBOX_HEIGHT,
+            ),
         );
+
+        let edit_result = self.text_editor.lock().unwrap().draw(
+            ui,
+            text_rect,
+            &format!("level_0"),
+            &Self::text_for_level(level),
+            ControlPanelMixerDimensions::FONT_SIZE_VALUE,
+            ControlPanelMixerColors::VALUE_TEXT,
+        );
+
+        if let Some((text, None)) = edit_result {
+            if let Some(parsed_level) = Self::level_for_text(&text) {
+                self.orion_hid
+                    .lock()
+                    .unwrap()
+                    .queue_mixer_channel(0, parsed_level, mute);
+            }
+        }
 
         let mute_button = if mute & 0x40 != 0 {
             render_asset!(
@@ -506,104 +551,6 @@ impl ControlPanelMixer {
         }
 
         value
-    }
-
-    fn draw_text_or_editor(
-        &mut self,
-        ui: &mut egui::Ui,
-        pos_x: f32,
-        pos_y: f32,
-        text: String,
-        is_pan: bool,
-        channel: u8,
-        mut text_edit_callback: impl FnMut(&mut OrionHid, &String),
-    ) {
-        let hitbox_rect = egui::Rect::from_min_size(
-            egui::pos2(pos_x, pos_y),
-            egui::vec2(
-                ControlPanelMixerDimensions::TEXT_HITBOX_WIDTH,
-                ControlPanelMixerDimensions::TEXT_HITBOX_HEIGHT,
-            ),
-        );
-
-        let hitbox_id = ui.id().with(("mixer_edit", is_pan, channel));
-        let text_response = ui.interact(hitbox_rect, hitbox_id, egui::Sense::click());
-
-        if text_response.double_clicked() {
-            self.edit_channel = Some(channel);
-            self.edit_is_pan = is_pan;
-            self.edit_string = text.clone();
-        }
-
-        if self.edit_channel != Some(channel) || self.edit_is_pan != is_pan {
-            ui.put(
-                hitbox_rect,
-                egui::Label::new(
-                    egui::RichText::new(text)
-                        .font(egui::FontId::proportional(
-                            ControlPanelMixerDimensions::FONT_SIZE_VALUE,
-                        ))
-                        .color(ControlPanelMixerColors::VALUE_TEXT),
-                )
-                .selectable(false),
-            );
-
-            return;
-        }
-
-        if ui.input(|i| {
-            i.pointer.any_click()
-                && i.pointer
-                    .interact_pos()
-                    .is_some_and(|pos| !hitbox_rect.contains(pos))
-        }) {
-            let mut orion_hid = self.orion_hid.lock().unwrap();
-
-            text_edit_callback(&mut orion_hid, &self.edit_string);
-
-            self.edit_channel = None;
-        }
-
-        let response = ui.put(
-            hitbox_rect,
-            egui::TextEdit::singleline(&mut self.edit_string)
-                .id(hitbox_id)
-                .font(egui::FontId::proportional(
-                    ControlPanelMixerDimensions::FONT_SIZE_VALUE,
-                ))
-                .horizontal_align(egui::Align::Center)
-                .vertical_align(egui::Align::Center)
-                .text_color(ControlPanelMixerColors::VALUE_TEXT)
-                .frame(egui::Frame::NONE),
-        );
-
-        if response.has_focus() && response.gained_focus() {
-            let mut state =
-                egui::widgets::text_edit::TextEditState::load(ui.ctx(), hitbox_id).unwrap();
-
-            let label_chars = self.edit_string.chars().count();
-
-            state
-                .cursor
-                .set_char_range(Some(egui::text::CCursorRange::two(
-                    egui::text::CCursor::new(0),
-                    egui::text::CCursor::new(label_chars),
-                )));
-
-            state.store(ui.ctx(), hitbox_id);
-        }
-
-        if ui.input(|i| i.key_pressed(egui::Key::Enter)) {
-            let mut orion_hid = self.orion_hid.lock().unwrap();
-
-            text_edit_callback(&mut orion_hid, &self.edit_string);
-
-            self.edit_channel = None;
-        }
-
-        if ui.input(|i| i.key_pressed(egui::Key::Escape)) {
-            self.edit_channel = None;
-        }
     }
 
     fn text_for_level(level: u8) -> String {
