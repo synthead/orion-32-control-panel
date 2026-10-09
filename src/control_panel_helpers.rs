@@ -1,7 +1,3 @@
-use crate::orion_hid::OrionHid;
-use std::sync::Arc;
-use std::sync::Mutex;
-
 #[macro_export]
 macro_rules! render_asset {
     ($ui:expr, $x:expr, $y:expr, $subpath:literal, $scale:expr, $rotation:expr, $sense:expr) => {
@@ -99,88 +95,5 @@ impl ControlPanelHelpers {
                     });
             },
         );
-    }
-
-    pub(crate) fn draw_text_editor(
-        ui: &mut egui::Ui,
-        rect: egui::Rect,
-        id: egui::Id,
-        text: &str,
-        edit_string: &mut String,
-        editing: &mut bool,
-        font_size: f32,
-        color: egui::Color32,
-        orion_hid: &Arc<Mutex<OrionHid>>,
-        mut on_commit: impl FnMut(&mut OrionHid, &String),
-        mut on_tab: impl FnMut(),
-    ) {
-        let text_response = ui.interact(rect, id, egui::Sense::click());
-
-        if !*editing {
-            if text_response.double_clicked() {
-                edit_string.clear();
-                edit_string.push_str(text);
-                *editing = true;
-            } else {
-                let galley = ui.painter().layout_no_wrap(
-                    text.to_owned(),
-                    egui::FontId::proportional(font_size),
-                    color,
-                );
-
-                let pos = rect.center() - galley.size() / 2.0;
-                ui.painter().galley(pos, galley, color);
-
-                return;
-            }
-        }
-
-        let response = ui.put(
-            rect,
-            egui::TextEdit::singleline(edit_string)
-                .id(id)
-                .font(egui::FontId::proportional(font_size))
-                .horizontal_align(egui::Align::Center)
-                .vertical_align(egui::Align::Center)
-                .text_color(color)
-                .frame(egui::Frame::NONE),
-        );
-
-        if response.has_focus() && response.gained_focus() {
-            if let Some(mut state) = egui::widgets::text_edit::TextEditState::load(ui.ctx(), id) {
-                let len = edit_string.chars().count();
-
-                state
-                    .cursor
-                    .set_char_range(Some(egui::text::CCursorRange::two(
-                        egui::text::CCursor::new(0),
-                        egui::text::CCursor::new(len),
-                    )));
-
-                state.store(ui.ctx(), id);
-            }
-        }
-
-        let outside_click = ui.input(|i| {
-            i.pointer.any_click()
-                && i.pointer
-                    .interact_pos()
-                    .is_some_and(|pos| !rect.contains(pos))
-        });
-
-        if ui.input(|i| i.key_pressed(egui::Key::Enter)) || outside_click {
-            let mut orion_hid = orion_hid.lock().unwrap();
-
-            on_commit(&mut orion_hid, edit_string);
-
-            *editing = false;
-        } else if ui.input(|i| i.key_pressed(egui::Key::Tab)) {
-            let mut orion_hid = orion_hid.lock().unwrap();
-
-            on_commit(&mut orion_hid, edit_string);
-            on_tab();
-        } else if ui.input(|i| i.key_pressed(egui::Key::Escape)) {
-            *editing = false;
-        }
     }
 }
