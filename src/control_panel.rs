@@ -378,9 +378,6 @@ impl ControlPanel {
     }
 
     fn draw_line_out(&mut self, ui: &mut egui::Ui, line_out: u8) {
-        let line_out_value = -(line_out as f32 * 96.0 / 255.0).round() as i16;
-        let line_out_text = format!("{} dB", line_out_value);
-
         render_asset!(
             ui,
             1099,
@@ -403,82 +400,27 @@ impl ControlPanel {
         );
 
         let hitbox_id = ui.id().with("line_out_edit");
-        let text_response = ui.interact(hitbox_rect, hitbox_id, egui::Sense::click());
 
-        if text_response.double_clicked() {
-            self.edit_line_out = true;
-            self.edit_string = line_out_text.clone();
-        }
+        let line_out_value = -(line_out as f32 * 96.0 / 255.0).round() as i16;
+        let line_out_text = format!("{} dB", line_out_value);
 
-        if !self.edit_line_out {
-            ui.put(
-                hitbox_rect,
-                egui::Label::new(
-                    egui::RichText::new(line_out_text)
-                        .font(egui::FontId::proportional(
-                            ControlPanelDimensions::FONT_SIZE_LINE_OUT,
-                        ))
-                        .color(ControlPanelColors::LINE_OUT),
-                )
-                .selectable(false),
-            );
-
-            return;
-        }
-
-        if ui.input(|i| {
-            i.pointer.any_click()
-                && i.pointer
-                    .interact_pos()
-                    .is_some_and(|pos| !hitbox_rect.contains(pos))
-        }) {
-            if let Some(line_out_new) = Self::line_out_for_text(&self.edit_string) {
-                self.orion_hid.lock().unwrap().queue_line_out(line_out_new);
-            }
-
-            self.edit_line_out = false;
-        }
-
-        let response = ui.put(
+        ControlPanelHelpers::draw_text_editor(
+            ui,
             hitbox_rect,
-            egui::TextEdit::singleline(&mut self.edit_string)
-                .id(hitbox_id)
-                .font(egui::FontId::proportional(
-                    ControlPanelDimensions::FONT_SIZE_LINE_OUT,
-                ))
-                .horizontal_align(egui::Align::Center)
-                .vertical_align(egui::Align::Center)
-                .text_color(ControlPanelColors::LINE_OUT)
-                .frame(egui::Frame::NONE),
+            hitbox_id,
+            &line_out_text,
+            &mut self.edit_string,
+            &mut self.edit_line_out,
+            ControlPanelDimensions::FONT_SIZE_LINE_OUT,
+            ControlPanelColors::LINE_OUT,
+            &self.orion_hid,
+            move |orion_hid, text| {
+                if let Some(line_out_new) = Self::line_out_for_text(text) {
+                    orion_hid.queue_line_out(line_out_new);
+                }
+            },
+            || {},
         );
-
-        if response.has_focus() && response.gained_focus() {
-            let mut state =
-                egui::widgets::text_edit::TextEditState::load(ui.ctx(), hitbox_id).unwrap();
-
-            let label_chars = self.edit_string.chars().count();
-
-            state
-                .cursor
-                .set_char_range(Some(egui::text::CCursorRange::two(
-                    egui::text::CCursor::new(0),
-                    egui::text::CCursor::new(label_chars),
-                )));
-
-            state.store(ui.ctx(), hitbox_id);
-        }
-
-        if ui.input(|i| i.key_pressed(egui::Key::Enter)) {
-            if let Some(line_out_new) = Self::line_out_for_text(&self.edit_string) {
-                self.orion_hid.lock().unwrap().queue_line_out(line_out_new);
-            }
-
-            self.edit_line_out = false;
-        }
-
-        if ui.input(|i| i.key_pressed(egui::Key::Escape)) {
-            self.edit_line_out = false;
-        }
     }
 
     fn draw_serial_combobox(ui: &mut egui::Ui, serial: &[u8; 13]) {
