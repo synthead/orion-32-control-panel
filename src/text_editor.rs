@@ -1,13 +1,13 @@
 pub(crate) struct TextEditor {
     editing_id: Option<String>,
-    edit_string: String,
+    edit_string: Option<String>,
 }
 
 impl TextEditor {
     pub(crate) fn new() -> Self {
         Self {
             editing_id: None,
-            edit_string: String::new(),
+            edit_string: None,
         }
     }
 
@@ -27,7 +27,6 @@ impl TextEditor {
             let text_response = ui.interact(rect, id, egui::Sense::click());
 
             if text_response.double_clicked() {
-                self.edit_string = text.to_owned();
                 self.editing_id = Some(field_id.to_owned());
             } else {
                 let galley = ui.painter().layout_no_wrap(
@@ -43,31 +42,43 @@ impl TextEditor {
             }
         }
 
+        let should_select_all = self.edit_string.is_none();
+        let edit_string = self.edit_string.get_or_insert_with(|| text.to_owned());
+
         let response = ui.put(
             rect,
-            egui::TextEdit::singleline(&mut self.edit_string)
+            egui::TextEdit::singleline(edit_string)
                 .id(id)
                 .font(egui::FontId::proportional(font_size))
                 .horizontal_align(egui::Align::Center)
                 .vertical_align(egui::Align::Center)
                 .text_color(color)
                 .frame(egui::Frame::NONE)
-                .lock_focus(true),
+                .lock_focus(true)
+                .event_filter(egui::EventFilter {
+                    tab: true,
+                    ..Default::default()
+                }),
         );
 
-        if response.has_focus() && response.gained_focus() {
-            if let Some(mut state) = egui::widgets::text_edit::TextEditState::load(ui.ctx(), id) {
-                let len = self.edit_string.chars().count();
+        if !ui.memory(|mem| mem.has_focus(id)) {
+            ui.memory_mut(|mem| mem.request_focus(id));
+        }
 
-                state
-                    .cursor
-                    .set_char_range(Some(egui::text::CCursorRange::two(
-                        egui::text::CCursor::new(0),
-                        egui::text::CCursor::new(len),
-                    )));
+        if should_select_all && response.has_focus() {
+            let mut state =
+                egui::widgets::text_edit::TextEditState::load(ui.ctx(), id).unwrap_or_default();
 
-                state.store(ui.ctx(), id);
-            }
+            let len = edit_string.chars().count();
+
+            state
+                .cursor
+                .set_char_range(Some(egui::text::CCursorRange::two(
+                    egui::text::CCursor::new(0),
+                    egui::text::CCursor::new(len),
+                )));
+
+            state.store(ui.ctx(), id);
         }
 
         let outside_click = ui.input(|i| {
@@ -88,16 +99,19 @@ impl TextEditor {
 
         if esc {
             self.editing_id = None;
+            self.edit_string = None;
             return None;
         }
 
         if tab {
-            return Some((self.edit_string.clone(), Some(if shift { -1 } else { 1 })));
+            let text = self.edit_string.take().unwrap_or_default();
+            return Some((text, Some(if shift { -1 } else { 1 })));
         }
 
         if enter || outside_click {
             self.editing_id = None;
-            return Some((self.edit_string.clone(), None));
+            let text = self.edit_string.take().unwrap_or_default();
+            return Some((text, None));
         }
 
         None
@@ -105,5 +119,6 @@ impl TextEditor {
 
     pub(crate) fn set_editing_id(&mut self, editing_id: &str) {
         self.editing_id = Some(editing_id.to_owned());
+        self.edit_string = None;
     }
 }
