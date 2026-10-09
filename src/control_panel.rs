@@ -108,7 +108,13 @@ impl ControlPanel {
         text_editor: Arc<Mutex<TextEditor>>,
     ) -> Self {
         let routing = ControlPanelRouting::new(Arc::clone(&orion_state), Arc::clone(&orion_hid));
-        let mixer = ControlPanelMixer::new(Arc::clone(&orion_state), Arc::clone(&orion_hid));
+
+        let mixer = ControlPanelMixer::new(
+            Arc::clone(&orion_state),
+            Arc::clone(&orion_hid),
+            Arc::clone(&text_editor),
+        );
+
         let ad_phase = ControlPanelAdPhase::new(Arc::clone(&orion_state), Arc::clone(&orion_hid));
 
         Self {
