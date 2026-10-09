@@ -56,17 +56,15 @@ impl TextEditor {
         );
 
         if response.has_focus() && response.gained_focus() {
-            if let Some(mut state) =
-                egui::widgets::text_edit::TextEditState::load(ui.ctx(), id)
-            {
+            if let Some(mut state) = egui::widgets::text_edit::TextEditState::load(ui.ctx(), id) {
                 let len = self.edit_string.chars().count();
 
-                state.cursor.set_char_range(Some(
-                    egui::text::CCursorRange::two(
+                state
+                    .cursor
+                    .set_char_range(Some(egui::text::CCursorRange::two(
                         egui::text::CCursor::new(0),
                         egui::text::CCursor::new(len),
-                    ),
-                ));
+                    )));
 
                 state.store(ui.ctx(), id);
             }
@@ -94,10 +92,7 @@ impl TextEditor {
         }
 
         if tab {
-            return Some((
-                self.edit_string.clone(),
-                Some(if shift { -1 } else { 1 }),
-            ));
+            return Some((self.edit_string.clone(), Some(if shift { -1 } else { 1 })));
         }
 
         if enter || outside_click {
