@@ -34,7 +34,7 @@ macro_rules! render_asset {
     };
 }
 
-pub struct ControlPanelHelpers;
+pub(crate) struct ControlPanelHelpers;
 
 impl ControlPanelHelpers {
     pub(crate) fn draw_text(
