@@ -7,6 +7,7 @@ use crate::orion_hid::OrionHid;
 use crate::orion_state::OrionState;
 
 use crate::control_panel_helpers::ControlPanelHelpers;
+use crate::text_editor::TextEditor;
 
 use crate::render_asset;
 
@@ -43,14 +44,14 @@ pub(crate) struct ControlPanelRouting {
     orion_state: Arc<Mutex<OrionState>>,
     orion_hid: Arc<Mutex<OrionHid>>,
 
+    text_editor: Arc<Mutex<TextEditor>>,
+
     labels: [[String; 32]; 7],
 
     source_counts: [usize; 7],
     target_counts: [usize; 7],
 
     label_edit_cell: Option<[u8; 2]>,
-    label_edit_string: String,
-
     source_select_range_row: Option<u8>,
     source_select_range_column: u8,
 
@@ -66,6 +67,9 @@ pub(crate) struct ControlPanelRouting {
 }
 
 impl ControlPanelRouting {
+    const TEXT_COLOR: egui::Color32 = egui::Color32::WHITE;
+    const TEXT_SIZE: f32 = 12.0;
+
     const SOURCE_ROW_LABELS: [&str; 7] = [
         "ADC",
         "USB PLAY",
@@ -79,6 +83,7 @@ impl ControlPanelRouting {
     pub(crate) fn new(
         orion_state: Arc<Mutex<OrionState>>,
         orion_hid: Arc<Mutex<OrionHid>>,
+        text_editor: Arc<Mutex<TextEditor>>,
     ) -> Self {
         let labels = std::array::from_fn(|group| {
             let start_at = if group == 3 { 33 } else { 1 };
@@ -90,13 +95,14 @@ impl ControlPanelRouting {
             orion_state,
             orion_hid,
 
+            text_editor,
+
             labels,
 
             source_counts: [0; 7],
             target_counts: [0; 7],
 
             label_edit_cell: None,
-            label_edit_string: String::new(),
 
             source_select_range_row: None,
             source_select_range_column: 0,
@@ -157,7 +163,6 @@ impl ControlPanelRouting {
         self.draw_sources(ui);
         self.draw_targets(ui, &orion_state.routes);
 
-        self.draw_selections(ui);
         self.draw_drag(ui);
         self.draw_text(ui);
 
@@ -165,10 +170,6 @@ impl ControlPanelRouting {
 
         self.clear_target_selection_when_outside(ui);
         self.update_targets_on_mouseup(ui, &orion_state.routes);
-
-        if self.label_edit_cell.is_some() {
-            self.draw_editor(ui);
-        }
     }
 
     fn draw_base_graphics(ui: &mut egui::Ui) {
@@ -205,32 +206,115 @@ impl ControlPanelRouting {
         );
     }
 
-    fn draw_sources(&mut self, ui: &mut egui::Ui) {
-        for row in 0..self.source_counts.len() {
-            for column in 0..self.source_counts[row] as u8 {
-                let label = &self.labels[row][column as usize].clone();
-                let color = Self::color_for_route(row as u8);
+    fn draw_source(&mut self, ui: &mut egui::Ui, column: u8, row: u8) {
+        let label = self.labels[row as usize][column as usize].clone();
+        let (pos_x, pos_y) = Self::cell_pos(column, row, true);
 
-                let rect = Self::draw_rect_with_label(ui, column, row as u8, true, color, label);
+        let color = if self.source_select_row == row && self.source_select_columns.contains(&column)
+        {
+            ControlPanelRouteColors::SELECT
+        } else {
+            Self::color_for_route(row)
+        };
 
-                let id = ui.id().with(("route_source", column, row));
-                let response = ui.interact(rect, id, egui::Sense::click());
+        let rect = egui::Rect::from_min_size(
+            egui::pos2(pos_x, pos_y),
+            egui::vec2(
+                ControlPanelRouteDimensions::SIZE_X,
+                ControlPanelRouteDimensions::SIZE_Y,
+            ),
+        );
 
-                if response.hovered() && ui.input(|i| i.pointer.primary_pressed()) {
-                    self.source_mousedown = true;
+        ui.painter().rect_filled(rect, 0.0, color);
 
-                    self.update_source_selections(ui, column, row as u8);
+        let id_with = format!("route_{column}_{row}");
+        let id = ui.id().with(&id_with);
+        let response = ui.interact(rect, id, egui::Sense::click());
+
+        if response.double_clicked() {
+            self.label_edit_cell = Some([column, row]);
+        }
+
+        if response.hovered() && ui.input(|i| i.pointer.primary_pressed()) {
+            self.source_mousedown = true;
+            self.update_source_selections(ui, column, row);
+        }
+
+        self.text_editor.lock().unwrap().draw(
+            ui,
+            rect,
+            &id_with,
+            &label,
+            Self::TEXT_SIZE,
+            Self::TEXT_COLOR,
+        );
+    }
+
+    fn draw_source_editing(&mut self, ui: &mut egui::Ui, column: u8, row: u8) {
+        let label = self.labels[row as usize][column as usize].clone();
+        let (pos_x, pos_y) = Self::cell_pos(column, row, true);
+        let color = Self::color_for_route(row);
+
+        let rect = egui::Rect::from_min_size(
+            egui::pos2(pos_x - 14.0, pos_y - 2.0),
+            egui::vec2(58.0, 18.0),
+        );
+
+        ui.painter().rect(
+            rect,
+            egui::CornerRadius::same(5),
+            color,
+            egui::Stroke::new(1.0, egui::Color32::BLACK),
+            egui::StrokeKind::Inside,
+        );
+
+        let level_edit_result = self.text_editor.lock().unwrap().draw(
+            ui,
+            rect,
+            &format!("route_{column}_{row}"),
+            &label,
+            Self::TEXT_SIZE,
+            Self::TEXT_COLOR,
+        );
+
+        if let Some((route_text, tab)) = level_edit_result {
+            self.labels[row as usize][column as usize] = route_text;
+
+            if let Some(tab) = tab {
+                let mut column_next = column as i16 + tab as i16;
+                let mut row_next = row as usize;
+
+                if column_next < 0 {
+                    row_next = (row_next + self.source_counts.len() - 1) % self.source_counts.len();
+                    column_next = self.source_counts[row_next] as i16 - 1;
+                } else if column_next == self.source_counts[row_next] as i16 {
+                    row_next = (row_next + 1) % self.source_counts.len();
+                    column_next = 0;
                 }
 
-                if response.double_clicked() {
-                    self.label_edit_string = label.clone();
-                    self.label_edit_cell = Some([column, row as u8]);
+                self.label_edit_cell = Some([column_next as u8, row_next as u8]);
+
+                self.text_editor
+                    .lock()
+                    .unwrap()
+                    .set_editing_id(&format!("route_{column_next}_{row_next}"));
+            } else {
+                self.label_edit_cell = None;
+            }
+        }
+    }
+
+    fn draw_sources(&mut self, ui: &mut egui::Ui) {
+        for row in 0..self.source_counts.len() as u8 {
+            for column in 0..self.source_counts[row as usize] as u8 {
+                if Some([column, row]) != self.label_edit_cell {
+                    self.draw_source(ui, column, row);
                 }
             }
         }
 
-        if ui.input(|i| i.pointer.any_pressed()) && !self.source_mousedown {
-            self.clear_selections();
+        if let Some([column, row]) = self.label_edit_cell {
+            self.draw_source_editing(ui, column, row);
         }
     }
 
@@ -294,7 +378,13 @@ impl ControlPanelRouting {
         for row in 0..self.target_counts.len() {
             for column in 0..self.target_counts[row] {
                 let route = routes[row][column];
-                let color = Self::color_for_route(route);
+
+                let color = if self.target_select_cell == Some([column as u8, row as u8]) {
+                    ControlPanelRouteColors::SELECT
+                } else {
+                    Self::color_for_route(route)
+                };
+
                 let label = &self.label_for_route(route);
 
                 let rect =
@@ -323,29 +413,6 @@ impl ControlPanelRouting {
         if let Some([source_column, source_row]) = Self::source_cell_for_route(route) {
             self.source_select_row = source_row;
             self.source_select_columns.insert(source_column);
-        }
-    }
-
-    fn draw_selection(&self, ui: &mut egui::Ui, column: u8, row: u8, is_source: bool) {
-        let label = &self.labels[row as usize][column as usize];
-
-        Self::draw_rect_with_label(
-            ui,
-            column,
-            row,
-            is_source,
-            ControlPanelRouteColors::SELECT,
-            label,
-        );
-    }
-
-    fn draw_selections(&self, ui: &mut egui::Ui) {
-        for &column in &self.source_select_columns {
-            self.draw_selection(ui, column, self.source_select_row, true);
-        }
-
-        if let Some([target_column, target_row]) = self.target_select_cell {
-            self.draw_selection(ui, target_column, target_row, false);
         }
     }
 
@@ -495,108 +562,6 @@ impl ControlPanelRouting {
                 color,
                 label,
             );
-        }
-    }
-
-    fn draw_editor(&mut self, ui: &mut egui::Ui) {
-        let [column, row] = self.label_edit_cell.unwrap();
-        let (pos_x, pos_y) = Self::cell_pos(column, row, true);
-        let color = Self::color_for_route(row);
-
-        let rect = egui::Rect::from_min_size(
-            egui::pos2(pos_x - 14.0, pos_y - 2.0),
-            egui::vec2(58.0, 18.0),
-        );
-
-        ui.painter().rect(
-            rect,
-            egui::CornerRadius::same(5),
-            color,
-            egui::Stroke::new(1.0, egui::Color32::BLACK),
-            egui::StrokeKind::Inside,
-        );
-
-        let hitbox_rect = egui::Rect::from_min_size(
-            egui::pos2(pos_x, pos_y),
-            egui::vec2(
-                ControlPanelRouteDimensions::SIZE_X,
-                ControlPanelRouteDimensions::SIZE_Y,
-            ),
-        );
-
-        if ui.input(|i| {
-            i.pointer.any_click()
-                && i.pointer
-                    .interact_pos()
-                    .is_some_and(|pos| !hitbox_rect.contains(pos))
-        }) {
-            self.labels[row as usize][column as usize] = self.label_edit_string.clone();
-            self.label_edit_cell = None;
-        }
-
-        let text_edit_id = ui.id().with(("route_edit", column, row));
-
-        if !ui.memory(|mem| mem.has_focus(text_edit_id)) {
-            let mut state = egui::widgets::text_edit::TextEditState::load(ui.ctx(), text_edit_id)
-                .unwrap_or_default();
-
-            let label_chars = self.label_edit_string.chars().count();
-
-            state
-                .cursor
-                .set_char_range(Some(egui::text::CCursorRange::two(
-                    egui::text::CCursor::new(0),
-                    egui::text::CCursor::new(label_chars),
-                )));
-
-            state.store(ui.ctx(), text_edit_id);
-
-            ui.memory_mut(|mem| mem.request_focus(text_edit_id));
-        }
-
-        ui.put(
-            rect,
-            egui::TextEdit::singleline(&mut self.label_edit_string)
-                .id(text_edit_id)
-                .font(egui::FontId::proportional(12.0))
-                .horizontal_align(egui::Align::Center)
-                .vertical_align(egui::Align::Center)
-                .text_color(egui::Color32::WHITE)
-                .frame(egui::Frame::NONE)
-                .event_filter(egui::EventFilter {
-                    tab: true,
-                    ..Default::default()
-                }),
-        );
-
-        if ui.input(|i| i.key_pressed(egui::Key::Enter)) {
-            self.labels[row as usize][column as usize] = self.label_edit_string.clone();
-            self.label_edit_cell = None;
-        }
-
-        if ui.input(|i| i.key_pressed(egui::Key::Tab)) {
-            self.labels[row as usize][column as usize] = self.label_edit_string.clone();
-
-            let mut column_next = column as usize;
-            let mut row_next = row as usize;
-
-            column_next += 1;
-
-            if column_next >= self.source_counts[row_next] {
-                column_next = 0;
-                row_next += 1;
-            }
-
-            if row_next >= self.source_counts.len() {
-                row_next = 0;
-            }
-
-            self.label_edit_string = self.labels[row_next][column_next].clone();
-            self.label_edit_cell = Some([column_next as u8, row_next as u8]);
-        }
-
-        if ui.input(|i| i.key_pressed(egui::Key::Escape)) {
-            self.label_edit_cell = None;
         }
     }
 

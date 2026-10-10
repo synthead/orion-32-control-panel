@@ -107,7 +107,11 @@ impl ControlPanel {
         orion_hid: Arc<Mutex<OrionHid>>,
         text_editor: Arc<Mutex<TextEditor>>,
     ) -> Self {
-        let routing = ControlPanelRouting::new(Arc::clone(&orion_state), Arc::clone(&orion_hid));
+        let routing = ControlPanelRouting::new(
+            Arc::clone(&orion_state),
+            Arc::clone(&orion_hid),
+            Arc::clone(&text_editor),
+        );
 
         let mixer = ControlPanelMixer::new(
             Arc::clone(&orion_state),
