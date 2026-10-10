@@ -153,7 +153,7 @@ impl ControlPanel {
 
                 Self::draw_base_graphics(ui);
                 self.draw_tab_buttons(ui);
-                self.draw_presets(ui, orion_state.preset);
+                self.draw_presets(ui, orion_state.preset_standby);
 
                 Self::draw_vu_meters(
                     ui,
@@ -305,7 +305,7 @@ impl ControlPanel {
         }
     }
 
-    fn draw_presets(&mut self, ui: &mut egui::Ui, saved_preset: u8) {
+    fn draw_presets(&mut self, ui: &mut egui::Ui, preset_standby: u8) {
         for preset in 1..6 {
             let label = format!("PRESET {}", preset);
             let rect = egui::Rect::from_min_size(
@@ -326,7 +326,7 @@ impl ControlPanel {
                 egui::Sense::click(),
             );
 
-            let color = if preset == saved_preset & 0x07 || response.hovered() {
+            let color = if preset == preset_standby & 0x07 || response.hovered() {
                 ControlPanelColors::PRESET_SEL
             } else {
                 ControlPanelColors::PRESET
