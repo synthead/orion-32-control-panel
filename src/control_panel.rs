@@ -97,6 +97,7 @@ impl ControlPanel {
         "MIX 1 CH",
     ];
 
+    // TODO: Support "Oven" turning into "10M" when 10M clock is connected.
     const CLOCK_SOURCE_SELECTIONS: [&str; 9] = [
         "Oven", "W.C.", "ADAT", "ADAT 2x", "ADAT 4x", "MADI", "MADI 2x", "MADI 4x", "S/PDIF",
     ];
