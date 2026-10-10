@@ -50,7 +50,8 @@ pub(crate) struct ControlPanelRouting {
 
     text_editor: Arc<Mutex<TextEditor>>,
 
-    undo_buffer: Vec<(u8, [u8; 32])>,
+    undo_buffer: Vec<(u8, [u8; 32], [u8; 32])>,
+    undo_cursor: usize,
 
     labels: [[String; 32]; 7],
 
@@ -104,6 +105,7 @@ impl ControlPanelRouting {
             text_editor,
 
             undo_buffer: Vec::new(),
+            undo_cursor: 0,
 
             labels,
 
@@ -214,7 +216,7 @@ impl ControlPanelRouting {
     }
 
     fn draw_undo(&mut self, ui: &mut egui::Ui) {
-        let response = render_asset!(
+        let response_undo = render_asset!(
             ui,
             ControlPanelRouteDimensions::NAV_X,
             ControlPanelRouteDimensions::NAV_UNDO_Y,
@@ -224,9 +226,9 @@ impl ControlPanelRouting {
             Some(egui::Sense::click())
         );
 
-        let contains_pointer = ui.rect_contains_pointer(response.rect);
+        let contains_pointer_undo = ui.rect_contains_pointer(response_undo.rect);
 
-        if contains_pointer && ui.input(|i| i.pointer.primary_down()) {
+        if contains_pointer_undo && ui.input(|i| i.pointer.primary_down()) {
             render_asset!(
                 ui,
                 ControlPanelRouteDimensions::NAV_X,
@@ -238,13 +240,11 @@ impl ControlPanelRouting {
             );
         }
 
-        if contains_pointer && ui.input(|i| i.pointer.primary_released()) {
-            if let Some((row, routes)) = self.undo_buffer.pop() {
-                self.orion_hid.lock().unwrap().queue_routes(row, &routes);
-            }
+        if contains_pointer_undo && ui.input(|i| i.pointer.primary_released()) {
+            self.queue_routes_undo();
         }
 
-        render_asset!(
+        let response_redo = render_asset!(
             ui,
             ControlPanelRouteDimensions::NAV_X,
             ControlPanelRouteDimensions::NAV_REDO_Y,
@@ -253,6 +253,24 @@ impl ControlPanelRouting {
             0.0,
             Some(egui::Sense::click())
         );
+
+        let contains_pointer_redo = ui.rect_contains_pointer(response_redo.rect);
+
+        if contains_pointer_redo && ui.input(|i| i.pointer.primary_down()) {
+            render_asset!(
+                ui,
+                ControlPanelRouteDimensions::NAV_X,
+                ControlPanelRouteDimensions::NAV_REDO_Y,
+                "RedoButton/default/pressed",
+                1.0,
+                0.0,
+                None
+            );
+        }
+
+        if contains_pointer_redo && ui.input(|i| i.pointer.primary_released()) {
+            self.queue_routes_redo();
+        }
     }
 
     fn draw_source(&mut self, ui: &mut egui::Ui, column: u8, row: u8) {
@@ -558,9 +576,8 @@ impl ControlPanelRouting {
     fn update_targets_on_mouseup(&mut self, ui: &mut egui::Ui, routes: &[[u8; 32]; 7]) {
         if self.source_mousedown && ui.input(|i| i.pointer.primary_released()) {
             if let Some([target_column, target_row]) = self.target_hover_cell {
-                let mut new_routes = routes[target_row as usize];
-
-                self.undo_buffer.push((target_row, new_routes));
+                let old_routes = routes[target_row as usize];
+                let mut new_routes = old_routes;
 
                 let target_row_count = self.target_counts[target_row as usize];
 
@@ -575,10 +592,7 @@ impl ControlPanelRouting {
                     new_routes[target_column as usize + column_index] = route;
                 }
 
-                self.orion_hid
-                    .lock()
-                    .unwrap()
-                    .queue_routes(target_row, &new_routes);
+                self.queue_routes_with_undo(target_row, &old_routes, &new_routes);
             }
 
             self.source_mousedown = false;
@@ -709,5 +723,44 @@ impl ControlPanelRouting {
         );
 
         rect
+    }
+
+    fn queue_routes_with_undo(&mut self, row: u8, old_routes: &[u8; 32], new_routes: &[u8; 32]) {
+        self.undo_buffer.truncate(self.undo_cursor);
+        self.undo_buffer.push((row, *old_routes, *new_routes));
+
+        self.undo_cursor = self.undo_buffer.len();
+
+        self.orion_hid.lock().unwrap().queue_routes(row, new_routes);
+    }
+
+    fn queue_routes_undo(&mut self) {
+        if self.undo_cursor == 0 {
+            return;
+        }
+
+        self.undo_cursor -= 1;
+
+        let (row, old_routes, _) = self.undo_buffer[self.undo_cursor];
+
+        self.orion_hid
+            .lock()
+            .unwrap()
+            .queue_routes(row, &old_routes);
+    }
+
+    fn queue_routes_redo(&mut self) {
+        if self.undo_cursor >= self.undo_buffer.len() {
+            return;
+        }
+
+        let (row, _, new_routes) = self.undo_buffer[self.undo_cursor];
+
+        self.orion_hid
+            .lock()
+            .unwrap()
+            .queue_routes(row, &new_routes);
+
+        self.undo_cursor += 1;
     }
 }
