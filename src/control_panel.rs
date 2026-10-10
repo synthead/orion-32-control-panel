@@ -62,6 +62,9 @@ impl ControlPanelDimensions {
     const PRESET_WIDTH: f32 = 50.0;
     const PRESET_HEIGHT: f32 = 12.0;
 
+    const STANDBY_X: u16 = 20;
+    const STANDBY_Y: u16 = 8;
+
     const FONT_SIZE_LINE_OUT: f32 = 11.0;
     const FONT_SIZE_PRESET: f32 = 9.5;
 }
@@ -152,6 +155,7 @@ impl ControlPanel {
                 let orion_state = self.orion_state.lock().unwrap().clone();
 
                 Self::draw_base_graphics(ui);
+                self.draw_standby(ui, orion_state.preset_standby);
                 self.draw_tab_buttons(ui);
                 self.draw_presets(ui, orion_state.preset_standby);
 
@@ -183,7 +187,6 @@ impl ControlPanel {
     fn draw_base_graphics(ui: &mut egui::Ui) {
         render_asset!(ui, 0, 0, "ControlPanel/default/background", 1.0, 0.0, None);
 
-        render_asset!(ui, 20, 8, "StandbyButton/default/pressed", 1.0, 0.0, None);
         render_asset!(
             ui,
             1075,
@@ -223,6 +226,38 @@ impl ControlPanel {
             0.0,
             None
         );
+    }
+
+    fn draw_standby(&mut self, ui: &mut egui::Ui, preset_standby: u8) {
+        let powered_on = preset_standby & 0x08 != 0;
+
+        let standby_button = if powered_on {
+            render_asset!(
+                ui,
+                ControlPanelDimensions::STANDBY_X,
+                ControlPanelDimensions::STANDBY_Y,
+                "StandbyButton/default/pressed",
+                1.0,
+                0.0,
+                Some(egui::Sense::click())
+            )
+        } else {
+            render_asset!(
+                ui,
+                ControlPanelDimensions::STANDBY_X,
+                ControlPanelDimensions::STANDBY_Y,
+                "StandbyButton/default/released",
+                1.0,
+                0.0,
+                Some(egui::Sense::click())
+            )
+        };
+
+        if standby_button.clicked() {
+            let inverted_power = (!powered_on) as u8;
+
+            self.orion_hid.lock().unwrap().queue_standby(inverted_power);
+        }
     }
 
     fn draw_tab_buttons(&mut self, ui: &mut egui::Ui) {
