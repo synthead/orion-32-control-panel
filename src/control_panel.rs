@@ -342,6 +342,12 @@ impl ControlPanel {
             if response.clicked() {
                 let mut orion_hid = self.orion_hid.lock().unwrap();
 
+                if ui.input(|i| i.modifiers.ctrl) {
+                    orion_hid.queue_preset_write(preset);
+
+                    return;
+                }
+
                 orion_hid.queue_preset(preset);
 
                 orion_hid.queue_get_routes();
