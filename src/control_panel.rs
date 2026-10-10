@@ -44,6 +44,8 @@ struct ControlPanelColors;
 
 impl ControlPanelColors {
     const LINE_OUT: egui::Color32 = egui::Color32::from_rgb(0x95, 0x95, 0x95);
+    const PRESET: egui::Color32 = egui::Color32::from_rgb(0x95, 0x95, 0x95);
+    const PRESET_SEL: egui::Color32 = egui::Color32::from_rgb(0x64, 0xe7, 0x1d);
 }
 
 struct ControlPanelDimensions;
@@ -54,7 +56,14 @@ impl ControlPanelDimensions {
     const LINE_OUT_HITBOX_WIDTH: f32 = 31.0;
     const LINE_OUT_HITBOX_HEIGHT: f32 = 14.0;
 
+    const PRESET_X: f32 = 820.0;
+    const PRESET_Y: f32 = 209.0;
+    const PRESET_STEP: f32 = 65.0;
+    const PRESET_WIDTH: f32 = 50.0;
+    const PRESET_HEIGHT: f32 = 12.0;
+
     const FONT_SIZE_LINE_OUT: f32 = 11.0;
+    const FONT_SIZE_PRESET: f32 = 9.5;
 }
 
 pub(crate) struct ControlPanel {
@@ -143,7 +152,7 @@ impl ControlPanel {
 
                 Self::draw_base_graphics(ui);
                 self.draw_tab_buttons(ui);
-                Self::draw_preset_labels(ui);
+                self.draw_presets(ui, orion_state.preset);
 
                 Self::draw_vu_meters(
                     ui,
@@ -301,12 +310,51 @@ impl ControlPanel {
         }
     }
 
-    fn draw_preset_labels(ui: &mut egui::Ui) {
-        for preset in 0..5 {
-            let label = format!("PRESET {}", preset + 1);
-            let pos_x = 845 + preset * 65;
+    fn draw_presets(&mut self, ui: &mut egui::Ui, saved_preset: u8) {
+        for preset in 1..6 {
+            let label = format!("PRESET {}", preset);
+            let rect = egui::Rect::from_min_size(
+                egui::pos2(
+                    ControlPanelDimensions::PRESET_X
+                        + (preset - 1) as f32 * ControlPanelDimensions::PRESET_STEP,
+                    ControlPanelDimensions::PRESET_Y,
+                ),
+                egui::vec2(
+                    ControlPanelDimensions::PRESET_WIDTH,
+                    ControlPanelDimensions::PRESET_HEIGHT,
+                ),
+            );
 
-            ControlPanelHelpers::draw_text(ui, pos_x, 210, (0x95, 0x95, 0x95), &label, 9.5);
+            let response = ui.interact(
+                rect,
+                ui.id().with(&format!("preset_{preset}")),
+                egui::Sense::click(),
+            );
+
+            let color = if preset == saved_preset & 0x07 || response.hovered() {
+                ControlPanelColors::PRESET_SEL
+            } else {
+                ControlPanelColors::PRESET
+            };
+
+            ui.painter().text(
+                rect.center(),
+                egui::Align2::CENTER_CENTER,
+                label,
+                egui::FontId::proportional(ControlPanelDimensions::FONT_SIZE_PRESET),
+                color,
+            );
+
+            if response.clicked() {
+                let mut orion_hid = self.orion_hid.lock().unwrap();
+
+                orion_hid.queue_preset(preset);
+
+                orion_hid.queue_get_routes();
+                orion_hid.queue_get_mixer_levels();
+                orion_hid.queue_get_mixer_pans();
+                orion_hid.queue_get_ad_phases();
+            }
         }
     }
 
