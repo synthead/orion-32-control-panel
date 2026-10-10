@@ -172,15 +172,9 @@ impl ControlPanel {
                 self.draw_line_out(ui, orion_state.line_out);
 
                 match self.current_tab {
-                    1 => {
-                        self.mixer.draw(ui);
-                    }
-                    2 => {
-                        self.ad_phase.draw(ui);
-                    }
-                    _ => {
-                        self.routing.draw(ui);
-                    }
+                    1 => self.mixer.draw(ui),
+                    2 => self.ad_phase.draw(ui),
+                    _ => self.routing.draw(ui),
                 };
             });
     }
