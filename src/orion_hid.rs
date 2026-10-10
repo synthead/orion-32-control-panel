@@ -108,6 +108,10 @@ impl OrionHid {
         self.queue_packet(0x70, 0x12, 0x00, &[0x06, preset]);
     }
 
+    pub(crate) fn queue_preset_write(&mut self, preset: u8) {
+        self.queue_packet(0x70, 0x12, 0x00, &[0x05, preset]);
+    }
+
     fn queue_packet(&mut self, byte_0: u8, byte_4: u8, byte_12: u8, payload: &[u8]) {
         let mut packet = [0u8; 64];
 
