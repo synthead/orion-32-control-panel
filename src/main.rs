@@ -55,6 +55,10 @@ fn main() -> eframe::Result {
         "Orion 32 Control Panel",
         options,
         Box::new(|cc| {
+            cc.egui_ctx.style_mut_of(cc.egui_ctx.theme(), |style| {
+                style.interaction.interact_radius = 0.0;
+            });
+
             egui_extras::install_image_loaders(&cc.egui_ctx);
 
             let ctx_thread = cc.egui_ctx.clone();
