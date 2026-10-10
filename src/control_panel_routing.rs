@@ -38,6 +38,10 @@ impl ControlPanelRouteDimensions {
 
     const SIZE_X: f32 = 29.0;
     const SIZE_Y: f32 = 14.0;
+
+    const NAV_X: u16 = 1106;
+    const NAV_UNDO_Y: u16 = 410;
+    const NAV_REDO_Y: u16 = 436;
 }
 
 pub(crate) struct ControlPanelRouting {
@@ -45,6 +49,8 @@ pub(crate) struct ControlPanelRouting {
     orion_hid: Arc<Mutex<OrionHid>>,
 
     text_editor: Arc<Mutex<TextEditor>>,
+
+    undo_buffer: Vec<(u8, [u8; 32])>,
 
     labels: [[String; 32]; 7],
 
@@ -96,6 +102,8 @@ impl ControlPanelRouting {
             orion_hid,
 
             text_editor,
+
+            undo_buffer: Vec::new(),
 
             labels,
 
@@ -159,6 +167,7 @@ impl ControlPanelRouting {
         ];
 
         Self::draw_base_graphics(ui);
+        self.draw_undo(ui);
 
         self.draw_sources(ui);
         self.draw_targets(ui, &orion_state.routes);
@@ -184,8 +193,6 @@ impl ControlPanelRouting {
             None
         );
 
-        render_asset!(ui, 1106, 410, "UndoButton/default/released", 1.0, 0.0, None);
-        render_asset!(ui, 1106, 436, "RedoButton/default/released", 1.0, 0.0, None);
         render_asset!(
             ui,
             1106,
@@ -203,6 +210,48 @@ impl ControlPanelRouting {
             1.0,
             0.0,
             None
+        );
+    }
+
+    fn draw_undo(&mut self, ui: &mut egui::Ui) {
+        let response = render_asset!(
+            ui,
+            ControlPanelRouteDimensions::NAV_X,
+            ControlPanelRouteDimensions::NAV_UNDO_Y,
+            "UndoButton/default/released",
+            1.0,
+            0.0,
+            Some(egui::Sense::click())
+        );
+
+        let contains_pointer = ui.rect_contains_pointer(response.rect);
+
+        if contains_pointer && ui.input(|i| i.pointer.primary_down()) {
+            render_asset!(
+                ui,
+                ControlPanelRouteDimensions::NAV_X,
+                ControlPanelRouteDimensions::NAV_UNDO_Y,
+                "UndoButton/default/pressed",
+                1.0,
+                0.0,
+                None
+            );
+        }
+
+        if contains_pointer && ui.input(|i| i.pointer.primary_released()) {
+            if let Some((row, routes)) = self.undo_buffer.pop() {
+                self.orion_hid.lock().unwrap().queue_routes(row, &routes);
+            }
+        }
+
+        render_asset!(
+            ui,
+            ControlPanelRouteDimensions::NAV_X,
+            ControlPanelRouteDimensions::NAV_REDO_Y,
+            "RedoButton/default/released",
+            1.0,
+            0.0,
+            Some(egui::Sense::click())
         );
     }
 
@@ -510,6 +559,9 @@ impl ControlPanelRouting {
         if self.source_mousedown && ui.input(|i| i.pointer.primary_released()) {
             if let Some([target_column, target_row]) = self.target_hover_cell {
                 let mut new_routes = routes[target_row as usize];
+
+                self.undo_buffer.push((target_row, new_routes));
+
                 let target_row_count = self.target_counts[target_row as usize];
 
                 for (column_index, &source_column) in self.source_select_columns.iter().enumerate()
