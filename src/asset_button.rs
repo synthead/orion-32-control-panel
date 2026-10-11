@@ -38,4 +38,20 @@ impl AssetButton {
 
         (contains_pointer && primary_down, false)
     }
+
+    pub(crate) fn pressed_when_down(
+        &mut self,
+        ui: &mut egui::Ui,
+        response: egui::Response,
+        state: bool,
+    ) -> (bool, bool) {
+        let contains_pointer = response.contains_pointer();
+        let primary_pressed = ui.input(|i| i.pointer.primary_pressed());
+
+        if contains_pointer && primary_pressed {
+            return (true, true);
+        }
+
+        return (state, false);
+    }
 }
