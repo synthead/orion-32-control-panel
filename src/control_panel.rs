@@ -4,6 +4,7 @@ use std::sync::Mutex;
 use crate::orion_hid::OrionHid;
 use crate::orion_state::OrionState;
 
+use crate::asset_button::AssetButton;
 use crate::drag_value::DragValue;
 use crate::text_editor::TextEditor;
 
@@ -90,6 +91,7 @@ pub(crate) struct ControlPanel {
 
     text_editor: Arc<Mutex<TextEditor>>,
     drag_value: Arc<Mutex<DragValue>>,
+    asset_button: Arc<Mutex<AssetButton>>,
 
     current_tab: u8,
     line_out_ignore: [u8; 2],
@@ -135,11 +137,13 @@ impl ControlPanel {
         orion_hid: Arc<Mutex<OrionHid>>,
         text_editor: Arc<Mutex<TextEditor>>,
         drag_value: Arc<Mutex<DragValue>>,
+        asset_button: Arc<Mutex<AssetButton>>,
     ) -> Self {
         let routing = ControlPanelRouting::new(
             Arc::clone(&orion_state),
             Arc::clone(&orion_hid),
             Arc::clone(&text_editor),
+            Arc::clone(&asset_button),
         );
 
         let mixer = ControlPanelMixer::new(
@@ -161,6 +165,7 @@ impl ControlPanel {
 
             text_editor,
             drag_value,
+            asset_button,
 
             current_tab: 0,
             line_out_ignore: [0; 2],

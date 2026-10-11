@@ -13,6 +13,7 @@ mod control_panel_helpers;
 mod control_panel_mixer;
 mod control_panel_routing;
 
+mod asset_button;
 mod drag_value;
 mod text_editor;
 
@@ -22,6 +23,7 @@ mod orion_state;
 
 use crate::control_panel::ControlPanel;
 
+use crate::asset_button::AssetButton;
 use crate::drag_value::DragValue;
 use crate::text_editor::TextEditor;
 
@@ -47,12 +49,14 @@ fn main() -> eframe::Result {
 
     let text_editor = TextEditor::new();
     let drag_value = DragValue::new();
+    let asset_button = AssetButton::new();
 
     let control_panel = ControlPanel::new(
         Arc::clone(&orion_state),
         Arc::new(Mutex::new(orion_hid)),
         Arc::new(Mutex::new(text_editor)),
         Arc::new(Mutex::new(drag_value)),
+        Arc::new(Mutex::new(asset_button)),
     );
 
     eframe::run_native(
