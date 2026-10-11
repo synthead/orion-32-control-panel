@@ -265,7 +265,23 @@ impl ControlPanel {
     fn draw_standby(&mut self, ui: &mut egui::Ui, preset_standby: u8) {
         let powered_on = preset_standby & 0x08 != 0;
 
-        let standby_button = if powered_on {
+        let standby_response = render_asset!(
+            ui,
+            ControlPanelDimensions::STANDBY_X,
+            ControlPanelDimensions::STANDBY_Y,
+            "StandbyButton/default/released",
+            1.0,
+            0.0,
+            Some(egui::Sense::click())
+        );
+
+        let (standby_pressed, standby_clicked) = self
+            .asset_button
+            .lock()
+            .unwrap()
+            .pressed_when_down(ui, standby_response, powered_on);
+
+        if standby_pressed {
             render_asset!(
                 ui,
                 ControlPanelDimensions::STANDBY_X,
@@ -273,21 +289,11 @@ impl ControlPanel {
                 "StandbyButton/default/pressed",
                 1.0,
                 0.0,
-                Some(egui::Sense::click())
-            )
-        } else {
-            render_asset!(
-                ui,
-                ControlPanelDimensions::STANDBY_X,
-                ControlPanelDimensions::STANDBY_Y,
-                "StandbyButton/default/released",
-                1.0,
-                0.0,
-                Some(egui::Sense::click())
-            )
-        };
+                None
+            );
+        }
 
-        if standby_button.clicked() {
+        if standby_clicked {
             let inverted_power = (!powered_on) as u8;
 
             self.orion_hid.lock().unwrap().queue_standby(inverted_power);
