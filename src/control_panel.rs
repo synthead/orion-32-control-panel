@@ -128,7 +128,7 @@ impl ControlPanel {
         "192.0 kHz",
     ];
 
-    const LINE_OUT_IGNORE_PACKETS: u8 = 2;
+    const LINE_OUT_IGNORE_FRAMES: u8 = 2;
 
     pub fn new(
         orion_state: Arc<Mutex<OrionState>>,
@@ -495,9 +495,9 @@ impl ControlPanel {
     }
 
     fn draw_line_out(&mut self, ui: &mut egui::Ui, mut line_out: u8) {
-        let [ignore_packets, old_line_out] = self.line_out_ignore;
+        let [ignore_frames, old_line_out] = self.line_out_ignore;
 
-        if ignore_packets > 0 {
+        if ignore_frames > 0 {
             self.line_out_ignore[0] -= 1;
 
             line_out = old_line_out;
@@ -525,7 +525,7 @@ impl ControlPanel {
         );
 
         if should_write {
-            self.line_out_ignore = [Self::LINE_OUT_IGNORE_PACKETS, line_out];
+            self.line_out_ignore = [Self::LINE_OUT_IGNORE_FRAMES, line_out];
             self.orion_hid.lock().unwrap().queue_line_out(line_out);
         }
 
@@ -566,7 +566,7 @@ impl ControlPanel {
         ) {
             if tab.is_none() {
                 if let Some(line_out_new) = Self::line_out_for_text(&text) {
-                    self.line_out_ignore = [Self::LINE_OUT_IGNORE_PACKETS, line_out_new];
+                    self.line_out_ignore = [Self::LINE_OUT_IGNORE_FRAMES, line_out_new];
                     self.orion_hid.lock().unwrap().queue_line_out(line_out_new);
                 }
             }
