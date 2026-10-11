@@ -79,7 +79,7 @@ impl ControlPanelAdPhase {
                 Some(egui::Sense::click())
             );
 
-            let (ad_button_pressed, ad_button_clicked) = self
+            let (_ad_button_hover, ad_button_pressed, ad_button_clicked) = self
                 .asset_button
                 .lock()
                 .unwrap()

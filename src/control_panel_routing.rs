@@ -230,11 +230,11 @@ impl ControlPanelRouting {
             Some(egui::Sense::click())
         );
 
-        let (undo_pressed, undo_clicked) = self
+        let (_undo_hover, undo_pressed, undo_clicked) = self
             .asset_button
             .lock()
             .unwrap()
-            .pressed_when_clicked(ui, undo_response);
+            .pressed_when_clicked(ui, undo_response, false);
 
         if undo_pressed {
             render_asset!(
@@ -262,11 +262,11 @@ impl ControlPanelRouting {
             Some(egui::Sense::click())
         );
 
-        let (redo_pressed, redo_clicked) = self
+        let (_redo_hover, redo_pressed, redo_clicked) = self
             .asset_button
             .lock()
             .unwrap()
-            .pressed_when_clicked(ui, redo_response);
+            .pressed_when_clicked(ui, redo_response, false);
 
         if redo_pressed {
             render_asset!(

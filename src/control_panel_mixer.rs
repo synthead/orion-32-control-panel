@@ -366,11 +366,11 @@ impl ControlPanelMixer {
                 Some(egui::Sense::click())
             );
 
-            let (solo_pressed, solo_clicked) =
-                self.asset_button
-                    .lock()
-                    .unwrap()
-                    .pressed_when_down(ui, solo_response, solo_bool);
+            let (_solo_hover, solo_pressed, solo_clicked) = self
+                .asset_button
+                .lock()
+                .unwrap()
+                .pressed_when_down(ui, solo_response, solo_bool);
 
             if solo_pressed {
                 render_asset!(
@@ -402,11 +402,11 @@ impl ControlPanelMixer {
                 Some(egui::Sense::click())
             );
 
-            let (mute_pressed, mute_clicked) =
-                self.asset_button
-                    .lock()
-                    .unwrap()
-                    .pressed_when_down(ui, mute_response, mute_bool);
+            let (_mute_hover, mute_pressed, mute_clicked) = self
+                .asset_button
+                .lock()
+                .unwrap()
+                .pressed_when_down(ui, mute_response, mute_bool);
 
             if !solo_bool && (any_solo || mute_pressed) {
                 render_asset!(
@@ -513,11 +513,11 @@ impl ControlPanelMixer {
             Some(egui::Sense::click())
         );
 
-        let (mute_pressed, mute_clicked) =
-            self.asset_button
-                .lock()
-                .unwrap()
-                .pressed_when_down(ui, mute_response, mute_state);
+        let (_mute_hover, mute_pressed, mute_clicked) = self
+            .asset_button
+            .lock()
+            .unwrap()
+            .pressed_when_down(ui, mute_response, mute_state);
 
         if mute_pressed {
             render_asset!(

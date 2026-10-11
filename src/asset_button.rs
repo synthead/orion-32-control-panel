@@ -11,7 +11,8 @@ impl AssetButton {
         &mut self,
         ui: &mut egui::Ui,
         response: egui::Response,
-    ) -> (bool, bool) {
+        state: bool,
+    ) -> (bool, bool, bool) {
         let contains_pointer = response.contains_pointer();
 
         let (primary_down, primary_pressed, primary_released) = ui.input(|i| {
@@ -27,16 +28,20 @@ impl AssetButton {
         }
 
         if self.clicked_id != Some(response.id) {
-            return (false, false);
+            return (contains_pointer, state, false);
         }
 
         if primary_released {
             self.clicked_id = None;
 
-            return (false, contains_pointer);
+            return (contains_pointer, state, contains_pointer);
         }
 
-        (contains_pointer && primary_down, false)
+        (
+            contains_pointer,
+            state || contains_pointer && primary_down,
+            false,
+        )
     }
 
     pub(crate) fn pressed_when_down(
@@ -44,14 +49,14 @@ impl AssetButton {
         ui: &mut egui::Ui,
         response: egui::Response,
         state: bool,
-    ) -> (bool, bool) {
+    ) -> (bool, bool, bool) {
         let contains_pointer = response.contains_pointer();
         let primary_pressed = ui.input(|i| i.pointer.primary_pressed());
 
         if contains_pointer && primary_pressed {
-            return (true, true);
+            return (true, true, true);
         }
 
-        return (state, false);
+        return (contains_pointer, state, false);
     }
 }

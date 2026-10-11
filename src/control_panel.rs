@@ -275,13 +275,13 @@ impl ControlPanel {
             Some(egui::Sense::click())
         );
 
-        let (standby_pressed, standby_clicked) = self
+        let (standby_hover, standby_pressed, standby_clicked) = self
             .asset_button
             .lock()
             .unwrap()
-            .pressed_when_down(ui, standby_response, powered_on);
+            .pressed_when_clicked(ui, standby_response, powered_on);
 
-        if standby_pressed {
+        if standby_pressed != standby_hover {
             render_asset!(
                 ui,
                 ControlPanelDimensions::STANDBY_X,
@@ -311,7 +311,7 @@ impl ControlPanel {
             Some(egui::Sense::click())
         );
 
-        let (routing_pressed, routing_clicked) = self
+        let (_routing_hover, routing_pressed, routing_clicked) = self
             .asset_button
             .lock()
             .unwrap()
@@ -343,11 +343,11 @@ impl ControlPanel {
             Some(egui::Sense::click())
         );
 
-        let (mixer_pressed, mixer_clicked) = self.asset_button.lock().unwrap().pressed_when_down(
-            ui,
-            mixer_response,
-            self.current_tab == 1,
-        );
+        let (_mixer_hover, mixer_pressed, mixer_clicked) = self
+            .asset_button
+            .lock()
+            .unwrap()
+            .pressed_when_down(ui, mixer_response, self.current_tab == 1);
 
         if mixer_pressed {
             render_asset!(
@@ -375,7 +375,7 @@ impl ControlPanel {
             Some(egui::Sense::click())
         );
 
-        let (ad_phase_pressed, ad_phase_clicked) = self
+        let (_ad_phase_hover, ad_phase_pressed, ad_phase_clicked) = self
             .asset_button
             .lock()
             .unwrap()
