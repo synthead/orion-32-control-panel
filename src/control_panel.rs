@@ -52,10 +52,20 @@ impl ControlPanelColors {
 struct ControlPanelDimensions;
 
 impl ControlPanelDimensions {
-    const LINE_OUT_HITBOX_X: f32 = 1118.0;
-    const LINE_OUT_HITBOX_Y: f32 = 101.0;
-    const LINE_OUT_HITBOX_WIDTH: f32 = 31.0;
-    const LINE_OUT_HITBOX_HEIGHT: f32 = 14.0;
+    const LINE_OUT_KNOB_X: u16 = 1099;
+    const LINE_OUT_KNOB_Y: u16 = 74;
+    const LINE_OUT_KNOB_RAD: f32 = 2.3;
+    const LINE_OUT_KNOB_TRAVEL: u16 = 250;
+
+    const LINE_OUT_KNOB_HITBOX_X: f32 = 1099.0;
+    const LINE_OUT_KNOB_HITBOX_Y: f32 = 69.0;
+    const LINE_OUT_KNOB_HITBOX_WIDTH: f32 = 69.0;
+    const LINE_OUT_KNOB_HITBOX_HEIGHT: f32 = 69.0;
+
+    const LINE_OUT_TEXT_HITBOX_X: f32 = 1118.0;
+    const LINE_OUT_TEXT_HITBOX_Y: f32 = 101.0;
+    const LINE_OUT_TEXT_HITBOX_WIDTH: f32 = 31.0;
+    const LINE_OUT_TEXT_HITBOX_HEIGHT: f32 = 14.0;
 
     const PRESET_X: f32 = 820.0;
     const PRESET_Y: f32 = 209.0;
@@ -481,24 +491,52 @@ impl ControlPanel {
     }
 
     fn draw_line_out(&mut self, ui: &mut egui::Ui, line_out: u8) {
+        let line_out_knob_hitbox_rect = egui::Rect::from_min_size(
+            egui::pos2(
+                ControlPanelDimensions::LINE_OUT_KNOB_HITBOX_X,
+                ControlPanelDimensions::LINE_OUT_KNOB_HITBOX_Y,
+            ),
+            egui::vec2(
+                ControlPanelDimensions::LINE_OUT_KNOB_HITBOX_WIDTH,
+                ControlPanelDimensions::LINE_OUT_KNOB_HITBOX_HEIGHT,
+            ),
+        );
+
+        let (line_out, should_write) = self.drag_value.lock().unwrap().value_with_drag(
+            ui,
+            line_out_knob_hitbox_rect,
+            line_out,
+            0x00,
+            0xff,
+            ControlPanelDimensions::LINE_OUT_KNOB_TRAVEL,
+            -1.0,
+        );
+
+        if should_write {
+            self.orion_hid.lock().unwrap().queue_line_out(line_out);
+        }
+
+        let line_out_knob_rad =
+            (0x80 as f32 - line_out as f32) / 127.0 * ControlPanelDimensions::LINE_OUT_KNOB_RAD;
+
         render_asset!(
             ui,
-            1099,
-            75,
+            ControlPanelDimensions::LINE_OUT_KNOB_X,
+            ControlPanelDimensions::LINE_OUT_KNOB_Y,
             "LineOutVolumePot/default/layers/pointer",
             1.0,
-            0.0,
+            line_out_knob_rad,
             None
         );
 
-        let line_out_rect = egui::Rect::from_min_size(
+        let line_out_text_hitbox_rect = egui::Rect::from_min_size(
             egui::pos2(
-                ControlPanelDimensions::LINE_OUT_HITBOX_X,
-                ControlPanelDimensions::LINE_OUT_HITBOX_Y,
+                ControlPanelDimensions::LINE_OUT_TEXT_HITBOX_X,
+                ControlPanelDimensions::LINE_OUT_TEXT_HITBOX_Y,
             ),
             egui::vec2(
-                ControlPanelDimensions::LINE_OUT_HITBOX_WIDTH,
-                ControlPanelDimensions::LINE_OUT_HITBOX_HEIGHT,
+                ControlPanelDimensions::LINE_OUT_TEXT_HITBOX_WIDTH,
+                ControlPanelDimensions::LINE_OUT_TEXT_HITBOX_HEIGHT,
             ),
         );
 
@@ -507,7 +545,7 @@ impl ControlPanel {
 
         if let Some((text, tab)) = self.text_editor.lock().unwrap().draw(
             ui,
-            line_out_rect,
+            line_out_text_hitbox_rect,
             "line_out",
             &line_out_text,
             ControlPanelDimensions::FONT_SIZE_LINE_OUT,
