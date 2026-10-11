@@ -4,8 +4,8 @@ use std::sync::Mutex;
 use crate::orion_hid::OrionHid;
 use crate::orion_state::OrionState;
 
-use crate::text_editor::TextEditor;
 use crate::drag_value::DragValue;
+use crate::text_editor::TextEditor;
 
 use crate::render_asset;
 
