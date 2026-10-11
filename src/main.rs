@@ -14,6 +14,7 @@ mod control_panel_mixer;
 mod control_panel_routing;
 
 mod text_editor;
+mod drag_value;
 
 mod orion_hid;
 mod orion_hid_poller;
@@ -22,6 +23,7 @@ mod orion_state;
 use crate::control_panel::ControlPanel;
 
 use crate::text_editor::TextEditor;
+use crate::drag_value::DragValue;
 
 use crate::orion_hid::OrionHid;
 use crate::orion_hid_poller::OrionHidPoller;
@@ -44,11 +46,13 @@ fn main() -> eframe::Result {
     orion_hid.queue_init();
 
     let text_editor = TextEditor::new();
+    let drag_value = DragValue::new();
 
     let control_panel = ControlPanel::new(
         Arc::clone(&orion_state),
         Arc::new(Mutex::new(orion_hid)),
         Arc::new(Mutex::new(text_editor)),
+        Arc::new(Mutex::new(drag_value)),
     );
 
     eframe::run_native(

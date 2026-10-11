@@ -5,6 +5,7 @@ use crate::orion_hid::OrionHid;
 use crate::orion_state::OrionState;
 
 use crate::text_editor::TextEditor;
+use crate::drag_value::DragValue;
 
 use crate::render_asset;
 
@@ -78,9 +79,7 @@ pub(crate) struct ControlPanelMixer {
     orion_hid: Arc<Mutex<OrionHid>>,
 
     text_editor: Arc<Mutex<TextEditor>>,
-
-    drag_offset: f32,
-    drag_value: u8,
+    drag_value: Arc<Mutex<DragValue>>,
 }
 
 impl ControlPanelMixer {
@@ -88,15 +87,14 @@ impl ControlPanelMixer {
         orion_state: Arc<Mutex<OrionState>>,
         orion_hid: Arc<Mutex<OrionHid>>,
         text_editor: Arc<Mutex<TextEditor>>,
+        drag_value: Arc<Mutex<DragValue>>,
     ) -> Self {
         Self {
             orion_state,
             orion_hid,
 
             text_editor,
-
-            drag_offset: 0.0,
-            drag_value: 0,
+            drag_value,
         }
     }
 
@@ -186,18 +184,23 @@ impl ControlPanelMixer {
 
             let pan_solo_mute = pans_solos_mutes[channel];
 
-            let level = self.value_with_drag(
+            let (level, level_should_write) = self.drag_value.lock().unwrap().value_with_drag(
                 ui,
+                slider_hitbox_rect,
                 levels[channel],
                 0x00,
                 0x5f,
                 ControlPanelMixerDimensions::SLIDER_TRAVEL,
                 -1.0,
-                slider_hitbox_rect,
-                |orion_hid, level| {
-                    orion_hid.queue_mixer_channel(channel as u8, level, pan_solo_mute);
-                },
             );
+
+            if level_should_write {
+                self.orion_hid.lock().unwrap().queue_mixer_channel(
+                    channel as u8,
+                    level,
+                    pan_solo_mute,
+                );
+            }
 
             let slider_pos_y = ControlPanelMixerDimensions::SLIDER_Y
                 + level as u16 * ControlPanelMixerDimensions::SLIDER_TRAVEL / 95;
@@ -271,18 +274,23 @@ impl ControlPanelMixer {
             let solo = pan_solo_mute & 0x80;
             let mute = pan_solo_mute & 0x40;
 
-            let pan = self.value_with_drag(
+            let (pan, pan_should_write) = self.drag_value.lock().unwrap().value_with_drag(
                 ui,
+                pan_hitbox_rect,
                 pan_solo_mute & 0x3f,
                 0x02,
                 0x3e,
                 ControlPanelMixerDimensions::PAN_KNOB_TRAVEL,
                 1.0,
-                pan_hitbox_rect,
-                |orion_hid, pan| {
-                    orion_hid.queue_mixer_channel(channel as u8, level, pan | solo | mute);
-                },
             );
+
+            if pan_should_write {
+                self.orion_hid.lock().unwrap().queue_mixer_channel(
+                    channel as u8,
+                    level,
+                    pan | solo | mute,
+                );
+            }
 
             let pan_text_x = base_pos_x + ControlPanelMixerDimensions::TEXT_HITBOX_X;
             let pan_float = pan as f32 - 32.0;
@@ -418,18 +426,22 @@ impl ControlPanelMixer {
             ),
         );
 
-        let level = self.value_with_drag(
+        let (level, should_write) = self.drag_value.lock().unwrap().value_with_drag(
             ui,
+            hitbox_rect,
             level,
             0x00,
             0x5f,
             ControlPanelMixerDimensions::MASTER_SLIDER_TRAVEL,
             -1.0,
-            hitbox_rect,
-            |orion_hid, level| {
-                orion_hid.queue_mixer_channel(0, level, mute);
-            },
         );
+
+        if should_write {
+            self.orion_hid
+                .lock()
+                .unwrap()
+                .queue_mixer_channel(0, level, mute);
+        }
 
         let slider_pos_y = ControlPanelMixerDimensions::MASTER_SLIDER_Y
             + level as u16 * ControlPanelMixerDimensions::MASTER_SLIDER_TRAVEL / 95;
@@ -501,53 +513,6 @@ impl ControlPanelMixer {
                 .unwrap()
                 .queue_mixer_channel(0, level, mute ^ 0x40);
         }
-    }
-
-    fn value_with_drag(
-        &mut self,
-        ui: &mut egui::Ui,
-        value: u8,
-        value_min: u8,
-        value_max: u8,
-        drag_travel: u16,
-        drag_scale: f32,
-        hitbox_rect: egui::Rect,
-        mut drag_stopped_callback: impl FnMut(&mut OrionHid, u8),
-    ) -> u8 {
-        let response = ui.allocate_rect(hitbox_rect, egui::Sense::click_and_drag());
-
-        if response.drag_started() {
-            self.drag_offset = 0.0;
-            self.drag_value = value;
-        }
-
-        if response.dragged() {
-            let value_span = (value_max - value_min) as f32;
-            let pixels_per_value = drag_travel as f32 / value_span;
-            let value_offset = (value - value_min) as f32;
-
-            let current_pos = value_offset * pixels_per_value;
-            let drag_delta = response.total_drag_delta().unwrap().y * drag_scale;
-            let raw_pos = current_pos + self.drag_offset - drag_delta;
-            let clamped_pos = raw_pos.clamp(0.0, drag_travel as f32);
-
-            let value_unclamped = (value_min as f32 + clamped_pos / pixels_per_value).round() as u8;
-
-            self.drag_offset += clamped_pos - raw_pos;
-            self.drag_value = value_unclamped.clamp(value_min, value_max);
-
-            return self.drag_value;
-        }
-
-        if response.drag_stopped() {
-            let mut orion_hid = self.orion_hid.lock().unwrap();
-
-            drag_stopped_callback(&mut orion_hid, self.drag_value);
-
-            return self.drag_value;
-        }
-
-        value
     }
 
     fn text_for_level(level: u8) -> String {

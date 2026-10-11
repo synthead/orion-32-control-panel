@@ -5,6 +5,7 @@ use crate::orion_hid::OrionHid;
 use crate::orion_state::OrionState;
 
 use crate::text_editor::TextEditor;
+use crate::drag_value::DragValue;
 
 use crate::control_panel_ad_phase::ControlPanelAdPhase;
 use crate::control_panel_helpers::ControlPanelHelpers;
@@ -78,6 +79,7 @@ pub(crate) struct ControlPanel {
     ad_phase: ControlPanelAdPhase,
 
     text_editor: Arc<Mutex<TextEditor>>,
+    drag_value: Arc<Mutex<DragValue>>,
 
     current_tab: u8,
 }
@@ -119,6 +121,7 @@ impl ControlPanel {
         orion_state: Arc<Mutex<OrionState>>,
         orion_hid: Arc<Mutex<OrionHid>>,
         text_editor: Arc<Mutex<TextEditor>>,
+        drag_value: Arc<Mutex<DragValue>>,
     ) -> Self {
         let routing = ControlPanelRouting::new(
             Arc::clone(&orion_state),
@@ -130,6 +133,7 @@ impl ControlPanel {
             Arc::clone(&orion_state),
             Arc::clone(&orion_hid),
             Arc::clone(&text_editor),
+            Arc::clone(&drag_value),
         );
 
         let ad_phase = ControlPanelAdPhase::new(Arc::clone(&orion_state), Arc::clone(&orion_hid));
@@ -143,6 +147,7 @@ impl ControlPanel {
             ad_phase,
 
             text_editor,
+            drag_value,
 
             current_tab: 0,
         }
