@@ -154,7 +154,11 @@ impl ControlPanel {
             Arc::clone(&asset_button),
         );
 
-        let ad_phase = ControlPanelAdPhase::new(Arc::clone(&orion_state), Arc::clone(&orion_hid));
+        let ad_phase = ControlPanelAdPhase::new(
+            Arc::clone(&orion_state),
+            Arc::clone(&orion_hid),
+            Arc::clone(&asset_button),
+        );
 
         Self {
             orion_state,

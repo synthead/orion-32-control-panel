@@ -4,6 +4,8 @@ use std::sync::Mutex;
 use crate::orion_hid::OrionHid;
 use crate::orion_state::OrionState;
 
+use crate::asset_button::AssetButton;
+
 // use crate::control_panel_helpers::ControlPanelHelpers;
 
 use crate::render_asset;
@@ -19,16 +21,21 @@ impl ControlPanelAdPhaseDimensions {
 pub(crate) struct ControlPanelAdPhase {
     orion_state: Arc<Mutex<OrionState>>,
     orion_hid: Arc<Mutex<OrionHid>>,
+
+    asset_button: Arc<Mutex<AssetButton>>,
 }
 
 impl ControlPanelAdPhase {
     pub(crate) fn new(
         orion_state: Arc<Mutex<OrionState>>,
         orion_hid: Arc<Mutex<OrionHid>>,
+        asset_button: Arc<Mutex<AssetButton>>,
     ) -> Self {
         Self {
             orion_state,
             orion_hid,
+
+            asset_button,
         }
     }
 
@@ -62,7 +69,25 @@ impl ControlPanelAdPhase {
             let pos_x = ControlPanelAdPhaseDimensions::BUTTON_X
                 + ControlPanelAdPhaseDimensions::STEP_X * ad_phase_i as u16;
 
-            let ad_button = if ad_phase != 0 {
+            let ad_button_state = ad_phase != 0;
+
+            let ad_button_response = render_asset!(
+                ui,
+                pos_x,
+                ControlPanelAdPhaseDimensions::BUTTON_Y,
+                "PhaseInvertButton/default/released",
+                1.0,
+                0.0,
+                Some(egui::Sense::click())
+            );
+
+            let (ad_button_pressed, ad_button_clicked) = self
+                .asset_button
+                .lock()
+                .unwrap()
+                .pressed_when_down(ui, ad_button_response, ad_button_state);
+
+            if ad_button_pressed {
                 render_asset!(
                     ui,
                     pos_x,
@@ -70,22 +95,12 @@ impl ControlPanelAdPhase {
                     "PhaseInvertButton/default/pressed",
                     1.0,
                     0.0,
-                    Some(egui::Sense::click())
-                )
-            } else {
-                render_asset!(
-                    ui,
-                    pos_x,
-                    ControlPanelAdPhaseDimensions::BUTTON_Y,
-                    "PhaseInvertButton/default/released",
-                    1.0,
-                    0.0,
-                    Some(egui::Sense::click())
-                )
-            };
+                    None
+                );
+            }
 
-            if ad_button.clicked() {
-                let ad_phase_new = if ad_phase != 0 { 0x00 } else { 0x80 } | ad_phase_i as u8;
+            if ad_button_clicked {
+                let ad_phase_new = if ad_button_state { 0x00 } else { 0x80 } | ad_phase_i as u8;
 
                 self.orion_hid.lock().unwrap().queue_ad_phase(ad_phase_new);
             }
