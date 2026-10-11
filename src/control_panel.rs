@@ -290,7 +290,23 @@ impl ControlPanel {
     }
 
     fn draw_tab_buttons(&mut self, ui: &mut egui::Ui) {
-        let routing_button = if self.current_tab == 0 {
+        let routing_response = render_asset!(
+            ui,
+            82,
+            209,
+            "RoutingNavButton/default/released@2x",
+            0.5,
+            0.0,
+            Some(egui::Sense::click())
+        );
+
+        let (routing_pressed, routing_clicked) = self
+            .asset_button
+            .lock()
+            .unwrap()
+            .pressed_when_down(ui, routing_response, self.current_tab == 0);
+
+        if routing_pressed {
             render_asset!(
                 ui,
                 82,
@@ -298,21 +314,31 @@ impl ControlPanel {
                 "RoutingNavButton/default/pressed@2x",
                 0.5,
                 0.0,
-                Some(egui::Sense::click())
-            )
-        } else {
-            render_asset!(
-                ui,
-                82,
-                209,
-                "RoutingNavButton/default/released@2x",
-                0.5,
-                0.0,
-                Some(egui::Sense::click())
-            )
-        };
+                None
+            );
+        }
 
-        let mixer_button = if self.current_tab == 1 {
+        if routing_clicked {
+            self.current_tab = 0;
+        }
+
+        let mixer_response = render_asset!(
+            ui,
+            178,
+            209,
+            "MixerNavButton/default/released@2x",
+            0.5,
+            0.0,
+            Some(egui::Sense::click())
+        );
+
+        let (mixer_pressed, mixer_clicked) = self.asset_button.lock().unwrap().pressed_when_down(
+            ui,
+            mixer_response,
+            self.current_tab == 1,
+        );
+
+        if mixer_pressed {
             render_asset!(
                 ui,
                 178,
@@ -320,21 +346,31 @@ impl ControlPanel {
                 "MixerNavButton/default/pressed@2x",
                 0.5,
                 0.0,
-                Some(egui::Sense::click())
-            )
-        } else {
-            render_asset!(
-                ui,
-                178,
-                209,
-                "MixerNavButton/default/released@2x",
-                0.5,
-                0.0,
-                Some(egui::Sense::click())
-            )
-        };
+                None
+            );
+        }
 
-        let ad_phase_button = if self.current_tab == 2 {
+        if mixer_clicked {
+            self.current_tab = 1;
+        }
+
+        let ad_phase_response = render_asset!(
+            ui,
+            257,
+            209,
+            "PhaseInvNavButton/default/released",
+            1.0,
+            0.0,
+            Some(egui::Sense::click())
+        );
+
+        let (ad_phase_pressed, ad_phase_clicked) = self
+            .asset_button
+            .lock()
+            .unwrap()
+            .pressed_when_down(ui, ad_phase_response, self.current_tab == 2);
+
+        if ad_phase_pressed {
             render_asset!(
                 ui,
                 257,
@@ -342,29 +378,11 @@ impl ControlPanel {
                 "PhaseInvNavButton/default/pressed",
                 1.0,
                 0.0,
-                Some(egui::Sense::click())
-            )
-        } else {
-            render_asset!(
-                ui,
-                257,
-                209,
-                "PhaseInvNavButton/default/released",
-                1.0,
-                0.0,
-                Some(egui::Sense::click())
-            )
-        };
-
-        if routing_button.clicked() {
-            self.current_tab = 0;
+                None
+            );
         }
 
-        if mixer_button.clicked() {
-            self.current_tab = 1;
-        }
-
-        if ad_phase_button.clicked() {
+        if ad_phase_clicked {
             self.current_tab = 2;
         }
     }
