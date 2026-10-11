@@ -92,6 +92,7 @@ pub(crate) struct ControlPanel {
     drag_value: Arc<Mutex<DragValue>>,
 
     current_tab: u8,
+    line_out_ignore: [u8; 2],
 }
 
 impl ControlPanel {
@@ -127,6 +128,8 @@ impl ControlPanel {
         "192.0 kHz",
     ];
 
+    const LINE_OUT_IGNORE_PACKETS: u8 = 2;
+
     pub fn new(
         orion_state: Arc<Mutex<OrionState>>,
         orion_hid: Arc<Mutex<OrionHid>>,
@@ -160,6 +163,7 @@ impl ControlPanel {
             drag_value,
 
             current_tab: 0,
+            line_out_ignore: [0; 2],
         }
     }
 
@@ -490,7 +494,15 @@ impl ControlPanel {
         );
     }
 
-    fn draw_line_out(&mut self, ui: &mut egui::Ui, line_out: u8) {
+    fn draw_line_out(&mut self, ui: &mut egui::Ui, mut line_out: u8) {
+        let [ignore_packets, old_line_out] = self.line_out_ignore;
+
+        if ignore_packets > 0 {
+            self.line_out_ignore[0] -= 1;
+
+            line_out = old_line_out;
+        }
+
         let line_out_knob_hitbox_rect = egui::Rect::from_min_size(
             egui::pos2(
                 ControlPanelDimensions::LINE_OUT_KNOB_HITBOX_X,
@@ -513,6 +525,7 @@ impl ControlPanel {
         );
 
         if should_write {
+            self.line_out_ignore = [Self::LINE_OUT_IGNORE_PACKETS, line_out];
             self.orion_hid.lock().unwrap().queue_line_out(line_out);
         }
 
@@ -553,6 +566,7 @@ impl ControlPanel {
         ) {
             if tab.is_none() {
                 if let Some(line_out_new) = Self::line_out_for_text(&text) {
+                    self.line_out_ignore = [Self::LINE_OUT_IGNORE_PACKETS, line_out_new];
                     self.orion_hid.lock().unwrap().queue_line_out(line_out_new);
                 }
             }
