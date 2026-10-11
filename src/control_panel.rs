@@ -53,6 +53,11 @@ impl ControlPanelColors {
 struct ControlPanelDimensions;
 
 impl ControlPanelDimensions {
+    const TAB_BUTTON_ROUTING_X: u16 = 82;
+    const TAB_BUTTON_MIXER_X: u16 = 178;
+    const TAB_BUTTON_AD_PHASE_X: u16 = 257;
+    const TAB_BUTTON_Y: u16 = 209;
+
     const LINE_OUT_KNOB_X: u16 = 1099;
     const LINE_OUT_KNOB_Y: u16 = 74;
     const LINE_OUT_KNOB_RAD: f32 = 2.3;
@@ -292,8 +297,8 @@ impl ControlPanel {
     fn draw_tab_buttons(&mut self, ui: &mut egui::Ui) {
         let routing_response = render_asset!(
             ui,
-            82,
-            209,
+            ControlPanelDimensions::TAB_BUTTON_ROUTING_X,
+            ControlPanelDimensions::TAB_BUTTON_Y,
             "RoutingNavButton/default/released@2x",
             0.5,
             0.0,
@@ -309,8 +314,8 @@ impl ControlPanel {
         if routing_pressed {
             render_asset!(
                 ui,
-                82,
-                209,
+                ControlPanelDimensions::TAB_BUTTON_ROUTING_X,
+                ControlPanelDimensions::TAB_BUTTON_Y,
                 "RoutingNavButton/default/pressed@2x",
                 0.5,
                 0.0,
@@ -324,8 +329,8 @@ impl ControlPanel {
 
         let mixer_response = render_asset!(
             ui,
-            178,
-            209,
+            ControlPanelDimensions::TAB_BUTTON_MIXER_X,
+            ControlPanelDimensions::TAB_BUTTON_Y,
             "MixerNavButton/default/released@2x",
             0.5,
             0.0,
@@ -341,8 +346,8 @@ impl ControlPanel {
         if mixer_pressed {
             render_asset!(
                 ui,
-                178,
-                209,
+                ControlPanelDimensions::TAB_BUTTON_MIXER_X,
+                ControlPanelDimensions::TAB_BUTTON_Y,
                 "MixerNavButton/default/pressed@2x",
                 0.5,
                 0.0,
@@ -356,8 +361,8 @@ impl ControlPanel {
 
         let ad_phase_response = render_asset!(
             ui,
-            257,
-            209,
+            ControlPanelDimensions::TAB_BUTTON_AD_PHASE_X,
+            ControlPanelDimensions::TAB_BUTTON_Y,
             "PhaseInvNavButton/default/released",
             1.0,
             0.0,
@@ -373,8 +378,8 @@ impl ControlPanel {
         if ad_phase_pressed {
             render_asset!(
                 ui,
-                257,
-                209,
+                ControlPanelDimensions::TAB_BUTTON_AD_PHASE_X,
+                ControlPanelDimensions::TAB_BUTTON_Y,
                 "PhaseInvNavButton/default/pressed",
                 1.0,
                 0.0,
