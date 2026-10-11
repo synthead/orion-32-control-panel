@@ -53,6 +53,9 @@ impl ControlPanelColors {
 struct ControlPanelDimensions;
 
 impl ControlPanelDimensions {
+    const STANDBY_X: u16 = 20;
+    const STANDBY_Y: u16 = 8;
+
     const TAB_BUTTON_ROUTING_X: u16 = 82;
     const TAB_BUTTON_MIXER_X: u16 = 178;
     const TAB_BUTTON_AD_PHASE_X: u16 = 257;
@@ -78,9 +81,6 @@ impl ControlPanelDimensions {
     const PRESET_STEP: f32 = 65.0;
     const PRESET_WIDTH: f32 = 50.0;
     const PRESET_HEIGHT: f32 = 12.0;
-
-    const STANDBY_X: u16 = 20;
-    const STANDBY_Y: u16 = 8;
 
     const FONT_SIZE_LINE_OUT: f32 = 11.0;
     const FONT_SIZE_PRESET: f32 = 9.5;
