@@ -56,6 +56,12 @@ impl ControlPanelDimensions {
     const STANDBY_X: u16 = 20;
     const STANDBY_Y: u16 = 8;
 
+    const WINDOW_BUTTON_SETTINGS_X: u16 = 1075;
+    const WINDOW_BUTTON_ABOUT_X: u16 = 1100;
+    const WINDOW_BUTTON_MINIMIZE_X: u16 = 1124;
+    const WINDOW_BUTTON_CLOSE_X: u16 = 1149;
+    const WINDOW_BUTTON_Y: u16 = 9;
+
     const TAB_BUTTON_ROUTING_X: u16 = 82;
     const TAB_BUTTON_MIXER_X: u16 = 178;
     const TAB_BUTTON_AD_PHASE_X: u16 = 257;
@@ -223,24 +229,43 @@ impl ControlPanel {
 
         render_asset!(
             ui,
-            1075,
-            9,
+            ControlPanelDimensions::WINDOW_BUTTON_SETTINGS_X,
+            ControlPanelDimensions::WINDOW_BUTTON_Y,
             "SettingsButton/default/released",
             1.0,
             0.0,
             None
         );
+
         render_asset!(
             ui,
-            1124,
-            9,
+            ControlPanelDimensions::WINDOW_BUTTON_MINIMIZE_X,
+            ControlPanelDimensions::WINDOW_BUTTON_Y,
             "MinimizeButton/default/released",
             1.0,
             0.0,
             None
         );
-        render_asset!(ui, 1100, 9, "AboutButton/default/released", 1.0, 0.0, None);
-        render_asset!(ui, 1149, 9, "CloseButton/default/released", 1.0, 0.0, None);
+
+        render_asset!(
+            ui,
+            ControlPanelDimensions::WINDOW_BUTTON_ABOUT_X,
+            ControlPanelDimensions::WINDOW_BUTTON_Y,
+            "AboutButton/default/released",
+            1.0,
+            0.0,
+            None
+        );
+
+        render_asset!(
+            ui,
+            ControlPanelDimensions::WINDOW_BUTTON_CLOSE_X,
+            ControlPanelDimensions::WINDOW_BUTTON_Y,
+            "CloseButton/default/released",
+            1.0,
+            0.0,
+            None
+        );
 
         render_asset!(
             ui,
