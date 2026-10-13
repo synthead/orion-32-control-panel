@@ -134,6 +134,10 @@ impl OrionHid {
         self.queue_packet(0x70, 0x13, 0x00, 0x00, &[0x44, brightness]);
     }
 
+    pub(crate) fn queue_madi_smux(&mut self, madi_smux: u8) {
+        self.queue_packet(0x70, 0x12, 0x00, 0x00, &[0x0b, madi_smux]);
+    }
+
     fn queue_packet(&mut self, byte_0: u8, byte_4: u8, byte_8: u8, byte_12: u8, payload: &[u8]) {
         let mut packet = [0u8; 64];
 
