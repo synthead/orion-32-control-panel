@@ -193,7 +193,10 @@ impl ControlPanelSettings {
         ) {
             if tab.is_none() {
                 if let Some(brightness_new) = Self::brightness_for_text(&text) {
-                    self.orion_hid.lock().unwrap().queue_brightness(brightness_new);
+                    self.orion_hid
+                        .lock()
+                        .unwrap()
+                        .queue_brightness(brightness_new);
                 }
             }
         }
