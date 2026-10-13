@@ -131,6 +131,20 @@ impl ControlPanelSettings {
         );
     }
 
+    fn draw_base_graphics(&mut self, ui: &mut egui::Ui) {
+        render_asset!(ui, 0, 0, "SettingsPanel/default/background", 1.0, 0.0, None);
+
+        render_asset!(
+            ui,
+            ControlPanelSettingsDimensions::SETTINGS_LABEL_X,
+            ControlPanelSettingsDimensions::SETTINGS_LABEL_Y,
+            "SettingsLabel/default/background",
+            1.0,
+            0.0,
+            None
+        );
+    }
+
     fn draw_window_buttons(&mut self, ui: &mut egui::Ui) {
         let close_response = render_asset!(
             ui,
@@ -372,20 +386,6 @@ impl ControlPanelSettings {
                 }
             }
         }
-    }
-
-    fn draw_base_graphics(&mut self, ui: &mut egui::Ui) {
-        render_asset!(ui, 0, 0, "SettingsPanel/default/background", 1.0, 0.0, None);
-
-        render_asset!(
-            ui,
-            ControlPanelSettingsDimensions::SETTINGS_LABEL_X,
-            ControlPanelSettingsDimensions::SETTINGS_LABEL_Y,
-            "SettingsLabel/default/background",
-            1.0,
-            0.0,
-            None
-        );
     }
 
     fn brightness_for_text(text: &String) -> Option<u8> {
