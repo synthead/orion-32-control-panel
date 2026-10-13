@@ -55,6 +55,9 @@ impl ControlPanelColors {
 struct ControlPanelDimensions;
 
 impl ControlPanelDimensions {
+    const VIEWPORT_X: f32 = 1180.0;
+    const VIEWPORT_Y: f32 = 700.0;
+
     const STANDBY_X: u16 = 20;
     const STANDBY_Y: u16 = 8;
 
@@ -196,7 +199,10 @@ impl ControlPanel {
     pub(crate) fn run() -> eframe::Result {
         let options = eframe::NativeOptions {
             viewport: egui::ViewportBuilder::default()
-                .with_inner_size([1180.0, 700.0])
+                .with_inner_size([
+                    ControlPanelDimensions::VIEWPORT_X,
+                    ControlPanelDimensions::VIEWPORT_Y,
+                ])
                 .with_decorations(false),
             ..Default::default()
         };
