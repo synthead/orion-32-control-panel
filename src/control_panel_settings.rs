@@ -20,6 +20,15 @@ impl ControlPanelSettingsDimensions {
 
     const WINDOW_BUTTON_CLOSE_X: u16 = 599;
     const WINDOW_BUTTON_CLOSE_Y: u16 = 6;
+
+    const BRIGHTNESS_SLIDER_X: u16 = 20;
+    const BRIGHTNESS_SLIDER_Y: u16 = 254;
+    const BRIGHTNESS_SLIDER_TRAVEL: u16 = 69;
+
+    const BRIGHTNESS_SLIDER_HITBOX_X: f32 = 20.0;
+    const BRIGHTNESS_SLIDER_HITBOX_Y: f32 = 254.0;
+    const BRIGHTNESS_SLIDER_HITBOX_WIDTH: f32 = 112.0;
+    const BRIGHTNESS_SLIDER_HITBOX_HEIGHT: f32 = 21.0;
 }
 
 pub(crate) struct ControlPanelSettings {
@@ -62,6 +71,7 @@ impl ControlPanelSettings {
             .show(ui, |ui| {
                 self.draw_base_graphics(ui);
                 self.draw_window_buttons(ui);
+                self.draw_brightness(ui);
             });
     }
 
@@ -109,6 +119,50 @@ impl ControlPanelSettings {
         if close_response.clicked() {
             self.enabled = false;
         }
+    }
+
+    fn draw_brightness(&mut self, ui: &mut egui::Ui) {
+        // FIXME
+        let brightness = 0xe0;
+
+        let hitbox_rect = egui::Rect::from_min_size(
+            egui::pos2(
+                ControlPanelSettingsDimensions::BRIGHTNESS_SLIDER_HITBOX_X,
+                ControlPanelSettingsDimensions::BRIGHTNESS_SLIDER_HITBOX_Y,
+            ),
+            egui::vec2(
+                ControlPanelSettingsDimensions::BRIGHTNESS_SLIDER_HITBOX_WIDTH,
+                ControlPanelSettingsDimensions::BRIGHTNESS_SLIDER_HITBOX_HEIGHT,
+            ),
+        );
+
+        let (level, should_write) = self.drag_value.lock().unwrap().value_with_drag(
+            ui,
+            hitbox_rect,
+            brightness,
+            0x00,
+            0xff,
+            ControlPanelSettingsDimensions::BRIGHTNESS_SLIDER_TRAVEL,
+            -1.0,
+            true,
+        );
+
+        if should_write {
+            // TODO: Write brightness.
+        }
+
+        let slider_pos_x = ControlPanelSettingsDimensions::BRIGHTNESS_SLIDER_X
+            + level as u16 * ControlPanelSettingsDimensions::BRIGHTNESS_SLIDER_TRAVEL / 0xff;
+
+        render_asset!(
+            ui,
+            slider_pos_x,
+            ControlPanelSettingsDimensions::BRIGHTNESS_SLIDER_Y,
+            "BrightnessSlider/default/layers/handle",
+            1.0,
+            0.0,
+            None
+        );
     }
 
     fn draw_base_graphics(&mut self, ui: &mut egui::Ui) {
