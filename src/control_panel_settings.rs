@@ -15,6 +15,9 @@ impl ControlPanelSettingsDimensions {
     const VIEWPORT_X: f32 = 621.0;
     const VIEWPORT_Y: f32 = 392.0;
 
+    const SETTINGS_LABEL_X: u16 = 530;
+    const SETTINGS_LABEL_Y: u16 = 8;
+
     const WINDOW_BUTTON_CLOSE_X: u16 = 599;
     const WINDOW_BUTTON_CLOSE_Y: u16 = 6;
 }
@@ -110,5 +113,15 @@ impl ControlPanelSettings {
 
     fn draw_base_graphics(&mut self, ui: &mut egui::Ui) {
         render_asset!(ui, 0, 0, "SettingsPanel/default/background", 1.0, 0.0, None);
+
+        render_asset!(
+            ui,
+            ControlPanelSettingsDimensions::SETTINGS_LABEL_X,
+            ControlPanelSettingsDimensions::SETTINGS_LABEL_Y,
+            "SettingsLabel/default/background",
+            1.0,
+            0.0,
+            None
+        );
     }
 }
