@@ -86,7 +86,7 @@ impl OrionHidPoller {
         orion_state.oscillators = hid_data[20];
         orion_state.brightness = hid_data[26];
         orion_state.madi_smux = hid_data[24];
-        orion_state.spdif_src = hid_data[25];
+        orion_state.usb_channels_spdif_src = hid_data[25];
 
         let vu = if hid_data[31] == 1 {
             &mut orion_state.left_vu_values
