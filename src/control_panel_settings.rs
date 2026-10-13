@@ -58,6 +58,12 @@ impl ControlPanelSettingsDimensions {
 
     const SPDIF_SRC_X: u16 = 572;
     const SPDIF_SRC_Y: u16 = 257;
+
+    const ASIO_CONTROL_BUFFER_SIZE_X: u16 = 160;
+    const ASIO_CONTROL_BUFFER_SIZE_WIDTH: u8 = 68;
+    const ASIO_CONTROL_STREAMING_MODE_X: u16 = 390;
+    const ASIO_CONTROL_STREAMING_MODE_WIDTH: u8 = 75;
+    const ASIO_CONTROL_Y: u16 = 339;
 }
 
 pub(crate) struct ControlPanelSettings {
@@ -119,6 +125,7 @@ impl ControlPanelSettings {
                 self.draw_brightness(ui, orion_state.brightness);
                 self.draw_madi_smux(ui, orion_state.madi_smux);
                 self.draw_spdif_src(ui, orion_state.spdif_src);
+                self.draw_asio_control(ui);
             });
     }
 
@@ -487,6 +494,32 @@ impl ControlPanelSettings {
                 .unwrap()
                 .queue_spdif_src(spdif_src ^ 0x01);
         }
+    }
+
+    fn draw_asio_control(&mut self, ui: &mut egui::Ui) {
+        ui.add_enabled_ui(false, |ui| {
+            ControlPanelHelpers::draw_combobox(
+                ui,
+                ControlPanelSettingsDimensions::ASIO_CONTROL_BUFFER_SIZE_X,
+                ControlPanelSettingsDimensions::ASIO_CONTROL_Y,
+                ControlPanelSettingsDimensions::ASIO_CONTROL_BUFFER_SIZE_WIDTH,
+                0,
+                &["Auto"],
+                |_| {},
+            );
+        });
+
+        ui.add_enabled_ui(false, |ui| {
+            ControlPanelHelpers::draw_combobox(
+                ui,
+                ControlPanelSettingsDimensions::ASIO_CONTROL_STREAMING_MODE_X,
+                ControlPanelSettingsDimensions::ASIO_CONTROL_Y,
+                ControlPanelSettingsDimensions::ASIO_CONTROL_STREAMING_MODE_WIDTH,
+                0,
+                &["Min Latency"],
+                |_| {},
+            );
+        });
     }
 
     fn brightness_for_text(text: &String) -> Option<u8> {
