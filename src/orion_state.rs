@@ -15,7 +15,7 @@ pub(crate) struct OrionState {
     pub(crate) oscillators: u8,
     pub(crate) brightness: u8,
     pub(crate) madi_smux: u8,
-    pub(crate) spdif_src: u8,
+    pub(crate) usb_channels_spdif_src: u8,
 
     pub(crate) routes: [[u8; 32]; 7],
     pub(crate) mixer_levels: [u8; 33],
@@ -41,7 +41,7 @@ impl Default for OrionState {
             oscillators: 0,
             brightness: 0,
             madi_smux: 0,
-            spdif_src: 0,
+            usb_channels_spdif_src: 0,
 
             routes: [[0; 32]; 7],
             mixer_levels: [0x00; 33],
