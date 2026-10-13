@@ -10,6 +10,7 @@ pub(crate) struct OrionState {
     pub(crate) line_out: u8,
     pub(crate) signals: u8,
     pub(crate) preset_standby: u8,
+    pub(crate) brightness: u8,
 
     pub(crate) routes: [[u8; 32]; 7],
     pub(crate) mixer_levels: [u8; 33],
@@ -30,6 +31,7 @@ impl Default for OrionState {
             line_out: 0,
             signals: 0,
             preset_standby: 0,
+            brightness: 0,
 
             routes: [[0; 32]; 7],
             mixer_levels: [0x00; 33],
