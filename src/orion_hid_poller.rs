@@ -78,6 +78,7 @@ impl OrionHidPoller {
         orion_state.line_out = hid_data[28];
         orion_state.signals = hid_data[17];
         orion_state.preset_standby = hid_data[16];
+        orion_state.brightness = hid_data[26];
 
         let vu = if hid_data[31] == 1 {
             &mut orion_state.left_vu_values
