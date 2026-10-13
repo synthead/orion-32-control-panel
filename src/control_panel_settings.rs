@@ -202,10 +202,7 @@ impl ControlPanelSettings {
             trims & 0x07,
             &Self::LINE_OUT_ADC_TRIM_SELECTIONS,
             |selected| {
-                self.orion_hid
-                    .lock()
-                    .unwrap()
-                    .queue_trim(selected * 0x04);
+                self.orion_hid.lock().unwrap().queue_trim(selected * 0x04);
             },
         );
     }
