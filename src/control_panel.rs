@@ -190,7 +190,10 @@ impl ControlPanel {
                 let orion_state = self.orion_state.lock().unwrap().clone();
 
                 Self::draw_base_graphics(ui);
+
                 self.draw_standby(ui, orion_state.preset_standby);
+                self.draw_window_buttons(ui);
+
                 self.draw_tab_buttons(ui);
                 self.draw_presets(ui, orion_state.preset_standby);
 
@@ -224,46 +227,6 @@ impl ControlPanel {
 
         render_asset!(
             ui,
-            ControlPanelDimensions::WINDOW_BUTTON_SETTINGS_X,
-            ControlPanelDimensions::WINDOW_BUTTON_Y,
-            "SettingsButton/default/released",
-            1.0,
-            0.0,
-            None
-        );
-
-        render_asset!(
-            ui,
-            ControlPanelDimensions::WINDOW_BUTTON_MINIMIZE_X,
-            ControlPanelDimensions::WINDOW_BUTTON_Y,
-            "MinimizeButton/default/released",
-            1.0,
-            0.0,
-            None
-        );
-
-        render_asset!(
-            ui,
-            ControlPanelDimensions::WINDOW_BUTTON_ABOUT_X,
-            ControlPanelDimensions::WINDOW_BUTTON_Y,
-            "AboutButton/default/released",
-            1.0,
-            0.0,
-            None
-        );
-
-        render_asset!(
-            ui,
-            ControlPanelDimensions::WINDOW_BUTTON_CLOSE_X,
-            ControlPanelDimensions::WINDOW_BUTTON_Y,
-            "CloseButton/default/released",
-            1.0,
-            0.0,
-            None
-        );
-
-        render_asset!(
-            ui,
             79,
             683,
             "FeedLeftArrow/default/released",
@@ -271,6 +234,7 @@ impl ControlPanel {
             0.0,
             None
         );
+
         render_asset!(
             ui,
             1093,
@@ -280,6 +244,112 @@ impl ControlPanel {
             0.0,
             None
         );
+    }
+
+    fn draw_window_buttons(&mut self, ui: &mut egui::Ui) {
+        let settings_response = render_asset!(
+            ui,
+            ControlPanelDimensions::WINDOW_BUTTON_SETTINGS_X,
+            ControlPanelDimensions::WINDOW_BUTTON_Y,
+            "SettingsButton/default/released",
+            1.0,
+            0.0,
+            Some(egui::Sense::click())
+        );
+
+        if settings_response.is_pointer_button_down_on() != settings_response.hovered() {
+            render_asset!(
+                ui,
+                ControlPanelDimensions::WINDOW_BUTTON_SETTINGS_X,
+                ControlPanelDimensions::WINDOW_BUTTON_Y,
+                "SettingsButton/default/pressed",
+                1.0,
+                0.0,
+                None
+            );
+        }
+
+        let about_response = render_asset!(
+            ui,
+            ControlPanelDimensions::WINDOW_BUTTON_ABOUT_X,
+            ControlPanelDimensions::WINDOW_BUTTON_Y,
+            "AboutButton/default/released",
+            1.0,
+            0.0,
+            Some(egui::Sense::click())
+        );
+
+        if about_response.is_pointer_button_down_on() != about_response.hovered() {
+            render_asset!(
+                ui,
+                ControlPanelDimensions::WINDOW_BUTTON_ABOUT_X,
+                ControlPanelDimensions::WINDOW_BUTTON_Y,
+                "AboutButton/default/pressed",
+                1.0,
+                0.0,
+                None
+            );
+        }
+
+        let minimize_response = render_asset!(
+            ui,
+            ControlPanelDimensions::WINDOW_BUTTON_MINIMIZE_X,
+            ControlPanelDimensions::WINDOW_BUTTON_Y,
+            "MinimizeButton/default/released",
+            1.0,
+            0.0,
+            Some(egui::Sense::click())
+        );
+
+        if minimize_response.is_pointer_button_down_on() != minimize_response.hovered() {
+            render_asset!(
+                ui,
+                ControlPanelDimensions::WINDOW_BUTTON_MINIMIZE_X,
+                ControlPanelDimensions::WINDOW_BUTTON_Y,
+                "MinimizeButton/default/pressed",
+                1.0,
+                0.0,
+                None
+            );
+        }
+
+        let close_response = render_asset!(
+            ui,
+            ControlPanelDimensions::WINDOW_BUTTON_CLOSE_X,
+            ControlPanelDimensions::WINDOW_BUTTON_Y,
+            "CloseButton/default/released",
+            1.0,
+            0.0,
+            Some(egui::Sense::click())
+        );
+
+        if close_response.is_pointer_button_down_on() != close_response.hovered() {
+            render_asset!(
+                ui,
+                ControlPanelDimensions::WINDOW_BUTTON_CLOSE_X,
+                ControlPanelDimensions::WINDOW_BUTTON_Y,
+                "CloseButton/default/pressed",
+                1.0,
+                0.0,
+                None
+            );
+        }
+
+        if settings_response.clicked() {
+            // TODO: Handle settings.
+        }
+
+        if about_response.clicked() {
+            // TODO: Handle about.
+        }
+
+        if minimize_response.clicked() {
+            // TODO: Handle minimize.
+        }
+
+        if close_response.clicked() {
+            // TODO: Handle close.
+        }
     }
 
     fn draw_standby(&mut self, ui: &mut egui::Ui, preset_standby: u8) {
