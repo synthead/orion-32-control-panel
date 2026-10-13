@@ -525,9 +525,7 @@ impl ControlPanelSettings {
                 &["Auto"],
                 |_| {},
             );
-        });
 
-        ui.add_enabled_ui(false, |ui| {
             ControlPanelHelpers::draw_combobox(
                 ui,
                 ControlPanelSettingsDimensions::ASIO_CONTROL_STREAMING_MODE_X,
