@@ -50,6 +50,14 @@ impl ControlPanelSettings {
         self.enabled = true;
     }
 
+    fn ui_content(&mut self, ui: &mut egui::Ui) {
+        egui::CentralPanel::default()
+            .frame(egui::Frame::NONE)
+            .show(ui, |ui| {
+                self.draw_base_graphics(ui);
+            });
+    }
+
     pub(crate) fn draw(&mut self, ui: &mut egui::Ui) {
         if !self.enabled {
             return;
@@ -66,14 +74,6 @@ impl ControlPanelSettings {
                 .with_decorations(false),
             |ctx, _class| self.ui_content(ctx),
         );
-    }
-
-    fn ui_content(&mut self, ui: &mut egui::Ui) {
-        egui::CentralPanel::default()
-            .frame(egui::Frame::NONE)
-            .show(ui, |ui| {
-                self.draw_base_graphics(ui);
-            });
     }
 
     fn draw_base_graphics(&mut self, ui: &mut egui::Ui) {
