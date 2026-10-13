@@ -55,6 +55,9 @@ impl ControlPanelSettingsDimensions {
     const MADI_SMUX_IN_X: u16 = 398;
     const MADI_SMUX_OUT_X: u16 = 495;
     const MADI_SMUX_Y: u16 = 257;
+
+    const SPDIF_SRC_X: u16 = 572;
+    const SPDIF_SRC_Y: u16 = 257;
 }
 
 pub(crate) struct ControlPanelSettings {
@@ -115,6 +118,7 @@ impl ControlPanelSettings {
                 self.draw_oscillators(ui, orion_state.oscillators);
                 self.draw_brightness(ui, orion_state.brightness);
                 self.draw_madi_smux(ui, orion_state.madi_smux);
+                self.draw_spdif_src(ui, orion_state.spdif_src);
             });
     }
 
@@ -451,6 +455,37 @@ impl ControlPanelSettings {
                 .lock()
                 .unwrap()
                 .queue_madi_smux(madi_smux_new);
+        }
+    }
+
+    fn draw_spdif_src(&mut self, ui: &mut egui::Ui, spdif_src: u8) {
+        let spdif_src_response = if spdif_src & 0x01 != 0 {
+            render_asset!(
+                ui,
+                ControlPanelSettingsDimensions::SPDIF_SRC_X,
+                ControlPanelSettingsDimensions::SPDIF_SRC_Y,
+                "SettingsPanelButton/default/pressed",
+                1.0,
+                0.0,
+                Some(egui::Sense::click())
+            )
+        } else {
+            render_asset!(
+                ui,
+                ControlPanelSettingsDimensions::SPDIF_SRC_X,
+                ControlPanelSettingsDimensions::SPDIF_SRC_Y,
+                "SettingsPanelButton/default/released",
+                1.0,
+                0.0,
+                Some(egui::Sense::click())
+            )
+        };
+
+        if ControlPanelHelpers::mouse_down_on(&spdif_src_response) {
+            self.orion_hid
+                .lock()
+                .unwrap()
+                .queue_spdif_src(spdif_src ^ 0x01);
         }
     }
 
