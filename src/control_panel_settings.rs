@@ -69,9 +69,11 @@ impl ControlPanelSettings {
         egui::CentralPanel::default()
             .frame(egui::Frame::NONE)
             .show(ui, |ui| {
+                let orion_state = self.orion_state.lock().unwrap().clone();
+
                 self.draw_base_graphics(ui);
                 self.draw_window_buttons(ui);
-                self.draw_brightness(ui);
+                self.draw_brightness(ui, orion_state.brightness);
             });
     }
 
@@ -121,10 +123,7 @@ impl ControlPanelSettings {
         }
     }
 
-    fn draw_brightness(&mut self, ui: &mut egui::Ui) {
-        // FIXME
-        let brightness = 0xe0;
-
+    fn draw_brightness(&mut self, ui: &mut egui::Ui, brightness: u8) {
         let hitbox_rect = egui::Rect::from_min_size(
             egui::pos2(
                 ControlPanelSettingsDimensions::BRIGHTNESS_SLIDER_HITBOX_X,
