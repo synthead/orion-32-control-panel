@@ -14,6 +14,7 @@ pub(crate) struct OrionState {
     pub(crate) trims: u8,
     pub(crate) oscillators: u8,
     pub(crate) brightness: u8,
+    pub(crate) madi_smux: u8,
 
     pub(crate) routes: [[u8; 32]; 7],
     pub(crate) mixer_levels: [u8; 33],
@@ -38,6 +39,7 @@ impl Default for OrionState {
             trims: 0,
             oscillators: 0,
             brightness: 0,
+            madi_smux: 0,
 
             routes: [[0; 32]; 7],
             mixer_levels: [0x00; 33],
