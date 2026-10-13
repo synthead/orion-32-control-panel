@@ -1,7 +1,10 @@
+use std::sync::mpsc;
 use std::sync::Arc;
 use std::sync::Mutex;
+use std::thread;
 
 use crate::orion_hid::OrionHid;
+use crate::orion_hid_poller::OrionHidPoller;
 use crate::orion_state::OrionState;
 
 use crate::drag_value::DragValue;
@@ -176,6 +179,54 @@ impl ControlPanel {
             current_tab: 0,
             line_out_ignore: [0; 2],
         }
+    }
+
+    pub(crate) fn run() -> eframe::Result {
+        let options = eframe::NativeOptions {
+            viewport: egui::ViewportBuilder::default()
+                .with_inner_size([1180.0, 700.0])
+                .with_decorations(false),
+            ..Default::default()
+        };
+
+        let orion_state = Arc::new(Mutex::new(OrionState::default()));
+        let (hid_write_tx, hid_write_rx) = mpsc::channel::<[u8; 64]>();
+
+        let mut orion_hid_poller = OrionHidPoller::new(Arc::clone(&orion_state), hid_write_rx);
+        let mut orion_hid = OrionHid::new(hid_write_tx, Arc::clone(&orion_state));
+
+        orion_hid.queue_init();
+
+        let text_editor = TextEditor::new();
+        let drag_value = DragValue::new();
+
+        let control_panel = Self::new(
+            Arc::clone(&orion_state),
+            Arc::new(Mutex::new(orion_hid)),
+            Arc::new(Mutex::new(text_editor)),
+            Arc::new(Mutex::new(drag_value)),
+        );
+
+        eframe::run_native(
+            "Orion 32 Control Panel",
+            options,
+            Box::new(move |cc| {
+                cc.egui_ctx.style_mut_of(cc.egui_ctx.theme(), |style| {
+                    style.interaction.interact_radius = 0.0;
+                });
+
+                egui_extras::install_image_loaders(&cc.egui_ctx);
+
+                let ctx_thread = cc.egui_ctx.clone();
+
+                thread::spawn(move || loop {
+                    orion_hid_poller.poll_and_update_state();
+                    ctx_thread.request_repaint();
+                });
+
+                Ok(Box::new(control_panel))
+            }),
+        )
     }
 
     fn ui_content(&mut self, ui: &mut egui::Ui) {
