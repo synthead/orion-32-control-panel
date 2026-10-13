@@ -29,6 +29,11 @@ impl ControlPanelSettingsDimensions {
     const BRIGHTNESS_SLIDER_HITBOX_Y: f32 = 254.0;
     const BRIGHTNESS_SLIDER_HITBOX_WIDTH: f32 = 112.0;
     const BRIGHTNESS_SLIDER_HITBOX_HEIGHT: f32 = 21.0;
+
+    const BRIGHTNESS_TEXT_HITBOX_X: f32 = 143.0;
+    const BRIGHTNESS_TEXT_HITBOX_Y: f32 = 255.0;
+    const BRIGHTNESS_TEXT_HITBOX_WIDTH: f32 = 52.0;
+    const BRIGHTNESS_TEXT_HITBOX_HEIGHT: f32 = 18.0;
 }
 
 pub(crate) struct ControlPanelSettings {
@@ -43,6 +48,8 @@ pub(crate) struct ControlPanelSettings {
 
 impl ControlPanelSettings {
     const WINDOW_TITLE: &str = "Orion 32 Settings";
+    const FONT_COLOR: egui::Color32 = egui::Color32::from_rgb(0x95, 0x95, 0x95);
+    const FONT_SIZE: f32 = 10.5;
 
     pub(crate) fn new(
         orion_state: Arc<Mutex<OrionState>>,
@@ -162,6 +169,34 @@ impl ControlPanelSettings {
             0.0,
             None
         );
+
+        let brightness_text_hitbox_rect = egui::Rect::from_min_size(
+            egui::pos2(
+                ControlPanelSettingsDimensions::BRIGHTNESS_TEXT_HITBOX_X,
+                ControlPanelSettingsDimensions::BRIGHTNESS_TEXT_HITBOX_Y,
+            ),
+            egui::vec2(
+                ControlPanelSettingsDimensions::BRIGHTNESS_TEXT_HITBOX_WIDTH,
+                ControlPanelSettingsDimensions::BRIGHTNESS_TEXT_HITBOX_HEIGHT,
+            ),
+        );
+
+        let brightness_text = (brightness as f32 * 100.0 / 255.0).round().to_string();
+
+        if let Some((text, tab)) = self.text_editor.lock().unwrap().draw(
+            ui,
+            brightness_text_hitbox_rect,
+            "brightness",
+            &brightness_text,
+            Self::FONT_SIZE,
+            Self::FONT_COLOR,
+        ) {
+            if tab.is_none() {
+                if let Some(brightness_new) = Self::brightness_for_text(&text) {
+                    self.orion_hid.lock().unwrap().queue_brightness(brightness_new);
+                }
+            }
+        }
     }
 
     fn draw_base_graphics(&mut self, ui: &mut egui::Ui) {
@@ -176,5 +211,20 @@ impl ControlPanelSettings {
             0.0,
             None
         );
+    }
+
+    fn brightness_for_text(text: &String) -> Option<u8> {
+        let text_parsed = text.trim();
+
+        let text_parsed = match text_parsed.parse::<u16>() {
+            Ok(value) => value,
+            Err(_) => return None,
+        };
+
+        if text_parsed < 0 || text_parsed > 100 {
+            return None;
+        }
+
+        Some((text_parsed * 0xff / 100) as u8)
     }
 }
