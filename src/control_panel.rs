@@ -15,6 +15,8 @@ use crate::control_panel_helpers::ControlPanelHelpers;
 use crate::control_panel_mixer::ControlPanelMixer;
 use crate::control_panel_routing::ControlPanelRouting;
 
+use crate::control_panel_settings::ControlPanelSettings;
+
 use crate::render_asset;
 
 macro_rules! render_vu_meter {
@@ -106,6 +108,8 @@ pub(crate) struct ControlPanel {
     mixer: ControlPanelMixer,
     ad_phase: ControlPanelAdPhase,
 
+    settings: ControlPanelSettings,
+
     text_editor: Arc<Mutex<TextEditor>>,
     drag_value: Arc<Mutex<DragValue>>,
 
@@ -181,6 +185,13 @@ impl ControlPanel {
 
         let ad_phase = ControlPanelAdPhase::new(Arc::clone(&orion_state), Arc::clone(&orion_hid));
 
+        let settings = ControlPanelSettings::new(
+            Arc::clone(&orion_state),
+            Arc::clone(&orion_hid),
+            Arc::clone(&text_editor),
+            Arc::clone(&drag_value),
+        );
+
         Self {
             orion_state,
             orion_hid,
@@ -189,6 +200,8 @@ impl ControlPanel {
             routing,
             mixer,
             ad_phase,
+
+            settings,
 
             text_editor,
             drag_value,
@@ -274,6 +287,8 @@ impl ControlPanel {
                     2 => self.ad_phase.draw(ui),
                     _ => self.routing.draw(ui),
                 };
+
+                self.settings.draw(ui);
             });
     }
 
@@ -403,7 +418,7 @@ impl ControlPanel {
         }
 
         if settings_response.clicked() {
-            // TODO: Handle settings.
+            self.settings.enable();
         }
 
         if about_response.clicked() {
