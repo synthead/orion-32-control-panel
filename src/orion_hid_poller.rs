@@ -73,13 +73,18 @@ impl OrionHidPoller {
     fn transform_vu(hid_data: &[u8; 64], orion_state: &mut OrionState) {
         orion_state.left_vu_source = hid_data[30] & 0x0f;
         orion_state.right_vu_source = hid_data[30] >> 4;
+
         orion_state.clock_source = hid_data[19];
         orion_state.sample_rate = hid_data[18];
+
         orion_state.line_out = hid_data[28];
         orion_state.signals = hid_data[17];
+
         orion_state.preset_standby = hid_data[16];
-        orion_state.brightness = hid_data[26];
+
+        orion_state.trims = hid_data[24];
         orion_state.oscillators = hid_data[20];
+        orion_state.brightness = hid_data[26];
 
         let vu = if hid_data[31] == 1 {
             &mut orion_state.left_vu_values
