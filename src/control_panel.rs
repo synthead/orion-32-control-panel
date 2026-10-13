@@ -114,6 +114,8 @@ pub(crate) struct ControlPanel {
 }
 
 impl ControlPanel {
+    const WINDOW_TITLE: &str = "Orion 32 Control Panel";
+
     const VU_SELECTIONS: [&str; 14] = [
         "ADC",
         "USB PLAY",
@@ -210,7 +212,7 @@ impl ControlPanel {
         let control_panel = Self::new();
 
         eframe::run_native(
-            "Orion 32 Control Panel",
+            Self::WINDOW_TITLE,
             options,
             Box::new(move |cc| {
                 cc.egui_ctx.style_mut_of(cc.egui_ctx.theme(), |style| {
