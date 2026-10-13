@@ -27,6 +27,11 @@ impl ControlPanelSettingsDimensions {
     const OSCILLATOR_MUTE_2_X: u16 = 550;
     const OSCILLATOR_MUTE_Y: u16 = 173;
 
+    const TRIM_LINE_OUT_X: u16 = 211;
+    const TRIM_ADC_X: u16 = 348;
+    const TRIM_Y: u16 = 85;
+    const TRIM_WIDTH: u8 = 68;
+
     const OSCILLATOR_FREQUENCY_1_X: u16 = 145;
     const OSCILLATOR_LEVEL_X: u16 = 282;
     const OSCILLATOR_FREQUENCY_2_X: u16 = 421;
@@ -68,6 +73,10 @@ impl ControlPanelSettings {
 
     const OSC_LEVEL_SELECTIONS: [&str; 4] = ["0 dBFS", "-6 dbFS", "-12 dbFS", "-18 dbFS"];
 
+    const LINE_OUT_ADC_TRIM_SELECTIONS: [&str; 7] = [
+        "20 dBu", "19 dBu", "18 dBu", "17 dBu", "16 dBu", "15 dBu", "14 dBu",
+    ];
+
     pub(crate) fn new(
         orion_state: Arc<Mutex<OrionState>>,
         orion_hid: Arc<Mutex<OrionHid>>,
@@ -97,6 +106,8 @@ impl ControlPanelSettings {
 
                 self.draw_base_graphics(ui);
                 self.draw_window_buttons(ui);
+
+                self.draw_trims(ui, orion_state.trims);
                 self.draw_oscillators(ui, orion_state.oscillators);
                 self.draw_brightness(ui, orion_state.brightness);
             });
@@ -146,6 +157,38 @@ impl ControlPanelSettings {
         if close_response.clicked() {
             self.enabled = false;
         }
+    }
+
+    fn draw_trims(&mut self, ui: &mut egui::Ui, trims: u8) {
+        ControlPanelHelpers::draw_combobox(
+            ui,
+            ControlPanelSettingsDimensions::TRIM_LINE_OUT_X,
+            ControlPanelSettingsDimensions::TRIM_Y,
+            ControlPanelSettingsDimensions::TRIM_WIDTH,
+            (trims & 0x38) >> 3,
+            &Self::LINE_OUT_ADC_TRIM_SELECTIONS,
+            |selected| {
+                self.orion_hid
+                    .lock()
+                    .unwrap()
+                    .queue_trim(selected * 0x04 + 1);
+            },
+        );
+
+        ControlPanelHelpers::draw_combobox(
+            ui,
+            ControlPanelSettingsDimensions::TRIM_ADC_X,
+            ControlPanelSettingsDimensions::TRIM_Y,
+            ControlPanelSettingsDimensions::TRIM_WIDTH,
+            trims & 0x07,
+            &Self::LINE_OUT_ADC_TRIM_SELECTIONS,
+            |selected| {
+                self.orion_hid
+                    .lock()
+                    .unwrap()
+                    .queue_trim(selected * 0x04);
+            },
+        );
     }
 
     fn draw_oscillators(&mut self, ui: &mut egui::Ui, oscillators: u8) {
