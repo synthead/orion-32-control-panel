@@ -224,7 +224,7 @@ impl ControlPanelSettings {
             Err(_) => return None,
         };
 
-        if text_parsed < 0 || text_parsed > 100 {
+        if text_parsed > 100 {
             return None;
         }
 
