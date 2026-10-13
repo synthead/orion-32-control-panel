@@ -104,11 +104,6 @@ pub(crate) struct ControlPanel {
 
     current_tab: u8,
     line_out_ignore: [u8; 2],
-    // standby_button: Arc<Mutex<ButtonOnRelease>>,
-    // settings_button: Arc<Mutex<ButtonOnRelease>>,
-    // about_button: Arc<Mutex<ButtonOnRelease>>,
-    // minimize_button: Arc<Mutex<ButtonOnRelease>>,
-    // close_button: Arc<Mutex<ButtonOnRelease>>,
 }
 
 impl ControlPanel {
