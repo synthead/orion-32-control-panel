@@ -51,6 +51,10 @@ impl ControlPanelSettingsDimensions {
     const BRIGHTNESS_TEXT_HITBOX_Y: f32 = 255.0;
     const BRIGHTNESS_TEXT_HITBOX_WIDTH: f32 = 52.0;
     const BRIGHTNESS_TEXT_HITBOX_HEIGHT: f32 = 18.0;
+
+    const MADI_SMUX_IN_X: u16 = 398;
+    const MADI_SMUX_OUT_X: u16 = 495;
+    const MADI_SMUX_Y: u16 = 257;
 }
 
 pub(crate) struct ControlPanelSettings {
@@ -110,6 +114,7 @@ impl ControlPanelSettings {
                 self.draw_trims(ui, orion_state.trims);
                 self.draw_oscillators(ui, orion_state.oscillators);
                 self.draw_brightness(ui, orion_state.brightness);
+                self.draw_madi_smux(ui, orion_state.madi_smux);
             });
     }
 
@@ -385,6 +390,70 @@ impl ControlPanelSettings {
                         .queue_brightness(brightness_new);
                 }
             }
+        }
+    }
+
+    fn draw_madi_smux(&mut self, ui: &mut egui::Ui, madi_smux: u8) {
+        let madi_in_response = if madi_smux & 0x40 != 0 {
+            render_asset!(
+                ui,
+                ControlPanelSettingsDimensions::MADI_SMUX_IN_X,
+                ControlPanelSettingsDimensions::MADI_SMUX_Y,
+                "SettingsPanelButton/default/pressed",
+                1.0,
+                0.0,
+                Some(egui::Sense::click())
+            )
+        } else {
+            render_asset!(
+                ui,
+                ControlPanelSettingsDimensions::MADI_SMUX_IN_X,
+                ControlPanelSettingsDimensions::MADI_SMUX_Y,
+                "SettingsPanelButton/default/released",
+                1.0,
+                0.0,
+                Some(egui::Sense::click())
+            )
+        };
+
+        if ControlPanelHelpers::mouse_down_on(&madi_in_response) {
+            let madi_smux_new = (madi_smux >> 6) ^ 0x01;
+
+            self.orion_hid
+                .lock()
+                .unwrap()
+                .queue_madi_smux(madi_smux_new);
+        }
+
+        let madi_out_response = if madi_smux & 0x80 != 0 {
+            render_asset!(
+                ui,
+                ControlPanelSettingsDimensions::MADI_SMUX_OUT_X,
+                ControlPanelSettingsDimensions::MADI_SMUX_Y,
+                "SettingsPanelButton/default/pressed",
+                1.0,
+                0.0,
+                Some(egui::Sense::click())
+            )
+        } else {
+            render_asset!(
+                ui,
+                ControlPanelSettingsDimensions::MADI_SMUX_OUT_X,
+                ControlPanelSettingsDimensions::MADI_SMUX_Y,
+                "SettingsPanelButton/default/released",
+                1.0,
+                0.0,
+                Some(egui::Sense::click())
+            )
+        };
+
+        if ControlPanelHelpers::mouse_down_on(&madi_out_response) {
+            let madi_smux_new = (madi_smux >> 6) ^ 0x02;
+
+            self.orion_hid
+                .lock()
+                .unwrap()
+                .queue_madi_smux(madi_smux_new);
         }
     }
 
