@@ -97,6 +97,7 @@ impl ControlPanelDimensions {
 pub(crate) struct ControlPanel {
     orion_state: Arc<Mutex<OrionState>>,
     orion_hid: Arc<Mutex<OrionHid>>,
+    orion_hid_poller: Arc<Mutex<OrionHidPoller>>,
 
     routing: ControlPanelRouting,
     mixer: ControlPanelMixer,
@@ -144,12 +145,22 @@ impl ControlPanel {
 
     const LINE_OUT_IGNORE_FRAMES: u8 = 2;
 
-    pub fn new(
-        orion_state: Arc<Mutex<OrionState>>,
-        orion_hid: Arc<Mutex<OrionHid>>,
-        text_editor: Arc<Mutex<TextEditor>>,
-        drag_value: Arc<Mutex<DragValue>>,
-    ) -> Self {
+    pub fn new() -> Self {
+        let orion_state = Arc::new(Mutex::new(OrionState::default()));
+        let (hid_write_tx, hid_write_rx) = mpsc::channel::<[u8; 64]>();
+
+        let orion_hid_poller = Arc::new(Mutex::new(OrionHidPoller::new(
+            Arc::clone(&orion_state),
+            hid_write_rx,
+        )));
+
+        let mut orion_hid = OrionHid::new(hid_write_tx, Arc::clone(&orion_state));
+        orion_hid.queue_init();
+
+        let orion_hid = Arc::new(Mutex::new(orion_hid));
+        let text_editor = Arc::new(Mutex::new(TextEditor::new()));
+        let drag_value = Arc::new(Mutex::new(DragValue::new()));
+
         let routing = ControlPanelRouting::new(
             Arc::clone(&orion_state),
             Arc::clone(&orion_hid),
@@ -168,6 +179,7 @@ impl ControlPanel {
         Self {
             orion_state,
             orion_hid,
+            orion_hid_poller,
 
             routing,
             mixer,
@@ -189,23 +201,7 @@ impl ControlPanel {
             ..Default::default()
         };
 
-        let orion_state = Arc::new(Mutex::new(OrionState::default()));
-        let (hid_write_tx, hid_write_rx) = mpsc::channel::<[u8; 64]>();
-
-        let mut orion_hid_poller = OrionHidPoller::new(Arc::clone(&orion_state), hid_write_rx);
-        let mut orion_hid = OrionHid::new(hid_write_tx, Arc::clone(&orion_state));
-
-        orion_hid.queue_init();
-
-        let text_editor = TextEditor::new();
-        let drag_value = DragValue::new();
-
-        let control_panel = Self::new(
-            Arc::clone(&orion_state),
-            Arc::new(Mutex::new(orion_hid)),
-            Arc::new(Mutex::new(text_editor)),
-            Arc::new(Mutex::new(drag_value)),
-        );
+        let control_panel = Self::new();
 
         eframe::run_native(
             "Orion 32 Control Panel",
@@ -217,11 +213,16 @@ impl ControlPanel {
 
                 egui_extras::install_image_loaders(&cc.egui_ctx);
 
-                let ctx_thread = cc.egui_ctx.clone();
+                let orion_hid_poller = Arc::clone(&control_panel.orion_hid_poller);
+                let ctx = cc.egui_ctx.clone();
 
-                thread::spawn(move || loop {
-                    orion_hid_poller.poll_and_update_state();
-                    ctx_thread.request_repaint();
+                thread::spawn(move || {
+                    let mut orion_hid_poller = orion_hid_poller.lock().unwrap();
+
+                    loop {
+                        orion_hid_poller.poll_and_update_state();
+                        ctx.request_repaint();
+                    }
                 });
 
                 Ok(Box::new(control_panel))
