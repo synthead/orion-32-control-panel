@@ -14,6 +14,9 @@ struct ControlPanelSettingsDimensions;
 impl ControlPanelSettingsDimensions {
     const VIEWPORT_X: f32 = 621.0;
     const VIEWPORT_Y: f32 = 392.0;
+
+    const WINDOW_BUTTON_CLOSE_X: u16 = 599;
+    const WINDOW_BUTTON_CLOSE_Y: u16 = 6;
 }
 
 pub(crate) struct ControlPanelSettings {
@@ -55,6 +58,7 @@ impl ControlPanelSettings {
             .frame(egui::Frame::NONE)
             .show(ui, |ui| {
                 self.draw_base_graphics(ui);
+                self.draw_window_buttons(ui);
             });
     }
 
@@ -74,6 +78,34 @@ impl ControlPanelSettings {
                 .with_decorations(false),
             |ctx, _class| self.ui_content(ctx),
         );
+    }
+
+    fn draw_window_buttons(&mut self, ui: &mut egui::Ui) {
+        let close_response = render_asset!(
+            ui,
+            ControlPanelSettingsDimensions::WINDOW_BUTTON_CLOSE_X,
+            ControlPanelSettingsDimensions::WINDOW_BUTTON_CLOSE_Y,
+            "CloseButton/default/released",
+            1.0,
+            0.0,
+            Some(egui::Sense::click())
+        );
+
+        if close_response.is_pointer_button_down_on() != close_response.hovered() {
+            render_asset!(
+                ui,
+                ControlPanelSettingsDimensions::WINDOW_BUTTON_CLOSE_X,
+                ControlPanelSettingsDimensions::WINDOW_BUTTON_CLOSE_Y,
+                "CloseButton/default/pressed",
+                1.0,
+                0.0,
+                None
+            );
+        }
+
+        if close_response.clicked() {
+            self.enabled = false;
+        }
     }
 
     fn draw_base_graphics(&mut self, ui: &mut egui::Ui) {
