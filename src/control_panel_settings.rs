@@ -52,6 +52,10 @@ impl ControlPanelSettingsDimensions {
     const BRIGHTNESS_TEXT_HITBOX_WIDTH: f32 = 52.0;
     const BRIGHTNESS_TEXT_HITBOX_HEIGHT: f32 = 18.0;
 
+    const USB_CHANNELS_X: u16 = 276;
+    const USB_CHANNELS_Y: u16 = 255;
+    const USB_CHANNELS_WIDTH: u8 = 52;
+
     const MADI_SMUX_IN_X: u16 = 398;
     const MADI_SMUX_OUT_X: u16 = 495;
     const MADI_SMUX_Y: u16 = 257;
@@ -90,6 +94,8 @@ impl ControlPanelSettings {
         "20 dBu", "19 dBu", "18 dBu", "17 dBu", "16 dBu", "15 dBu", "14 dBu",
     ];
 
+    const USB_CHANNELS_SELECTIONS: [&str; 2] = ["24", "32"];
+
     pub(crate) fn new(
         orion_state: Arc<Mutex<OrionState>>,
         orion_hid: Arc<Mutex<OrionHid>>,
@@ -124,7 +130,7 @@ impl ControlPanelSettings {
                 self.draw_oscillators(ui, orion_state.oscillators);
                 self.draw_brightness(ui, orion_state.brightness);
                 self.draw_madi_smux(ui, orion_state.madi_smux);
-                self.draw_spdif_src(ui, orion_state.spdif_src);
+                self.draw_usb_channels_spdif_src(ui, orion_state.usb_channels_spdif_src);
                 self.draw_asio_control(ui);
             });
     }
@@ -465,8 +471,20 @@ impl ControlPanelSettings {
         }
     }
 
-    fn draw_spdif_src(&mut self, ui: &mut egui::Ui, spdif_src: u8) {
-        let spdif_src_response = if spdif_src & 0x01 != 0 {
+    fn draw_usb_channels_spdif_src(&mut self, ui: &mut egui::Ui, usb_channels_spdif_src: u8) {
+        ui.add_enabled_ui(false, |ui| {
+            ControlPanelHelpers::draw_combobox(
+                ui,
+                ControlPanelSettingsDimensions::USB_CHANNELS_X,
+                ControlPanelSettingsDimensions::USB_CHANNELS_Y,
+                ControlPanelSettingsDimensions::USB_CHANNELS_WIDTH,
+                (usb_channels_spdif_src & 0x02) >> 1,
+                &Self::USB_CHANNELS_SELECTIONS,
+                |_| {},
+            );
+        });
+
+        let spdif_src_response = if usb_channels_spdif_src & 0x01 != 0 {
             render_asset!(
                 ui,
                 ControlPanelSettingsDimensions::SPDIF_SRC_X,
@@ -492,7 +510,7 @@ impl ControlPanelSettings {
             self.orion_hid
                 .lock()
                 .unwrap()
-                .queue_spdif_src(spdif_src ^ 0x01);
+                .queue_spdif_src(usb_channels_spdif_src ^ 0x01);
         }
     }
 
