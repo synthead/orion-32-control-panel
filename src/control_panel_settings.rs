@@ -135,7 +135,7 @@ impl ControlPanelSettings {
             ),
         );
 
-        let (level, should_write) = self.drag_value.lock().unwrap().value_with_drag(
+        let (brightness, should_write) = self.drag_value.lock().unwrap().value_with_drag(
             ui,
             hitbox_rect,
             brightness,
@@ -147,11 +147,11 @@ impl ControlPanelSettings {
         );
 
         if should_write {
-            // TODO: Write brightness.
+            self.orion_hid.lock().unwrap().queue_brightness(brightness);
         }
 
         let slider_pos_x = ControlPanelSettingsDimensions::BRIGHTNESS_SLIDER_X
-            + level as u16 * ControlPanelSettingsDimensions::BRIGHTNESS_SLIDER_TRAVEL / 0xff;
+            + brightness as u16 * ControlPanelSettingsDimensions::BRIGHTNESS_SLIDER_TRAVEL / 0xff;
 
         render_asset!(
             ui,
