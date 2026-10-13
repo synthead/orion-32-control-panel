@@ -344,7 +344,8 @@ impl ControlPanel {
         }
 
         if minimize_response.clicked() {
-            // TODO: Handle minimize.
+            ui.ctx()
+                .send_viewport_cmd(egui::ViewportCommand::Minimized(true));
         }
 
         if close_response.clicked() {
