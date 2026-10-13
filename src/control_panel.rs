@@ -349,7 +349,7 @@ impl ControlPanel {
         }
 
         if close_response.clicked() {
-            // TODO: Handle close.
+            ui.ctx().send_viewport_cmd(egui::ViewportCommand::Close);
         }
     }
 
