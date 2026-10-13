@@ -194,6 +194,7 @@ impl ControlPanelMixer {
                 0x5f,
                 ControlPanelMixerDimensions::SLIDER_TRAVEL,
                 -1.0,
+                false,
             );
 
             if level_should_write {
@@ -284,6 +285,7 @@ impl ControlPanelMixer {
                 0x3e,
                 ControlPanelMixerDimensions::PAN_KNOB_TRAVEL,
                 1.0,
+                false,
             );
 
             if pan_should_write {
@@ -436,6 +438,7 @@ impl ControlPanelMixer {
             0x5f,
             ControlPanelMixerDimensions::MASTER_SLIDER_TRAVEL,
             -1.0,
+            false,
         );
 
         if should_write {

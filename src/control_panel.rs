@@ -713,6 +713,7 @@ impl ControlPanel {
             0xff,
             ControlPanelDimensions::LINE_OUT_KNOB_TRAVEL,
             -1.0,
+            false,
         );
 
         if should_write {

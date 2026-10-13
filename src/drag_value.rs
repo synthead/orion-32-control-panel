@@ -20,6 +20,7 @@ impl DragValue {
         value_max: u8,
         drag_travel: u16,
         drag_scale: f32,
+        drag_direction_x: bool,
     ) -> (u8, bool) {
         let response = ui.allocate_rect(hitbox_rect, egui::Sense::click_and_drag());
 
@@ -29,12 +30,20 @@ impl DragValue {
         }
 
         if response.dragged() {
+            let drag_delta_unwrap = response.total_drag_delta().unwrap();
+
+            let drag_delta_xy = if drag_direction_x {
+                drag_delta_unwrap.x
+            } else {
+                drag_delta_unwrap.y
+            };
+
             let value_span = (value_max - value_min) as f32;
             let pixels_per_value = drag_travel as f32 / value_span;
             let value_offset = (value - value_min) as f32;
 
             let current_pos = value_offset * pixels_per_value;
-            let drag_delta = response.total_drag_delta().unwrap().y * drag_scale;
+            let drag_delta = drag_delta_xy * drag_scale;
             let raw_pos = current_pos + self.drag_offset - drag_delta;
             let clamped_pos = raw_pos.clamp(0.0, drag_travel as f32);
 
