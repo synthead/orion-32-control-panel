@@ -7,6 +7,8 @@ use crate::orion_state::OrionState;
 use crate::drag_value::DragValue;
 use crate::text_editor::TextEditor;
 
+use crate::control_panel_helpers::ControlPanelHelpers;
+
 use crate::render_asset;
 
 struct ControlPanelSettingsDimensions;
@@ -20,6 +22,16 @@ impl ControlPanelSettingsDimensions {
 
     const WINDOW_BUTTON_CLOSE_X: u16 = 599;
     const WINDOW_BUTTON_CLOSE_Y: u16 = 6;
+
+    const OSCILLATOR_MUTE_1_X: u16 = 61;
+    const OSCILLATOR_MUTE_2_X: u16 = 550;
+    const OSCILLATOR_MUTE_Y: u16 = 173;
+
+    const OSCILLATOR_FREQUENCY_1_X: u16 = 129;
+    const OSCILLATOR_LEVEL_X: u16 = 266;
+    const OSCILLATOR_FREQUENCY_2_X: u16 = 405;
+    const OSCILLATOR_Y: u16 = 171;
+    const OSCILLATOR_WIDTH: u8 = 89;
 
     const BRIGHTNESS_SLIDER_X: u16 = 20;
     const BRIGHTNESS_SLIDER_Y: u16 = 254;
@@ -48,8 +60,13 @@ pub(crate) struct ControlPanelSettings {
 
 impl ControlPanelSettings {
     const WINDOW_TITLE: &str = "Orion 32 Settings";
+
     const FONT_COLOR: egui::Color32 = egui::Color32::from_rgb(0x95, 0x95, 0x95);
     const FONT_SIZE: f32 = 10.5;
+
+    const OSC_FREQUENCY_SELECTIONS: [&str; 2] = ["1 kHz", "440 Hz"];
+
+    const OSC_LEVEL_SELECTIONS: [&str; 4] = ["0 dBFS", "-6 dbFS", "-12 dbFS", "-18 dbFS"];
 
     pub(crate) fn new(
         orion_state: Arc<Mutex<OrionState>>,
@@ -80,6 +97,7 @@ impl ControlPanelSettings {
 
                 self.draw_base_graphics(ui);
                 self.draw_window_buttons(ui);
+                self.draw_oscillators(ui, orion_state.oscillators);
                 self.draw_brightness(ui, orion_state.brightness);
             });
     }
@@ -127,6 +145,117 @@ impl ControlPanelSettings {
 
         if close_response.clicked() {
             self.enabled = false;
+        }
+    }
+
+    fn draw_oscillators(&mut self, ui: &mut egui::Ui, oscillators: u8) {
+        let osc_mute_1_response = if oscillators & 0x40 != 0 {
+            render_asset!(
+                ui,
+                ControlPanelSettingsDimensions::OSCILLATOR_MUTE_1_X,
+                ControlPanelSettingsDimensions::OSCILLATOR_MUTE_Y,
+                "SettingsPanelButton/default/pressed",
+                1.0,
+                0.0,
+                Some(egui::Sense::click())
+            )
+        } else {
+            render_asset!(
+                ui,
+                ControlPanelSettingsDimensions::OSCILLATOR_MUTE_1_X,
+                ControlPanelSettingsDimensions::OSCILLATOR_MUTE_Y,
+                "SettingsPanelButton/default/released",
+                1.0,
+                0.0,
+                Some(egui::Sense::click())
+            )
+        };
+
+        if ControlPanelHelpers::mouse_down_on(&osc_mute_1_response) {
+            self.orion_hid
+                .lock()
+                .unwrap()
+                .queue_oscillators(oscillators ^ 0x40);
+        }
+
+        ControlPanelHelpers::draw_combobox(
+            ui,
+            ControlPanelSettingsDimensions::OSCILLATOR_FREQUENCY_1_X,
+            ControlPanelSettingsDimensions::OSCILLATOR_Y,
+            ControlPanelSettingsDimensions::OSCILLATOR_WIDTH,
+            (oscillators & 0x01 != 0) as u8,
+            &Self::OSC_FREQUENCY_SELECTIONS,
+            |selected| {
+                let oscillators_new = (oscillators & !0x01) | (selected * 0x01);
+
+                self.orion_hid
+                    .lock()
+                    .unwrap()
+                    .queue_oscillators(oscillators_new);
+            },
+        );
+
+        ControlPanelHelpers::draw_combobox(
+            ui,
+            ControlPanelSettingsDimensions::OSCILLATOR_LEVEL_X,
+            ControlPanelSettingsDimensions::OSCILLATOR_Y,
+            ControlPanelSettingsDimensions::OSCILLATOR_WIDTH,
+            (oscillators & 0x30) >> 4,
+            &Self::OSC_LEVEL_SELECTIONS,
+            |selected| {
+                let oscillators_new = (oscillators & !0x30) | (selected << 4);
+
+                self.orion_hid
+                    .lock()
+                    .unwrap()
+                    .queue_oscillators(oscillators_new);
+            },
+        );
+
+        ControlPanelHelpers::draw_combobox(
+            ui,
+            ControlPanelSettingsDimensions::OSCILLATOR_FREQUENCY_2_X,
+            ControlPanelSettingsDimensions::OSCILLATOR_Y,
+            ControlPanelSettingsDimensions::OSCILLATOR_WIDTH,
+            (oscillators & 0x04 != 0) as u8,
+            &Self::OSC_FREQUENCY_SELECTIONS,
+            |selected| {
+                let oscillators_new = (oscillators & !0x04) | (selected * 0x04);
+
+                self.orion_hid
+                    .lock()
+                    .unwrap()
+                    .queue_oscillators(oscillators_new);
+            },
+        );
+
+        let osc_mute_2_response = if oscillators & 0x80 != 0 {
+            render_asset!(
+                ui,
+                ControlPanelSettingsDimensions::OSCILLATOR_MUTE_2_X,
+                ControlPanelSettingsDimensions::OSCILLATOR_MUTE_Y,
+                "SettingsPanelButton/default/pressed",
+                1.0,
+                0.0,
+                Some(egui::Sense::click())
+            )
+        } else {
+            render_asset!(
+                ui,
+                ControlPanelSettingsDimensions::OSCILLATOR_MUTE_2_X,
+                ControlPanelSettingsDimensions::OSCILLATOR_MUTE_Y,
+                "SettingsPanelButton/default/released",
+                1.0,
+                0.0,
+                Some(egui::Sense::click())
+            )
+        };
+
+        if ControlPanelHelpers::mouse_down_on(&osc_mute_2_response) {
+            self.orion_hid
+                .lock()
+                .unwrap()
+                .queue_oscillators(oscillators ^ 0x80);
         }
     }
 
