@@ -27,11 +27,11 @@ impl ControlPanelSettingsDimensions {
     const OSCILLATOR_MUTE_2_X: u16 = 550;
     const OSCILLATOR_MUTE_Y: u16 = 173;
 
-    const OSCILLATOR_FREQUENCY_1_X: u16 = 129;
-    const OSCILLATOR_LEVEL_X: u16 = 266;
-    const OSCILLATOR_FREQUENCY_2_X: u16 = 405;
+    const OSCILLATOR_FREQUENCY_1_X: u16 = 145;
+    const OSCILLATOR_LEVEL_X: u16 = 282;
+    const OSCILLATOR_FREQUENCY_2_X: u16 = 421;
     const OSCILLATOR_Y: u16 = 171;
-    const OSCILLATOR_WIDTH: u8 = 89;
+    const OSCILLATOR_WIDTH: u8 = 68;
 
     const BRIGHTNESS_SLIDER_X: u16 = 20;
     const BRIGHTNESS_SLIDER_Y: u16 = 254;
