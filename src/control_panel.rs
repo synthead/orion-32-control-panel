@@ -218,7 +218,19 @@ impl ControlPanel {
     }
 
     fn draw_base_graphics(ui: &mut egui::Ui) {
-        render_asset!(ui, 0, 0, "ControlPanel/default/background", 1.0, 0.0, None);
+        let response = render_asset!(
+            ui,
+            0,
+            0,
+            "ControlPanel/default/background",
+            1.0,
+            0.0,
+            Some(egui::Sense::click())
+        );
+
+        if response.is_pointer_button_down_on() {
+            ui.ctx().send_viewport_cmd(egui::ViewportCommand::StartDrag);
+        }
 
         render_asset!(
             ui,
