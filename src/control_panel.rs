@@ -4,7 +4,6 @@ use std::sync::Mutex;
 use crate::orion_hid::OrionHid;
 use crate::orion_state::OrionState;
 
-use crate::asset_button::AssetButton;
 use crate::drag_value::DragValue;
 use crate::text_editor::TextEditor;
 
@@ -102,10 +101,14 @@ pub(crate) struct ControlPanel {
 
     text_editor: Arc<Mutex<TextEditor>>,
     drag_value: Arc<Mutex<DragValue>>,
-    asset_button: Arc<Mutex<AssetButton>>,
 
     current_tab: u8,
     line_out_ignore: [u8; 2],
+    // standby_button: Arc<Mutex<ButtonOnRelease>>,
+    // settings_button: Arc<Mutex<ButtonOnRelease>>,
+    // about_button: Arc<Mutex<ButtonOnRelease>>,
+    // minimize_button: Arc<Mutex<ButtonOnRelease>>,
+    // close_button: Arc<Mutex<ButtonOnRelease>>,
 }
 
 impl ControlPanel {
@@ -148,13 +151,11 @@ impl ControlPanel {
         orion_hid: Arc<Mutex<OrionHid>>,
         text_editor: Arc<Mutex<TextEditor>>,
         drag_value: Arc<Mutex<DragValue>>,
-        asset_button: Arc<Mutex<AssetButton>>,
     ) -> Self {
         let routing = ControlPanelRouting::new(
             Arc::clone(&orion_state),
             Arc::clone(&orion_hid),
             Arc::clone(&text_editor),
-            Arc::clone(&asset_button),
         );
 
         let mixer = ControlPanelMixer::new(
@@ -162,14 +163,9 @@ impl ControlPanel {
             Arc::clone(&orion_hid),
             Arc::clone(&text_editor),
             Arc::clone(&drag_value),
-            Arc::clone(&asset_button),
         );
 
-        let ad_phase = ControlPanelAdPhase::new(
-            Arc::clone(&orion_state),
-            Arc::clone(&orion_hid),
-            Arc::clone(&asset_button),
-        );
+        let ad_phase = ControlPanelAdPhase::new(Arc::clone(&orion_state), Arc::clone(&orion_hid));
 
         Self {
             orion_state,
@@ -181,7 +177,6 @@ impl ControlPanel {
 
             text_editor,
             drag_value,
-            asset_button,
 
             current_tab: 0,
             line_out_ignore: [0; 2],
@@ -288,9 +283,9 @@ impl ControlPanel {
     }
 
     fn draw_standby(&mut self, ui: &mut egui::Ui, preset_standby: u8) {
-        let powered_on = preset_standby & 0x08 != 0;
+        let standby_enabled = preset_standby & 0x08 != 0;
 
-        let standby_response = render_asset!(
+        let response = render_asset!(
             ui,
             ControlPanelDimensions::STANDBY_X,
             ControlPanelDimensions::STANDBY_Y,
@@ -300,13 +295,7 @@ impl ControlPanel {
             Some(egui::Sense::click())
         );
 
-        let (standby_hover, standby_pressed, standby_clicked) = self
-            .asset_button
-            .lock()
-            .unwrap()
-            .pressed_when_clicked(ui, standby_response, powered_on);
-
-        if standby_pressed != standby_hover {
+        if (standby_enabled || response.is_pointer_button_down_on()) != response.hovered() {
             render_asset!(
                 ui,
                 ControlPanelDimensions::STANDBY_X,
@@ -318,31 +307,18 @@ impl ControlPanel {
             );
         }
 
-        if standby_clicked {
-            let inverted_power = (!powered_on) as u8;
+        if response.clicked() {
+            let inverted_standby = (!standby_enabled) as u8;
 
-            self.orion_hid.lock().unwrap().queue_standby(inverted_power);
+            self.orion_hid
+                .lock()
+                .unwrap()
+                .queue_standby(inverted_standby);
         }
     }
 
     fn draw_tab_buttons(&mut self, ui: &mut egui::Ui) {
-        let routing_response = render_asset!(
-            ui,
-            ControlPanelDimensions::TAB_BUTTON_ROUTING_X,
-            ControlPanelDimensions::TAB_BUTTON_Y,
-            "RoutingNavButton/default/released@2x",
-            0.5,
-            0.0,
-            Some(egui::Sense::click())
-        );
-
-        let (_routing_hover, routing_pressed, routing_clicked) = self
-            .asset_button
-            .lock()
-            .unwrap()
-            .pressed_when_down(ui, routing_response, self.current_tab == 0);
-
-        if routing_pressed {
+        let routing_response = if self.current_tab == 0 {
             render_asset!(
                 ui,
                 ControlPanelDimensions::TAB_BUTTON_ROUTING_X,
@@ -350,31 +326,21 @@ impl ControlPanel {
                 "RoutingNavButton/default/pressed@2x",
                 0.5,
                 0.0,
-                None
-            );
-        }
+                Some(egui::Sense::click())
+            )
+        } else {
+            render_asset!(
+                ui,
+                ControlPanelDimensions::TAB_BUTTON_ROUTING_X,
+                ControlPanelDimensions::TAB_BUTTON_Y,
+                "RoutingNavButton/default/released@2x",
+                0.5,
+                0.0,
+                Some(egui::Sense::click())
+            )
+        };
 
-        if routing_clicked {
-            self.current_tab = 0;
-        }
-
-        let mixer_response = render_asset!(
-            ui,
-            ControlPanelDimensions::TAB_BUTTON_MIXER_X,
-            ControlPanelDimensions::TAB_BUTTON_Y,
-            "MixerNavButton/default/released@2x",
-            0.5,
-            0.0,
-            Some(egui::Sense::click())
-        );
-
-        let (_mixer_hover, mixer_pressed, mixer_clicked) = self
-            .asset_button
-            .lock()
-            .unwrap()
-            .pressed_when_down(ui, mixer_response, self.current_tab == 1);
-
-        if mixer_pressed {
+        let mixer_response = if self.current_tab == 1 {
             render_asset!(
                 ui,
                 ControlPanelDimensions::TAB_BUTTON_MIXER_X,
@@ -382,31 +348,21 @@ impl ControlPanel {
                 "MixerNavButton/default/pressed@2x",
                 0.5,
                 0.0,
-                None
-            );
-        }
+                Some(egui::Sense::click())
+            )
+        } else {
+            render_asset!(
+                ui,
+                ControlPanelDimensions::TAB_BUTTON_MIXER_X,
+                ControlPanelDimensions::TAB_BUTTON_Y,
+                "MixerNavButton/default/released@2x",
+                0.5,
+                0.0,
+                Some(egui::Sense::click())
+            )
+        };
 
-        if mixer_clicked {
-            self.current_tab = 1;
-        }
-
-        let ad_phase_response = render_asset!(
-            ui,
-            ControlPanelDimensions::TAB_BUTTON_AD_PHASE_X,
-            ControlPanelDimensions::TAB_BUTTON_Y,
-            "PhaseInvNavButton/default/released",
-            1.0,
-            0.0,
-            Some(egui::Sense::click())
-        );
-
-        let (_ad_phase_hover, ad_phase_pressed, ad_phase_clicked) = self
-            .asset_button
-            .lock()
-            .unwrap()
-            .pressed_when_down(ui, ad_phase_response, self.current_tab == 2);
-
-        if ad_phase_pressed {
+        let ad_phase_response = if self.current_tab == 2 {
             render_asset!(
                 ui,
                 ControlPanelDimensions::TAB_BUTTON_AD_PHASE_X,
@@ -414,11 +370,29 @@ impl ControlPanel {
                 "PhaseInvNavButton/default/pressed",
                 1.0,
                 0.0,
-                None
-            );
+                Some(egui::Sense::click())
+            )
+        } else {
+            render_asset!(
+                ui,
+                ControlPanelDimensions::TAB_BUTTON_AD_PHASE_X,
+                ControlPanelDimensions::TAB_BUTTON_Y,
+                "PhaseInvNavButton/default/released",
+                1.0,
+                0.0,
+                Some(egui::Sense::click())
+            )
+        };
+
+        if ControlPanelHelpers::mouse_down_on(&routing_response) {
+            self.current_tab = 0;
         }
 
-        if ad_phase_clicked {
+        if ControlPanelHelpers::mouse_down_on(&mixer_response) {
+            self.current_tab = 1;
+        }
+
+        if ControlPanelHelpers::mouse_down_on(&ad_phase_response) {
             self.current_tab = 2;
         }
     }

@@ -96,4 +96,8 @@ impl ControlPanelHelpers {
             },
         );
     }
+
+    pub(crate) fn mouse_down_on(response: &egui::Response) -> bool {
+        response.is_pointer_button_down_on() && response.ctx.input(|i| i.pointer.primary_pressed())
+    }
 }

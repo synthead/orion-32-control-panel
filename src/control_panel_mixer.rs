@@ -4,9 +4,10 @@ use std::sync::Mutex;
 use crate::orion_hid::OrionHid;
 use crate::orion_state::OrionState;
 
-use crate::asset_button::AssetButton;
 use crate::drag_value::DragValue;
 use crate::text_editor::TextEditor;
+
+use crate::control_panel_helpers::ControlPanelHelpers;
 
 use crate::render_asset;
 
@@ -81,7 +82,6 @@ pub(crate) struct ControlPanelMixer {
 
     text_editor: Arc<Mutex<TextEditor>>,
     drag_value: Arc<Mutex<DragValue>>,
-    asset_button: Arc<Mutex<AssetButton>>,
 }
 
 impl ControlPanelMixer {
@@ -90,7 +90,6 @@ impl ControlPanelMixer {
         orion_hid: Arc<Mutex<OrionHid>>,
         text_editor: Arc<Mutex<TextEditor>>,
         drag_value: Arc<Mutex<DragValue>>,
-        asset_button: Arc<Mutex<AssetButton>>,
     ) -> Self {
         Self {
             orion_state,
@@ -98,7 +97,6 @@ impl ControlPanelMixer {
 
             text_editor,
             drag_value,
-            asset_button,
         }
     }
 
@@ -356,23 +354,7 @@ impl ControlPanelMixer {
             let solo_bool = solo != 0;
             let mute_bool = mute != 0;
 
-            let solo_response = render_asset!(
-                ui,
-                solo_mute_x,
-                ControlPanelMixerDimensions::SOLO_Y,
-                "SoloButton/default/released",
-                1.0,
-                0.0,
-                Some(egui::Sense::click())
-            );
-
-            let (_solo_hover, solo_pressed, solo_clicked) = self
-                .asset_button
-                .lock()
-                .unwrap()
-                .pressed_when_down(ui, solo_response, solo_bool);
-
-            if solo_pressed {
+            let solo_response = if solo_bool {
                 render_asset!(
                     ui,
                     solo_mute_x,
@@ -380,35 +362,21 @@ impl ControlPanelMixer {
                     "SoloButton/default/pressed",
                     1.0,
                     0.0,
-                    None
-                );
-            }
+                    Some(egui::Sense::click())
+                )
+            } else {
+                render_asset!(
+                    ui,
+                    solo_mute_x,
+                    ControlPanelMixerDimensions::SOLO_Y,
+                    "SoloButton/default/released",
+                    1.0,
+                    0.0,
+                    Some(egui::Sense::click())
+                )
+            };
 
-            if solo_clicked {
-                self.orion_hid.lock().unwrap().queue_mixer_channel(
-                    channel as u8,
-                    level,
-                    pan_solo_mute ^ 0x80,
-                );
-            }
-
-            let mute_response = render_asset!(
-                ui,
-                solo_mute_x,
-                ControlPanelMixerDimensions::MUTE_Y,
-                "MuteButton/default/released",
-                1.0,
-                0.0,
-                Some(egui::Sense::click())
-            );
-
-            let (_mute_hover, mute_pressed, mute_clicked) = self
-                .asset_button
-                .lock()
-                .unwrap()
-                .pressed_when_down(ui, mute_response, mute_bool);
-
-            if !solo_bool && (any_solo || mute_pressed) {
+            let mute_response = if !solo_bool && (any_solo || mute_bool) {
                 render_asset!(
                     ui,
                     solo_mute_x,
@@ -416,11 +384,29 @@ impl ControlPanelMixer {
                     "MuteButton/default/pressed",
                     1.0,
                     0.0,
-                    None
+                    Some(egui::Sense::click())
+                )
+            } else {
+                render_asset!(
+                    ui,
+                    solo_mute_x,
+                    ControlPanelMixerDimensions::MUTE_Y,
+                    "MuteButton/default/released",
+                    1.0,
+                    0.0,
+                    Some(egui::Sense::click())
+                )
+            };
+
+            if ControlPanelHelpers::mouse_down_on(&solo_response) {
+                self.orion_hid.lock().unwrap().queue_mixer_channel(
+                    channel as u8,
+                    level,
+                    pan_solo_mute ^ 0x80,
                 );
             }
 
-            if mute_clicked && !any_solo {
+            if ControlPanelHelpers::mouse_down_on(&mute_response) && !any_solo {
                 self.orion_hid.lock().unwrap().queue_mixer_channel(
                     channel as u8,
                     level,
@@ -501,25 +487,7 @@ impl ControlPanelMixer {
             }
         }
 
-        let mute_state = mute & 0x40 != 0;
-
-        let mute_response = render_asset!(
-            ui,
-            ControlPanelMixerDimensions::MASTER_MUTE_X,
-            ControlPanelMixerDimensions::MASTER_MUTE_Y,
-            "MuteButton/default/released",
-            1.0,
-            0.0,
-            Some(egui::Sense::click())
-        );
-
-        let (_mute_hover, mute_pressed, mute_clicked) = self
-            .asset_button
-            .lock()
-            .unwrap()
-            .pressed_when_down(ui, mute_response, mute_state);
-
-        if mute_pressed {
+        let mute_response = if mute & 0x40 != 0 {
             render_asset!(
                 ui,
                 ControlPanelMixerDimensions::MASTER_MUTE_X,
@@ -527,11 +495,21 @@ impl ControlPanelMixer {
                 "MuteButton/default/pressed",
                 1.0,
                 0.0,
-                None
-            );
-        }
+                Some(egui::Sense::click())
+            )
+        } else {
+            render_asset!(
+                ui,
+                ControlPanelMixerDimensions::MASTER_MUTE_X,
+                ControlPanelMixerDimensions::MASTER_MUTE_Y,
+                "MuteButton/default/released",
+                1.0,
+                0.0,
+                Some(egui::Sense::click())
+            )
+        };
 
-        if mute_clicked {
+        if ControlPanelHelpers::mouse_down_on(&mute_response) {
             self.orion_hid
                 .lock()
                 .unwrap()

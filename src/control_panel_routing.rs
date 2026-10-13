@@ -6,7 +6,6 @@ use std::sync::Mutex;
 use crate::orion_hid::OrionHid;
 use crate::orion_state::OrionState;
 
-use crate::asset_button::AssetButton;
 use crate::control_panel_helpers::ControlPanelHelpers;
 use crate::text_editor::TextEditor;
 
@@ -50,7 +49,6 @@ pub(crate) struct ControlPanelRouting {
     orion_hid: Arc<Mutex<OrionHid>>,
 
     text_editor: Arc<Mutex<TextEditor>>,
-    asset_button: Arc<Mutex<AssetButton>>,
 
     undo_buffer: Vec<(u8, [u8; 32], [u8; 32])>,
     undo_cursor: usize,
@@ -93,7 +91,6 @@ impl ControlPanelRouting {
         orion_state: Arc<Mutex<OrionState>>,
         orion_hid: Arc<Mutex<OrionHid>>,
         text_editor: Arc<Mutex<TextEditor>>,
-        asset_button: Arc<Mutex<AssetButton>>,
     ) -> Self {
         let labels = std::array::from_fn(|group| {
             let start_at = if group == 3 { 33 } else { 1 };
@@ -106,7 +103,6 @@ impl ControlPanelRouting {
             orion_hid,
 
             text_editor,
-            asset_button,
 
             undo_buffer: Vec::new(),
             undo_cursor: 0,
@@ -230,13 +226,7 @@ impl ControlPanelRouting {
             Some(egui::Sense::click())
         );
 
-        let (_undo_hover, undo_pressed, undo_clicked) = self
-            .asset_button
-            .lock()
-            .unwrap()
-            .pressed_when_clicked(ui, undo_response, false);
-
-        if undo_pressed {
+        if undo_response.is_pointer_button_down_on() != undo_response.hovered() {
             render_asset!(
                 ui,
                 ControlPanelRouteDimensions::NAV_X,
@@ -246,10 +236,6 @@ impl ControlPanelRouting {
                 0.0,
                 None
             );
-        }
-
-        if undo_clicked {
-            self.queue_routes_undo();
         }
 
         let redo_response = render_asset!(
@@ -262,13 +248,7 @@ impl ControlPanelRouting {
             Some(egui::Sense::click())
         );
 
-        let (_redo_hover, redo_pressed, redo_clicked) = self
-            .asset_button
-            .lock()
-            .unwrap()
-            .pressed_when_clicked(ui, redo_response, false);
-
-        if redo_pressed {
+        if redo_response.is_pointer_button_down_on() != redo_response.hovered() {
             render_asset!(
                 ui,
                 ControlPanelRouteDimensions::NAV_X,
@@ -280,7 +260,11 @@ impl ControlPanelRouting {
             );
         }
 
-        if redo_clicked {
+        if undo_response.clicked() {
+            self.queue_routes_undo();
+        }
+
+        if redo_response.clicked() {
             self.queue_routes_redo();
         }
     }
