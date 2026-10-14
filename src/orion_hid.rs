@@ -22,6 +22,7 @@ impl OrionHid {
 
     pub(crate) fn queue_init(&mut self) {
         self.queue_get_serial();
+        self.queue_get_firmware_version();
         self.queue_get_routes();
         self.queue_get_mixer_levels();
         self.queue_get_mixer_pans();
