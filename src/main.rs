@@ -2,6 +2,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod control_panel;
+mod control_panel_about;
 mod control_panel_ad_phase;
 mod control_panel_helpers;
 mod control_panel_mixer;
