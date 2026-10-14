@@ -51,6 +51,9 @@ impl OrionHidPoller {
             (0x73, 0x00, 0x00) => {
                 Self::transform_vu(hid_data, orion_state);
             }
+            (0x75, 0x10, 0x00) => {
+                Self::transform_firmware_version(hid_data, orion_state);
+            }
             (0x75, 0x10, 0x01) => {
                 Self::transform_serial(hid_data, orion_state);
             }
@@ -100,6 +103,10 @@ impl OrionHidPoller {
     fn transform_serial(hid_data: &[u8; 64], orion_state: &mut OrionState) {
         orion_state.serial = hid_data[36..49].try_into().unwrap();
         orion_state.hardware_version = hid_data[52..60].try_into().unwrap();
+    }
+
+    fn transform_firmware_version(hid_data: &[u8; 64], orion_state: &mut OrionState) {
+        orion_state.firmware_version = hid_data[16..18].try_into().unwrap();
     }
 
     fn transform_routes(hid_data: &[u8; 64], orion_state: &mut OrionState) {
