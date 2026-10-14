@@ -418,7 +418,7 @@ impl ControlPanel {
         }
 
         if settings_response.clicked() {
-            self.settings.enable();
+            self.settings.enabled = true;
         }
 
         if about_response.clicked() {
