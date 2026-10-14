@@ -339,7 +339,9 @@ impl ControlPanel {
             Some(egui::Sense::click())
         );
 
-        if settings_response.is_pointer_button_down_on() != settings_response.hovered() {
+        if self.settings.enabled
+            || settings_response.is_pointer_button_down_on() != settings_response.hovered()
+        {
             render_asset!(
                 ui,
                 ControlPanelDimensions::WINDOW_BUTTON_SETTINGS_X,
