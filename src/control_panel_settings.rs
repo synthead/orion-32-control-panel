@@ -77,7 +77,7 @@ pub(crate) struct ControlPanelSettings {
     text_editor: Arc<Mutex<TextEditor>>,
     drag_value: Arc<Mutex<DragValue>>,
 
-    enabled: bool,
+    pub(crate) enabled: bool,
 }
 
 impl ControlPanelSettings {
@@ -109,10 +109,6 @@ impl ControlPanelSettings {
 
             enabled: false,
         }
-    }
-
-    pub(crate) fn enable(&mut self) {
-        self.enabled = true;
     }
 
     pub(crate) fn draw(&mut self, ui: &mut egui::Ui) {
