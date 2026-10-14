@@ -33,9 +33,6 @@ pub(crate) struct ControlPanelAbout {
 }
 
 impl ControlPanelAbout {
-    const FONT_COLOR: egui::Color32 = egui::Color32::WHITE;
-    const FONT_SIZE: f32 = 10.5;
-
     pub(crate) fn new(orion_state: Arc<Mutex<OrionState>>) -> Self {
         Self {
             orion_state,
