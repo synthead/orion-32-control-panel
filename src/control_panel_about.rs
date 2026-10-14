@@ -13,6 +13,13 @@ impl ControlPanelAboutDimensions {
     const ABOUT_X: f32 = 404.0;
     const ABOUT_Y: f32 = 243.0;
 
+    const TEXT_X: f32 = 593.0;
+    const TEXT_Y: f32 = 268.0;
+    const TEXT_Y_STEP: f32 = 33.0;
+
+    const TEXT_WIDTH: f32 = 141.0;
+    const TEXT_HEIGHT: f32 = 22.0;
+
     const WINDOW_BUTTON_CLOSE_X: u16 = 744;
     const WINDOW_BUTTON_CLOSE_Y: u16 = 251;
 }
@@ -24,7 +31,7 @@ pub(crate) struct ControlPanelAbout {
 }
 
 impl ControlPanelAbout {
-    const FONT_COLOR: egui::Color32 = egui::Color32::from_rgb(0x95, 0x95, 0x95);
+    const FONT_COLOR: egui::Color32 = egui::Color32::WHITE;
     const FONT_SIZE: f32 = 10.5;
 
     pub(crate) fn new(orion_state: Arc<Mutex<OrionState>>) -> Self {
@@ -44,6 +51,7 @@ impl ControlPanelAbout {
 
         self.draw_base_graphics(ui);
         self.draw_window_buttons(ui);
+        self.draw_fields(ui);
     }
 
     fn draw_base_graphics(&mut self, ui: &mut egui::Ui) {
@@ -84,5 +92,36 @@ impl ControlPanelAbout {
         if close_response.clicked() {
             self.enabled = false;
         }
+    }
+
+    fn draw_fields(&mut self, ui: &mut egui::Ui) {
+        self.draw_field(ui, "test1".to_string(), 0);
+        self.draw_field(ui, "test2".to_string(), 1);
+        self.draw_field(ui, "test3".to_string(), 2);
+        self.draw_field(ui, "test4".to_string(), 3);
+    }
+
+    fn draw_field(&mut self, ui: &mut egui::Ui, text: String, field: u8) {
+        let galley = ui.painter().layout_no_wrap(
+            text,
+            egui::FontId::proportional(ControlPanelAbout::FONT_SIZE),
+            ControlPanelAbout::FONT_COLOR,
+        );
+
+        let pos_y = ControlPanelAboutDimensions::TEXT_Y
+            + ControlPanelAboutDimensions::TEXT_Y_STEP * field as f32;
+
+        let control_panel_version_rect = egui::Rect::from_min_size(
+            egui::pos2(ControlPanelAboutDimensions::TEXT_X, pos_y),
+            egui::vec2(
+                ControlPanelAboutDimensions::TEXT_WIDTH,
+                ControlPanelAboutDimensions::TEXT_HEIGHT,
+            ),
+        );
+
+        let pos = control_panel_version_rect.center() - galley.size() / 2.0;
+
+        ui.painter()
+            .galley(pos, galley, ControlPanelAbout::FONT_COLOR);
     }
 }
