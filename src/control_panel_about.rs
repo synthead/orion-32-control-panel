@@ -98,11 +98,13 @@ impl ControlPanelAbout {
         let control_panel_version = env!("CARGO_PKG_VERSION").to_string();
         let hardware_version = String::from_utf8_lossy(&orion_state.hardware_version).to_string();
         let serial = String::from_utf8_lossy(&orion_state.serial).to_string();
+        let firmware_version =
+            (u16::from_be_bytes(orion_state.firmware_version) as f32 / 100.0).to_string();
 
         self.draw_field(ui, control_panel_version, 0);
         self.draw_field(ui, hardware_version, 1);
         self.draw_field(ui, serial, 2);
-        self.draw_field(ui, "test4".to_string(), 3);
+        self.draw_field(ui, firmware_version, 3);
     }
 
     fn draw_field(&mut self, ui: &mut egui::Ui, text: String, field: u8) {
