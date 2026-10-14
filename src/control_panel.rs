@@ -59,6 +59,7 @@ struct ControlPanelDimensions;
 impl ControlPanelDimensions {
     const VIEWPORT_WIDTH: f32 = 1180.0;
     const VIEWPORT_HEIGHT: f32 = 700.0;
+    const OVERLAY_TRANSPARENCY: u8 = 128;
 
     const STANDBY_X: u16 = 20;
     const STANDBY_Y: u16 = 8;
@@ -288,7 +289,27 @@ impl ControlPanel {
                     _ => self.routing.draw(ui),
                 };
 
-                self.settings.draw(ui);
+                if self.settings.enabled {
+                    let overlay_rect = egui::Rect::from_min_size(
+                        egui::pos2(0.0, 0.0),
+                        egui::vec2(
+                            ControlPanelDimensions::VIEWPORT_WIDTH,
+                            ControlPanelDimensions::VIEWPORT_HEIGHT,
+                        ),
+                    );
+
+                    ui.painter().rect_filled(
+                        overlay_rect,
+                        0.0,
+                        egui::Color32::from_black_alpha(
+                            ControlPanelDimensions::OVERLAY_TRANSPARENCY,
+                        ),
+                    );
+
+                    ui.allocate_rect(overlay_rect, egui::Sense::click());
+
+                    self.settings.draw(ui);
+                }
             });
     }
 
