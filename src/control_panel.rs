@@ -15,6 +15,7 @@ use crate::control_panel_helpers::ControlPanelHelpers;
 use crate::control_panel_mixer::ControlPanelMixer;
 use crate::control_panel_routing::ControlPanelRouting;
 
+use crate::control_panel_about::ControlPanelAbout;
 use crate::control_panel_settings::ControlPanelSettings;
 
 use crate::render_asset;
@@ -110,6 +111,7 @@ pub(crate) struct ControlPanel {
     ad_phase: ControlPanelAdPhase,
 
     settings: ControlPanelSettings,
+    about: ControlPanelAbout,
 
     text_editor: Arc<Mutex<TextEditor>>,
     drag_value: Arc<Mutex<DragValue>>,
@@ -193,6 +195,8 @@ impl ControlPanel {
             Arc::clone(&drag_value),
         );
 
+        let about = ControlPanelAbout::new(Arc::clone(&orion_state));
+
         Self {
             orion_state,
             orion_hid,
@@ -203,6 +207,7 @@ impl ControlPanel {
             ad_phase,
 
             settings,
+            about,
 
             text_editor,
             drag_value,
@@ -289,7 +294,7 @@ impl ControlPanel {
                     _ => self.routing.draw(ui),
                 };
 
-                if self.settings.enabled {
+                if self.settings.enabled || self.about.enabled {
                     let overlay_rect = egui::Rect::from_min_size(
                         egui::pos2(0.0, 0.0),
                         egui::vec2(
@@ -308,7 +313,11 @@ impl ControlPanel {
 
                     ui.allocate_rect(overlay_rect, egui::Sense::click());
 
-                    self.settings.draw(ui);
+                    if self.settings.enabled {
+                        self.settings.draw(ui);
+                    } else if self.about.enabled {
+                        self.about.draw(ui);
+                    }
                 }
             });
     }
@@ -384,7 +393,9 @@ impl ControlPanel {
             Some(egui::Sense::click())
         );
 
-        if about_response.is_pointer_button_down_on() != about_response.hovered() {
+        if self.about.enabled
+            || about_response.is_pointer_button_down_on() != about_response.hovered()
+        {
             render_asset!(
                 ui,
                 ControlPanelDimensions::WINDOW_BUTTON_ABOUT_X,
@@ -445,7 +456,7 @@ impl ControlPanel {
         }
 
         if about_response.clicked() {
-            // TODO: Handle about.
+            self.about.enabled = true;
         }
 
         if minimize_response.clicked() {
