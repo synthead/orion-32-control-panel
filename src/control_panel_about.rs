@@ -95,9 +95,10 @@ impl ControlPanelAbout {
     }
 
     fn draw_fields(&mut self, ui: &mut egui::Ui, orion_state: &OrionState) {
+        let control_panel_version = env!("CARGO_PKG_VERSION").to_string();
         let serial = String::from_utf8_lossy(&orion_state.serial).to_string();
 
-        self.draw_field(ui, "test1".to_string(), 0);
+        self.draw_field(ui, control_panel_version, 0);
         self.draw_field(ui, "test2".to_string(), 1);
         self.draw_field(ui, serial, 2);
         self.draw_field(ui, "test4".to_string(), 3);
