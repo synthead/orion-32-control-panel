@@ -13,6 +13,10 @@ impl ControlPanelAboutDimensions {
     const ABOUT_X: f32 = 404.0;
     const ABOUT_Y: f32 = 243.0;
 
+    const ADMINISTRATION_BUTTON_X: f32 = 431.0;
+    const FIRMWARE_UPDATE_BUTTON_X: f32 = 594.0;
+    const BUTTON_Y: f32 = 412.0;
+
     const TEXT_X: f32 = 593.0;
     const TEXT_Y: f32 = 268.0;
     const TEXT_Y_STEP: f32 = 33.0;
@@ -63,6 +67,26 @@ impl ControlPanelAbout {
             1.0,
             0.0,
             Some(egui::Sense::click())
+        );
+
+        render_asset!(
+            ui,
+            ControlPanelAboutDimensions::ADMINISTRATION_BUTTON_X,
+            ControlPanelAboutDimensions::BUTTON_Y,
+            "AdministrationSmallButton/default/released",
+            1.0,
+            0.0,
+            None
+        );
+
+        render_asset!(
+            ui,
+            ControlPanelAboutDimensions::FIRMWARE_UPDATE_BUTTON_X,
+            ControlPanelAboutDimensions::BUTTON_Y,
+            "FirmwareUpdateButton/default/released",
+            1.0,
+            0.0,
+            None
         );
     }
 
