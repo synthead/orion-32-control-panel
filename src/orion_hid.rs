@@ -32,6 +32,10 @@ impl OrionHid {
         self.queue_packet(0x74, 0x10, 0x00, 0x01, &[]);
     }
 
+    pub(crate) fn queue_get_firmware_version(&mut self) {
+        self.queue_packet(0x74, 0x10, 0x00, 0x00, &[]);
+    }
+
     pub(crate) fn queue_get_routes(&mut self) {
         self.queue_packet(0x74, 0x10, 0x00, 0x02, &[]);
     }
