@@ -51,7 +51,7 @@ impl ControlPanelAbout {
 
         self.draw_base_graphics(ui);
         self.draw_window_buttons(ui);
-        self.draw_fields(ui);
+        self.draw_fields(ui, &orion_state);
     }
 
     fn draw_base_graphics(&mut self, ui: &mut egui::Ui) {
@@ -94,10 +94,12 @@ impl ControlPanelAbout {
         }
     }
 
-    fn draw_fields(&mut self, ui: &mut egui::Ui) {
+    fn draw_fields(&mut self, ui: &mut egui::Ui, orion_state: &OrionState) {
+        let serial = String::from_utf8_lossy(&orion_state.serial).to_string();
+
         self.draw_field(ui, "test1".to_string(), 0);
         self.draw_field(ui, "test2".to_string(), 1);
-        self.draw_field(ui, "test3".to_string(), 2);
+        self.draw_field(ui, serial, 2);
         self.draw_field(ui, "test4".to_string(), 3);
     }
 
