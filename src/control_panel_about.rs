@@ -104,16 +104,10 @@ impl ControlPanelAbout {
     }
 
     fn draw_field(&mut self, ui: &mut egui::Ui, text: String, field: u8) {
-        let galley = ui.painter().layout_no_wrap(
-            text,
-            egui::FontId::proportional(ControlPanelAbout::FONT_SIZE),
-            ControlPanelAbout::FONT_COLOR,
-        );
-
         let pos_y = ControlPanelAboutDimensions::TEXT_Y
             + ControlPanelAboutDimensions::TEXT_Y_STEP * field as f32;
 
-        let control_panel_version_rect = egui::Rect::from_min_size(
+        let rect = egui::Rect::from_min_size(
             egui::pos2(ControlPanelAboutDimensions::TEXT_X, pos_y),
             egui::vec2(
                 ControlPanelAboutDimensions::TEXT_WIDTH,
@@ -121,9 +115,8 @@ impl ControlPanelAbout {
             ),
         );
 
-        let pos = control_panel_version_rect.center() - galley.size() / 2.0;
+        let label = egui::Label::new(egui::RichText::new(text).color(egui::Color32::WHITE));
 
-        ui.painter()
-            .galley(pos, galley, ControlPanelAbout::FONT_COLOR);
+        ui.put(rect, label.selectable(true));
     }
 }
