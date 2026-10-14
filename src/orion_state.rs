@@ -1,6 +1,8 @@
 #[derive(Clone)]
 pub(crate) struct OrionState {
     pub(crate) serial: [u8; 13],
+    pub(crate) hardware_version: [u8; 8],
+
     pub(crate) left_vu_source: u8,
     pub(crate) left_vu_values: [u8; 32],
     pub(crate) right_vu_source: u8,
@@ -27,6 +29,8 @@ impl Default for OrionState {
     fn default() -> Self {
         Self {
             serial: [0; 13],
+            hardware_version: [0; 8],
+
             left_vu_source: 0,
             left_vu_values: [0; 32],
             right_vu_source: 0,
