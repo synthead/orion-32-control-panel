@@ -14,60 +14,60 @@ use crate::render_asset;
 struct ControlPanelSettingsDimensions;
 
 impl ControlPanelSettingsDimensions {
-    const VIEWPORT_X: f32 = 621.0;
-    const VIEWPORT_Y: f32 = 392.0;
+    const SETTINGS_X: f32 = 286.0;
+    const SETTINGS_Y: f32 = 168.0;
 
-    const SETTINGS_LABEL_X: u16 = 530;
-    const SETTINGS_LABEL_Y: u16 = 8;
+    const SETTINGS_LABEL_X: u16 = 816;
+    const SETTINGS_LABEL_Y: u16 = 176;
 
-    const WINDOW_BUTTON_CLOSE_X: u16 = 599;
-    const WINDOW_BUTTON_CLOSE_Y: u16 = 6;
+    const WINDOW_BUTTON_CLOSE_X: u16 = 885;
+    const WINDOW_BUTTON_CLOSE_Y: u16 = 174;
 
-    const OSCILLATOR_MUTE_1_X: u16 = 61;
-    const OSCILLATOR_MUTE_2_X: u16 = 550;
-    const OSCILLATOR_MUTE_Y: u16 = 173;
+    const OSCILLATOR_MUTE_1_X: u16 = 347;
+    const OSCILLATOR_MUTE_2_X: u16 = 836;
+    const OSCILLATOR_MUTE_Y: u16 = 341;
 
-    const TRIM_LINE_OUT_X: u16 = 211;
-    const TRIM_ADC_X: u16 = 348;
-    const TRIM_Y: u16 = 85;
+    const TRIM_LINE_OUT_X: u16 = 497;
+    const TRIM_ADC_X: u16 = 634;
+    const TRIM_Y: u16 = 253;
     const TRIM_WIDTH: u8 = 68;
 
-    const OSCILLATOR_FREQUENCY_1_X: u16 = 145;
-    const OSCILLATOR_LEVEL_X: u16 = 282;
-    const OSCILLATOR_FREQUENCY_2_X: u16 = 421;
-    const OSCILLATOR_Y: u16 = 171;
+    const OSCILLATOR_FREQUENCY_1_X: u16 = 431;
+    const OSCILLATOR_LEVEL_X: u16 = 568;
+    const OSCILLATOR_FREQUENCY_2_X: u16 = 707;
+    const OSCILLATOR_Y: u16 = 339;
     const OSCILLATOR_WIDTH: u8 = 68;
 
-    const BRIGHTNESS_SLIDER_X: u16 = 20;
-    const BRIGHTNESS_SLIDER_Y: u16 = 254;
+    const BRIGHTNESS_SLIDER_X: u16 = 306;
+    const BRIGHTNESS_SLIDER_Y: u16 = 422;
     const BRIGHTNESS_SLIDER_TRAVEL: u16 = 69;
 
-    const BRIGHTNESS_SLIDER_HITBOX_X: f32 = 20.0;
-    const BRIGHTNESS_SLIDER_HITBOX_Y: f32 = 254.0;
+    const BRIGHTNESS_SLIDER_HITBOX_X: f32 = 306.0;
+    const BRIGHTNESS_SLIDER_HITBOX_Y: f32 = 422.0;
     const BRIGHTNESS_SLIDER_HITBOX_WIDTH: f32 = 112.0;
     const BRIGHTNESS_SLIDER_HITBOX_HEIGHT: f32 = 21.0;
 
-    const BRIGHTNESS_TEXT_HITBOX_X: f32 = 143.0;
-    const BRIGHTNESS_TEXT_HITBOX_Y: f32 = 255.0;
+    const BRIGHTNESS_TEXT_HITBOX_X: f32 = 429.0;
+    const BRIGHTNESS_TEXT_HITBOX_Y: f32 = 423.0;
     const BRIGHTNESS_TEXT_HITBOX_WIDTH: f32 = 52.0;
     const BRIGHTNESS_TEXT_HITBOX_HEIGHT: f32 = 18.0;
 
-    const USB_CHANNELS_X: u16 = 276;
-    const USB_CHANNELS_Y: u16 = 255;
+    const USB_CHANNELS_X: u16 = 562;
+    const USB_CHANNELS_Y: u16 = 423;
     const USB_CHANNELS_WIDTH: u8 = 52;
 
-    const MADI_SMUX_IN_X: u16 = 398;
-    const MADI_SMUX_OUT_X: u16 = 495;
-    const MADI_SMUX_Y: u16 = 257;
+    const MADI_SMUX_IN_X: u16 = 684;
+    const MADI_SMUX_OUT_X: u16 = 781;
+    const MADI_SMUX_Y: u16 = 425;
 
-    const SPDIF_SRC_X: u16 = 572;
-    const SPDIF_SRC_Y: u16 = 257;
+    const SPDIF_SRC_X: u16 = 858;
+    const SPDIF_SRC_Y: u16 = 425;
 
-    const ASIO_CONTROL_BUFFER_SIZE_X: u16 = 160;
+    const ASIO_CONTROL_BUFFER_SIZE_X: u16 = 446;
     const ASIO_CONTROL_BUFFER_SIZE_WIDTH: u8 = 68;
-    const ASIO_CONTROL_STREAMING_MODE_X: u16 = 390;
+    const ASIO_CONTROL_STREAMING_MODE_X: u16 = 676;
     const ASIO_CONTROL_STREAMING_MODE_WIDTH: u8 = 75;
-    const ASIO_CONTROL_Y: u16 = 339;
+    const ASIO_CONTROL_Y: u16 = 507;
 }
 
 pub(crate) struct ControlPanelSettings {
@@ -81,8 +81,6 @@ pub(crate) struct ControlPanelSettings {
 }
 
 impl ControlPanelSettings {
-    const WINDOW_TITLE: &str = "Orion 32 Settings";
-
     const FONT_COLOR: egui::Color32 = egui::Color32::from_rgb(0x95, 0x95, 0x95);
     const FONT_SIZE: f32 = 10.5;
 
@@ -117,56 +115,34 @@ impl ControlPanelSettings {
         self.enabled = true;
     }
 
-    fn ui_content(&mut self, ui: &mut egui::Ui) {
-        egui::CentralPanel::default()
-            .frame(egui::Frame::NONE)
-            .show(ui, |ui| {
-                let orion_state = self.orion_state.lock().unwrap().clone();
-
-                self.draw_base_graphics(ui);
-                self.draw_window_buttons(ui);
-
-                self.draw_trims(ui, orion_state.trims);
-                self.draw_oscillators(ui, orion_state.oscillators);
-                self.draw_brightness(ui, orion_state.brightness);
-                self.draw_madi_smux(ui, orion_state.madi_smux);
-                self.draw_usb_channels_spdif_src(ui, orion_state.usb_channels_spdif_src);
-                self.draw_asio_control(ui);
-            });
-    }
-
     pub(crate) fn draw(&mut self, ui: &mut egui::Ui) {
         if !self.enabled {
             return;
         }
 
-        ui.ctx().show_viewport_immediate(
-            egui::ViewportId::from_hash_of("control_panel_settings"),
-            egui::ViewportBuilder::default()
-                .with_title(Self::WINDOW_TITLE)
-                .with_inner_size([
-                    ControlPanelSettingsDimensions::VIEWPORT_X,
-                    ControlPanelSettingsDimensions::VIEWPORT_Y,
-                ])
-                .with_decorations(false),
-            |ctx, _class| self.ui_content(ctx),
-        );
+        let orion_state = self.orion_state.lock().unwrap().clone();
+
+        self.draw_base_graphics(ui);
+        self.draw_window_buttons(ui);
+
+        self.draw_trims(ui, orion_state.trims);
+        self.draw_oscillators(ui, orion_state.oscillators);
+        self.draw_brightness(ui, orion_state.brightness);
+        self.draw_madi_smux(ui, orion_state.madi_smux);
+        self.draw_usb_channels_spdif_src(ui, orion_state.usb_channels_spdif_src);
+        self.draw_asio_control(ui);
     }
 
     fn draw_base_graphics(&mut self, ui: &mut egui::Ui) {
-        let response = render_asset!(
+        render_asset!(
             ui,
-            0,
-            0,
+            ControlPanelSettingsDimensions::SETTINGS_X,
+            ControlPanelSettingsDimensions::SETTINGS_Y,
             "SettingsPanel/default/background",
             1.0,
             0.0,
             Some(egui::Sense::click())
         );
-
-        if response.is_pointer_button_down_on() {
-            ui.ctx().send_viewport_cmd(egui::ViewportCommand::StartDrag);
-        }
 
         render_asset!(
             ui,
