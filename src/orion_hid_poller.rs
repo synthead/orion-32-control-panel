@@ -99,6 +99,7 @@ impl OrionHidPoller {
 
     fn transform_serial(hid_data: &[u8; 64], orion_state: &mut OrionState) {
         orion_state.serial = hid_data[36..49].try_into().unwrap();
+        orion_state.hardware_version = hid_data[52..60].try_into().unwrap();
     }
 
     fn transform_routes(hid_data: &[u8; 64], orion_state: &mut OrionState) {
