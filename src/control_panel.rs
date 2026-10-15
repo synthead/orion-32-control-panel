@@ -75,10 +75,10 @@ impl ControlPanelDimensions {
     const WINDOW_BUTTON_CLOSE_X: u16 = 1149;
     const WINDOW_BUTTON_Y: u16 = 9;
 
-    const VU_LEFT_X: u16 = 396;
-    const VU_RIGHT_X: u16 = 977;
-    const VU_Y: u16 = 38;
-    const VU_WIDTH: u8 = 83;
+    const VU_SOURCE_LEFT_X: u16 = 396;
+    const VU_SOURCE_RIGHT_X: u16 = 977;
+    const VU_SOURCE_Y: u16 = 38;
+    const VU_SOURCE_WIDTH: u8 = 83;
 
     const CLOCK_CLOCK_SOURCE_X: u16 = 508;
     const CLOCK_SAMPLE_RATE_X: u16 = 597;
@@ -687,9 +687,9 @@ impl ControlPanel {
     fn draw_vu_meter_comboboxes(&self, ui: &mut egui::Ui, left_vu_source: u8, right_vu_source: u8) {
         ControlPanelHelpers::draw_combobox(
             ui,
-            ControlPanelDimensions::VU_LEFT_X,
-            ControlPanelDimensions::VU_Y,
-            ControlPanelDimensions::VU_WIDTH,
+            ControlPanelDimensions::VU_SOURCE_LEFT_X,
+            ControlPanelDimensions::VU_SOURCE_Y,
+            ControlPanelDimensions::VU_SOURCE_WIDTH,
             left_vu_source,
             &Self::VU_SELECTIONS,
             |selected| {
@@ -702,9 +702,9 @@ impl ControlPanel {
 
         ControlPanelHelpers::draw_combobox(
             ui,
-            ControlPanelDimensions::VU_RIGHT_X,
-            ControlPanelDimensions::VU_Y,
-            ControlPanelDimensions::VU_WIDTH,
+            ControlPanelDimensions::VU_SOURCE_RIGHT_X,
+            ControlPanelDimensions::VU_SOURCE_Y,
+            ControlPanelDimensions::VU_SOURCE_WIDTH,
             right_vu_source,
             &Self::VU_SELECTIONS,
             |selected| {
