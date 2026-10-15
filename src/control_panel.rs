@@ -75,6 +75,11 @@ impl ControlPanelDimensions {
     const WINDOW_BUTTON_CLOSE_X: u16 = 1149;
     const WINDOW_BUTTON_Y: u16 = 9;
 
+    const CLOCK_CLOCK_SOURCE_X: u16 = 508;
+    const CLOCK_SAMPLE_RATE_X: u16 = 597;
+    const CLOCK_Y: u16 = 92;
+    const CLOCK_WIDTH: u8 = 72;
+
     const TAB_BUTTON_ROUTING_X: u16 = 82;
     const TAB_BUTTON_MIXER_X: u16 = 178;
     const TAB_BUTTON_AD_PHASE_X: u16 = 257;
@@ -709,9 +714,9 @@ impl ControlPanel {
     fn draw_clock_comboboxes(&self, ui: &mut egui::Ui, clock_source: u8, sample_rate: u8) {
         ControlPanelHelpers::draw_combobox(
             ui,
-            508,
-            92,
-            72,
+            ControlPanelDimensions::CLOCK_CLOCK_SOURCE_X,
+            ControlPanelDimensions::CLOCK_Y,
+            ControlPanelDimensions::CLOCK_WIDTH,
             clock_source,
             &Self::CLOCK_SOURCE_SELECTIONS,
             |selected| {
@@ -721,9 +726,9 @@ impl ControlPanel {
 
         ControlPanelHelpers::draw_combobox(
             ui,
-            597,
-            92,
-            72,
+            ControlPanelDimensions::CLOCK_SAMPLE_RATE_X,
+            ControlPanelDimensions::CLOCK_Y,
+            ControlPanelDimensions::CLOCK_WIDTH,
             sample_rate,
             &Self::SAMPLE_RATE_SELECTIONS,
             |selected| {
