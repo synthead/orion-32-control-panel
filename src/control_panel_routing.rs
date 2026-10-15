@@ -53,6 +53,14 @@ impl ControlPanelRouteCodes {
     const COLUMN: u8 = 0x08;
 }
 
+struct ControlPanelRouteLabels;
+
+impl ControlPanelRouteLabels {
+    const OSC_1: &str = "O1";
+    const OSC_2: &str = "O2";
+    const MUTE: &str = "M";
+}
+
 pub(crate) struct ControlPanelRouting {
     orion_state: Arc<Mutex<OrionState>>,
     orion_hid: Arc<Mutex<OrionHid>>,
@@ -664,9 +672,9 @@ impl ControlPanelRouting {
 
     fn label_for_route(&self, route: u8) -> String {
         match route {
-            ControlPanelRouteCodes::OSC_1 => "O1".to_string(),
-            ControlPanelRouteCodes::OSC_2 => "O2".to_string(),
-            ControlPanelRouteCodes::MUTE => "M".to_string(),
+            ControlPanelRouteCodes::OSC_1 => ControlPanelRouteLabels::OSC_1.to_string(),
+            ControlPanelRouteCodes::OSC_2 => ControlPanelRouteLabels::OSC_2.to_string(),
+            ControlPanelRouteCodes::MUTE => ControlPanelRouteLabels::MUTE.to_string(),
 
             _ => {
                 let route_type = route % ControlPanelRouteCodes::COLUMN;
