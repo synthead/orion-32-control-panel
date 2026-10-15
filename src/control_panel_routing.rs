@@ -218,6 +218,7 @@ impl ControlPanelRouting {
 
     fn draw_base_graphics(ui: &mut egui::Ui) {
         render_asset!(ui, 0, 226, "Routing/default/background", 1.0, 0.0, None);
+
         render_asset!(
             ui,
             1094,
