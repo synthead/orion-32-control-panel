@@ -29,6 +29,9 @@ impl ControlPanelRouteColors {
 struct ControlPanelRouteDimensions;
 
 impl ControlPanelRouteDimensions {
+    const BACKGROUND_X: u16 = 0;
+    const BACKGROUND_Y: u16 = 226;
+
     const START_X: f32 = 127.0;
     const START_Y_SOURCE: f32 = 284.0;
     const START_Y_TARGET: f32 = 448.0;
@@ -44,6 +47,9 @@ impl ControlPanelRouteDimensions {
     const NAV_REDO_Y: u16 = 436;
     const NAV_SAVE_Y: u16 = 462;
     const NAV_LOAD_Y: u16 = 488;
+
+    const HOWTO_X: u16 = 1094;
+    const HOWTO_Y: u16 = 652;
 }
 
 struct ControlPanelRouteCodes;
@@ -217,12 +223,20 @@ impl ControlPanelRouting {
     }
 
     fn draw_base_graphics(ui: &mut egui::Ui) {
-        render_asset!(ui, 0, 226, "Routing/default/background", 1.0, 0.0, None);
+        render_asset!(
+            ui,
+            ControlPanelRouteDimensions::BACKGROUND_X,
+            ControlPanelRouteDimensions::BACKGROUND_Y,
+            "Routing/default/background",
+            1.0,
+            0.0,
+            None
+        );
 
         render_asset!(
             ui,
-            1094,
-            652,
+            ControlPanelRouteDimensions::HOWTO_X,
+            ControlPanelRouteDimensions::HOWTO_Y,
             "HowtoButton/default/released",
             1.0,
             0.0,
