@@ -137,7 +137,7 @@ pub(crate) struct ControlPanel {
 impl ControlPanel {
     const WINDOW_TITLE: &str = "Orion 32 Control Panel";
 
-    const VU_SELECTIONS: [&str; 14] = [
+    const VU_SOURCE_SELECTIONS: [&str; 14] = [
         "ADC",
         "USB PLAY",
         "MADI IN 1",
@@ -691,7 +691,7 @@ impl ControlPanel {
             ControlPanelDimensions::VU_SOURCE_Y,
             ControlPanelDimensions::VU_SOURCE_WIDTH,
             left_vu_source,
-            &Self::VU_SELECTIONS,
+            &Self::VU_SOURCE_SELECTIONS,
             |selected| {
                 self.orion_hid
                     .lock()
@@ -706,7 +706,7 @@ impl ControlPanel {
             ControlPanelDimensions::VU_SOURCE_Y,
             ControlPanelDimensions::VU_SOURCE_WIDTH,
             right_vu_source,
-            &Self::VU_SELECTIONS,
+            &Self::VU_SOURCE_SELECTIONS,
             |selected| {
                 self.orion_hid
                     .lock()
