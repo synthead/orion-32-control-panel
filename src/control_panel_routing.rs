@@ -47,6 +47,13 @@ impl ControlPanelRouteDimensions {
 struct ControlPanelRouteCodes;
 
 impl ControlPanelRouteCodes {
+    const ADC_DAC: u8 = 0x00;
+    const USB: u8 = 0x01;
+    const MADI: u8 = 0x02;
+    const MADI_2: u8 = 0x03;
+    const ADAT: u8 = 0x04;
+    const SPDIF: u8 = 0x05;
+    const MIX_LR: u8 = 0x06;
     const OSC_1: u8 = 0x07;
     const OSC_2: u8 = 0x0f;
     const MUTE: u8 = 0x17;
@@ -681,7 +688,7 @@ impl ControlPanelRouting {
                 let route_index = route / ControlPanelRouteCodes::COLUMN;
 
                 if self.is_24_channel && route_type == 1 && route_index >= 24 {
-                    return "M".to_string();
+                    return ControlPanelRouteLabels::MUTE.to_string();
                 }
 
                 self.labels[route_type as usize][route_index as usize].clone()
@@ -704,13 +711,13 @@ impl ControlPanelRouting {
                 }
 
                 match route_type {
-                    0x00 => ControlPanelRouteColors::ADC_DAC,
-                    0x01 => ControlPanelRouteColors::USB,
-                    0x02 => ControlPanelRouteColors::MADI,
-                    0x03 => ControlPanelRouteColors::MADI,
-                    0x04 => ControlPanelRouteColors::ADAT,
-                    0x05 => ControlPanelRouteColors::SPDIF,
-                    0x06 => ControlPanelRouteColors::MIX_LR,
+                    ControlPanelRouteCodes::ADC_DAC => ControlPanelRouteColors::ADC_DAC,
+                    ControlPanelRouteCodes::USB => ControlPanelRouteColors::USB,
+                    ControlPanelRouteCodes::MADI => ControlPanelRouteColors::MADI,
+                    ControlPanelRouteCodes::MADI_2 => ControlPanelRouteColors::MADI,
+                    ControlPanelRouteCodes::ADAT => ControlPanelRouteColors::ADAT,
+                    ControlPanelRouteCodes::SPDIF => ControlPanelRouteColors::SPDIF,
+                    ControlPanelRouteCodes::MIX_LR => ControlPanelRouteColors::MIX_LR,
 
                     _ => egui::Color32::BLACK,
                 }
