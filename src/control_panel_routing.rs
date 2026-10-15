@@ -46,6 +46,13 @@ impl ControlPanelRouteDimensions {
     const TEXT_Y: f32 = 409.0;
     const TEXT_SIZE: f32 = 12.0;
 
+    const PRESENSE_X: u16 = 1095;
+    const PRESENSE_ADAT_IN_2_X: u16 = 1112;
+    const PRESENSE_USB_PLAY_Y: u16 = 301;
+    const PRESENSE_MADI_IN_Y: u16 = 323;
+    const PRESENSE_ADAT_IN_Y: u16 = 346;
+    const PRESENSE_SPDIF_IN_Y: u16 = 361;
+
     const NAV_X: u16 = 1106;
     const NAV_UNDO_Y: u16 = 410;
     const NAV_REDO_Y: u16 = 436;
@@ -666,12 +673,20 @@ impl ControlPanelRouting {
     fn draw_signals(&self, ui: &mut egui::Ui, signals: u8) {
         // TODO: Figure out the rest of these signals.
         if signals == 0x09 {
-            render_asset!(ui, 1095, 301, "PresenceLed/default/pressed", 1.0, 0.0, None);
+            render_asset!(
+                ui,
+                ControlPanelRouteDimensions::PRESENSE_X,
+                ControlPanelRouteDimensions::PRESENSE_USB_PLAY_Y,
+                "PresenceLed/default/pressed",
+                1.0,
+                0.0,
+                None
+            );
         } else {
             render_asset!(
                 ui,
-                1095,
-                301,
+                ControlPanelRouteDimensions::PRESENSE_X,
+                ControlPanelRouteDimensions::PRESENSE_USB_PLAY_Y,
                 "PresenceLed/default/released",
                 1.0,
                 0.0,
@@ -681,35 +696,38 @@ impl ControlPanelRouting {
 
         render_asset!(
             ui,
-            1095,
-            323,
+            ControlPanelRouteDimensions::PRESENSE_X,
+            ControlPanelRouteDimensions::PRESENSE_MADI_IN_Y,
             "PresenceLed/default/released",
             1.0,
             0.0,
             None
         );
+
         render_asset!(
             ui,
-            1095,
-            346,
+            ControlPanelRouteDimensions::PRESENSE_X,
+            ControlPanelRouteDimensions::PRESENSE_ADAT_IN_Y,
             "PresenceLed/default/released",
             1.0,
             0.0,
             None
         );
+
         render_asset!(
             ui,
-            1112,
-            346,
+            ControlPanelRouteDimensions::PRESENSE_ADAT_IN_2_X,
+            ControlPanelRouteDimensions::PRESENSE_ADAT_IN_Y,
             "PresenceLed/default/released",
             1.0,
             0.0,
             None
         );
+
         render_asset!(
             ui,
-            1095,
-            361,
+            ControlPanelRouteDimensions::PRESENSE_X,
+            ControlPanelRouteDimensions::PRESENSE_SPDIF_IN_Y,
             "PresenceLed/default/released",
             1.0,
             0.0,
