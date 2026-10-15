@@ -333,7 +333,9 @@ impl ControlPanel {
             Some(egui::Sense::click())
         );
 
-        if response.is_pointer_button_down_on() {
+        if response.is_pointer_button_down_on()
+            && ui.input(|i| i.pointer.button_down(egui::PointerButton::Primary))
+        {
             ui.ctx().send_viewport_cmd(egui::ViewportCommand::StartDrag);
         }
 
