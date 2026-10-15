@@ -42,6 +42,8 @@ impl ControlPanelRouteDimensions {
     const NAV_X: u16 = 1106;
     const NAV_UNDO_Y: u16 = 410;
     const NAV_REDO_Y: u16 = 436;
+    const NAV_SAVE_Y: u16 = 462;
+    const NAV_LOAD_Y: u16 = 488;
 }
 
 struct ControlPanelRouteCodes;
@@ -200,6 +202,7 @@ impl ControlPanelRouting {
 
         Self::draw_base_graphics(ui);
         self.draw_undo(ui);
+        self.draw_save(ui);
 
         self.draw_sources(ui);
         self.draw_targets(ui, &orion_state.routes);
@@ -220,25 +223,6 @@ impl ControlPanelRouting {
             1094,
             652,
             "HowtoButton/default/released",
-            1.0,
-            0.0,
-            None
-        );
-
-        render_asset!(
-            ui,
-            1106,
-            462,
-            "SaveRoutingButton/default/released",
-            1.0,
-            0.0,
-            None
-        );
-        render_asset!(
-            ui,
-            1106,
-            488,
-            "LoadRoutingButton/default/released",
             1.0,
             0.0,
             None
@@ -296,6 +280,60 @@ impl ControlPanelRouting {
 
         if redo_response.clicked() {
             self.queue_routes_redo();
+        }
+    }
+
+    fn draw_save(&mut self, ui: &mut egui::Ui) {
+        let save_response = render_asset!(
+            ui,
+            ControlPanelRouteDimensions::NAV_X,
+            ControlPanelRouteDimensions::NAV_SAVE_Y,
+            "SaveRoutingButton/default/released",
+            1.0,
+            0.0,
+            Some(egui::Sense::click())
+        );
+
+        if save_response.is_pointer_button_down_on() != save_response.hovered() {
+            render_asset!(
+                ui,
+                ControlPanelRouteDimensions::NAV_X,
+                ControlPanelRouteDimensions::NAV_SAVE_Y,
+                "SaveRoutingButton/default/pressed",
+                1.0,
+                0.0,
+                None
+            );
+        }
+
+        let load_response = render_asset!(
+            ui,
+            ControlPanelRouteDimensions::NAV_X,
+            ControlPanelRouteDimensions::NAV_LOAD_Y,
+            "LoadRoutingButton/default/released",
+            1.0,
+            0.0,
+            Some(egui::Sense::click())
+        );
+
+        if load_response.is_pointer_button_down_on() != load_response.hovered() {
+            render_asset!(
+                ui,
+                ControlPanelRouteDimensions::NAV_X,
+                ControlPanelRouteDimensions::NAV_LOAD_Y,
+                "LoadRoutingButton/default/pressed",
+                1.0,
+                0.0,
+                None
+            );
+        }
+
+        if save_response.clicked() {
+            // TODO: Save button.
+        }
+
+        if load_response.clicked() {
+            // TODO: Load button.
         }
     }
 
