@@ -44,6 +44,15 @@ impl ControlPanelRouteDimensions {
     const NAV_REDO_Y: u16 = 436;
 }
 
+struct ControlPanelRouteCodes;
+
+impl ControlPanelRouteCodes {
+    const OSC_1: u8 = 0x07;
+    const OSC_2: u8 = 0x0f;
+    const MUTE: u8 = 0x17;
+    const COLUMN: u8 = 0x08;
+}
+
 pub(crate) struct ControlPanelRouting {
     orion_state: Arc<Mutex<OrionState>>,
     orion_hid: Arc<Mutex<OrionHid>>,
@@ -589,7 +598,8 @@ impl ControlPanelRouting {
                         break;
                     }
 
-                    let route = source_column * 0x08 + self.source_select_row;
+                    let route =
+                        source_column * ControlPanelRouteCodes::COLUMN + self.source_select_row;
 
                     new_routes[target_column as usize + column_index] = route;
                 }
@@ -635,11 +645,13 @@ impl ControlPanelRouting {
 
     fn source_cell_for_route(&self, route: u8) -> Option<[u8; 2]> {
         match route {
-            0x07 | 0x0f | 0x17 => None,
+            ControlPanelRouteCodes::OSC_1
+            | ControlPanelRouteCodes::OSC_2
+            | ControlPanelRouteCodes::MUTE => None,
 
             _ => {
-                let row = route % 0x08;
-                let column = route / 0x08;
+                let row = route % ControlPanelRouteCodes::COLUMN;
+                let column = route / ControlPanelRouteCodes::COLUMN;
 
                 if self.is_24_channel && row == 1 && column >= 24 {
                     return None;
@@ -652,13 +664,13 @@ impl ControlPanelRouting {
 
     fn label_for_route(&self, route: u8) -> String {
         match route {
-            0x07 => "O1".to_string(),
-            0x0f => "O2".to_string(),
-            0x17 => "M".to_string(),
+            ControlPanelRouteCodes::OSC_1 => "O1".to_string(),
+            ControlPanelRouteCodes::OSC_2 => "O2".to_string(),
+            ControlPanelRouteCodes::MUTE => "M".to_string(),
 
             _ => {
-                let route_type = route % 0x08;
-                let route_index = route / 0x08;
+                let route_type = route % ControlPanelRouteCodes::COLUMN;
+                let route_index = route / ControlPanelRouteCodes::COLUMN;
 
                 if self.is_24_channel && route_type == 1 && route_index >= 24 {
                     return "M".to_string();
@@ -671,13 +683,13 @@ impl ControlPanelRouting {
 
     fn color_for_route(&self, route: u8) -> egui::Color32 {
         match route {
-            0x07 => ControlPanelRouteColors::OSC_1,
-            0x0f => ControlPanelRouteColors::OSC_2,
-            0x17 => ControlPanelRouteColors::MUTE,
+            ControlPanelRouteCodes::OSC_1 => ControlPanelRouteColors::OSC_1,
+            ControlPanelRouteCodes::OSC_2 => ControlPanelRouteColors::OSC_2,
+            ControlPanelRouteCodes::MUTE => ControlPanelRouteColors::MUTE,
 
             _ => {
-                let route_type = route % 0x08;
-                let route_index = route / 0x08;
+                let route_type = route % ControlPanelRouteCodes::COLUMN;
+                let route_index = route / ControlPanelRouteCodes::COLUMN;
 
                 if self.is_24_channel && route_type == 1 && route_index >= 24 {
                     return ControlPanelRouteColors::MUTE;
