@@ -315,7 +315,13 @@ impl ControlPanel {
                         ),
                     );
 
-                    ui.allocate_rect(overlay_rect, egui::Sense::click_and_drag());
+                    let response = ui.allocate_rect(overlay_rect, egui::Sense::click());
+
+                    if response.is_pointer_button_down_on()
+                        && ui.input(|i| i.pointer.button_pressed(egui::PointerButton::Primary))
+                    {
+                        ui.ctx().send_viewport_cmd(egui::ViewportCommand::StartDrag);
+                    }
 
                     if self.settings.enabled {
                         self.settings.draw(ui);
