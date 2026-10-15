@@ -42,6 +42,10 @@ impl ControlPanelRouteDimensions {
     const SIZE_X: f32 = 29.0;
     const SIZE_Y: f32 = 14.0;
 
+    const TEXT_X: f32 = 128.0;
+    const TEXT_Y: f32 = 409.0;
+    const TEXT_SIZE: f32 = 12.0;
+
     const NAV_X: u16 = 1106;
     const NAV_UNDO_Y: u16 = 410;
     const NAV_REDO_Y: u16 = 436;
@@ -648,10 +652,13 @@ impl ControlPanelRouting {
         );
 
         ui.painter().text(
-            egui::pos2(128.0, 409.0),
+            egui::pos2(
+                ControlPanelRouteDimensions::TEXT_X,
+                ControlPanelRouteDimensions::TEXT_Y,
+            ),
             egui::Align2::LEFT_TOP,
             text,
-            egui::FontId::proportional(12.0),
+            egui::FontId::proportional(ControlPanelRouteDimensions::TEXT_SIZE),
             egui::Color32::WHITE,
         );
     }
