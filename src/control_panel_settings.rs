@@ -137,7 +137,7 @@ impl ControlPanelSettings {
             "SettingsPanel/default/background",
             1.0,
             0.0,
-            Some(egui::Sense::click())
+            None
         );
 
         render_asset!(
