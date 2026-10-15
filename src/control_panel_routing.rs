@@ -1,5 +1,7 @@
+use rfd::FileDialog;
 use std::collections::BTreeSet;
 use std::collections::HashSet;
+use std::path::PathBuf;
 use std::sync::Arc;
 use std::sync::Mutex;
 
@@ -375,11 +377,11 @@ impl ControlPanelRouting {
         }
 
         if save_response.clicked() {
-            // TODO: Save button.
+            let file = self.pick_file();
         }
 
         if load_response.clicked() {
-            // TODO: Load button.
+            let file = self.pick_file();
         }
     }
 
@@ -973,5 +975,15 @@ impl ControlPanelRouting {
             .queue_routes(row, &new_routes);
 
         self.undo_cursor += 1;
+    }
+
+    fn pick_file(&self) -> Option<PathBuf> {
+        let mut dialog = rfd::FileDialog::new().add_filter("Orion 32 Routing File", &["o32r"]);
+
+        if let Some(config_dir) = &self.config_dir {
+            dialog = dialog.set_directory(config_dir);
+        }
+
+        dialog.pick_file()
     }
 }
