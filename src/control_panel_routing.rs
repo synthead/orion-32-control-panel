@@ -459,7 +459,7 @@ impl ControlPanelRouting {
                 if response.contains_pointer() {
                     self.target_hover_cell = Some([column as u8, row as u8]);
 
-                    if ui.input(|i| i.pointer.primary_pressed()) {
+                    if ControlPanelHelpers::mouse_down_on(&response) {
                         self.update_target_selections(column as u8, row as u8, route);
                     }
                 }
