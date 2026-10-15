@@ -333,8 +333,9 @@ impl ControlPanel {
             Some(egui::Sense::click())
         );
 
-        if response.is_pointer_button_down_on()
-            && ui.input(|i| i.pointer.button_down(egui::PointerButton::Primary))
+        if !egui::Popup::is_any_open(ui.ctx())
+            && response.is_pointer_button_down_on()
+            && ui.input(|i| i.pointer.button_pressed(egui::PointerButton::Primary))
         {
             ui.ctx().send_viewport_cmd(egui::ViewportCommand::StartDrag);
         }

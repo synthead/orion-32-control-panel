@@ -465,12 +465,13 @@ impl ControlPanelRouting {
             .extend(self.source_select_toggle_columns.iter().copied());
     }
 
-    fn draw_targets(&mut self, ui: &mut egui::Ui, routes: &[[u8; 32]; 7]) {
+    fn draw_targets(&mut self, ui: &mut egui::Ui, all_routes: &[[u8; 32]; 7]) {
         self.target_hover_cell = None;
 
         for row in 0..self.target_counts.len() {
             for column in 0..self.target_counts[row] {
-                let route = routes[row][column];
+                let routes = all_routes[row];
+                let route = routes[column];
 
                 let color = if self.target_select_cell == Some([column as u8, row as u8]) {
                     ControlPanelRouteColors::SELECT
@@ -493,8 +494,75 @@ impl ControlPanelRouting {
                         self.update_target_selections(column as u8, row as u8, route);
                     }
                 }
+
+                egui::Popup::context_menu(&response)
+                    .show(|ui| {
+                        if ui.button("Mute").clicked() {
+                            self.update_targets_from_context_menu(
+                                &routes,
+                                Some(column),
+                                row,
+                                ControlPanelRouteCodes::MUTE,
+                            );
+
+                            ui.close();
+                        }
+
+                        if ui.button("Mute Row").clicked() {
+                            self.update_targets_from_context_menu(
+                                &routes,
+                                None,
+                                row,
+                                ControlPanelRouteCodes::MUTE,
+                            );
+
+                            ui.close();
+                        }
+
+                        if ui.button("Oscillator1").clicked() {
+                            self.update_targets_from_context_menu(
+                                &routes,
+                                Some(column),
+                                row,
+                                ControlPanelRouteCodes::OSC_1,
+                            );
+
+                            ui.close();
+                        }
+
+                        if ui.button("Oscillator2").clicked() {
+                            self.update_targets_from_context_menu(
+                                &routes,
+                                Some(column),
+                                row,
+                                ControlPanelRouteCodes::OSC_2,
+                            );
+
+                            ui.close();
+                        }
+                    });
             }
         }
+    }
+
+    fn update_targets_from_context_menu(
+        &mut self,
+        old_routes: &[u8; 32],
+        column: Option<usize>,
+        row: usize,
+        route: u8,
+    ) {
+        let mut new_routes = *old_routes;
+
+        if let Some(column) = column {
+            new_routes[column] = route;
+        } else {
+            for column in 0..self.target_counts[row] {
+                new_routes[column] = route;
+            }
+        }
+
+        self.queue_routes_with_undo(row as u8, &old_routes, &new_routes);
     }
 
     fn update_target_selections(&mut self, column: u8, row: u8, route: u8) {
