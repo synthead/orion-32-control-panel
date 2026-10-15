@@ -54,6 +54,7 @@ pub(crate) struct ControlPanelRouting {
     undo_cursor: usize,
 
     labels: [[String; 32]; 7],
+    is_24_channel: bool,
 
     source_counts: [usize; 7],
     target_counts: [usize; 7],
@@ -108,6 +109,7 @@ impl ControlPanelRouting {
             undo_cursor: 0,
 
             labels,
+            is_24_channel: false,
 
             source_counts: [0; 7],
             target_counts: [0; 7],
@@ -132,6 +134,10 @@ impl ControlPanelRouting {
     pub(crate) fn draw(&mut self, ui: &mut egui::Ui) {
         let orion_state = self.orion_state.lock().unwrap().clone();
 
+        self.is_24_channel = orion_state.usb_channels_spdif_src & 0x02 == 0x00;
+
+        let usb_channel_count = if self.is_24_channel { 24 } else { 32 };
+
         let madi_1_count = match orion_state.sample_rate {
             5 | 6 => 16,
             _ => 32,
@@ -150,7 +156,7 @@ impl ControlPanelRouting {
 
         self.source_counts = [
             32,
-            32,
+            usb_channel_count.try_into().unwrap(),
             madi_1_count.try_into().unwrap(),
             madi_2_count.try_into().unwrap(),
             adat_count.try_into().unwrap(),
@@ -160,7 +166,7 @@ impl ControlPanelRouting {
 
         self.target_counts = [
             32,
-            32,
+            usb_channel_count.try_into().unwrap(),
             madi_1_count.try_into().unwrap(),
             madi_2_count.try_into().unwrap(),
             adat_count.try_into().unwrap(),
@@ -277,7 +283,7 @@ impl ControlPanelRouting {
         {
             ControlPanelRouteColors::SELECT
         } else {
-            Self::color_for_route(row)
+            self.color_for_route(row)
         };
 
         let rect = egui::Rect::from_min_size(
@@ -316,7 +322,7 @@ impl ControlPanelRouting {
     fn draw_source_editing(&mut self, ui: &mut egui::Ui, column: u8, row: u8) {
         let label = self.labels[row as usize][column as usize].clone();
         let (pos_x, pos_y) = Self::cell_pos(column, row, true);
-        let color = Self::color_for_route(row);
+        let color = self.color_for_route(row);
 
         let rect = egui::Rect::from_min_size(
             egui::pos2(pos_x - 14.0, pos_y - 2.0),
@@ -445,7 +451,7 @@ impl ControlPanelRouting {
                 let color = if self.target_select_cell == Some([column as u8, row as u8]) {
                     ControlPanelRouteColors::SELECT
                 } else {
-                    Self::color_for_route(route)
+                    self.color_for_route(route)
                 };
 
                 let label = &self.label_for_route(route);
@@ -473,7 +479,7 @@ impl ControlPanelRouting {
         self.source_select_toggle_columns.clear();
         self.source_select_columns.clear();
 
-        if let Some([source_column, source_row]) = Self::source_cell_for_route(route) {
+        if let Some([source_column, source_row]) = self.source_cell_for_route(route) {
             self.source_select_row = source_row;
             self.source_select_columns.insert(source_column);
         }
@@ -614,7 +620,7 @@ impl ControlPanelRouting {
             }
 
             let label = &self.labels[self.source_select_row as usize][source_column as usize];
-            let color = Self::color_for_route(self.source_select_row);
+            let color = self.color_for_route(self.source_select_row);
 
             Self::draw_rect_with_label(
                 ui,
@@ -627,13 +633,17 @@ impl ControlPanelRouting {
         }
     }
 
-    fn source_cell_for_route(route: u8) -> Option<[u8; 2]> {
+    fn source_cell_for_route(&self, route: u8) -> Option<[u8; 2]> {
         match route {
             0x07 | 0x0f | 0x17 => None,
 
             _ => {
                 let row = route % 0x08;
                 let column = route / 0x08;
+
+                if self.is_24_channel && row == 1 && column >= 24 {
+                    return None;
+                }
 
                 Some([column, row])
             }
@@ -650,28 +660,41 @@ impl ControlPanelRouting {
                 let route_type = route % 0x08;
                 let route_index = route / 0x08;
 
+                if self.is_24_channel && route_type == 1 && route_index >= 24 {
+                    return "M".to_string();
+                }
+
                 self.labels[route_type as usize][route_index as usize].clone()
             }
         }
     }
 
-    fn color_for_route(route: u8) -> egui::Color32 {
+    fn color_for_route(&self, route: u8) -> egui::Color32 {
         match route {
             0x07 => ControlPanelRouteColors::OSC_1,
             0x0f => ControlPanelRouteColors::OSC_2,
             0x17 => ControlPanelRouteColors::MUTE,
 
-            _ => match route % 0x08 {
-                0x00 => ControlPanelRouteColors::ADC_DAC,
-                0x01 => ControlPanelRouteColors::USB,
-                0x02 => ControlPanelRouteColors::MADI,
-                0x03 => ControlPanelRouteColors::MADI,
-                0x04 => ControlPanelRouteColors::ADAT,
-                0x05 => ControlPanelRouteColors::SPDIF,
-                0x06 => ControlPanelRouteColors::MIX_LR,
+            _ => {
+                let route_type = route % 0x08;
+                let route_index = route / 0x08;
 
-                _ => egui::Color32::BLACK,
-            },
+                if self.is_24_channel && route_type == 1 && route_index >= 24 {
+                    return ControlPanelRouteColors::MUTE;
+                }
+
+                match route_type {
+                    0x00 => ControlPanelRouteColors::ADC_DAC,
+                    0x01 => ControlPanelRouteColors::USB,
+                    0x02 => ControlPanelRouteColors::MADI,
+                    0x03 => ControlPanelRouteColors::MADI,
+                    0x04 => ControlPanelRouteColors::ADAT,
+                    0x05 => ControlPanelRouteColors::SPDIF,
+                    0x06 => ControlPanelRouteColors::MIX_LR,
+
+                    _ => egui::Color32::BLACK,
+                }
+            }
         }
     }
 
