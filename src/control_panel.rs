@@ -65,6 +65,10 @@ impl ControlPanelDimensions {
     const STANDBY_X: u16 = 20;
     const STANDBY_Y: u16 = 8;
 
+    const SERIAL_X: u16 = 950;
+    const SERIAL_Y: u16 = 7;
+    const SERIAL_WIDTH: u8 = 110;
+
     const WINDOW_BUTTON_SETTINGS_X: u16 = 1075;
     const WINDOW_BUTTON_ABOUT_X: u16 = 1100;
     const WINDOW_BUTTON_MINIMIZE_X: u16 = 1124;
@@ -805,9 +809,17 @@ impl ControlPanel {
     fn draw_serial_combobox(ui: &mut egui::Ui, serial: &[u8; 13]) {
         let serial_text = String::from_utf8_lossy(serial);
 
-        ControlPanelHelpers::draw_combobox(ui, 950, 7, 110, 0, &[&serial_text], |_selected| {
-            // TODO: Implement multi-interface control, and switch it here.
-        });
+        ControlPanelHelpers::draw_combobox(
+            ui,
+            ControlPanelDimensions::SERIAL_X,
+            ControlPanelDimensions::SERIAL_Y,
+            ControlPanelDimensions::SERIAL_WIDTH,
+            0,
+            &[&serial_text],
+            |_selected| {
+                // TODO: Implement multi-interface control, and switch it here.
+            },
+        );
     }
 
     fn line_out_for_text(text: &String) -> Option<u8> {
