@@ -495,52 +495,51 @@ impl ControlPanelRouting {
                     }
                 }
 
-                egui::Popup::context_menu(&response)
-                    .show(|ui| {
-                        if ui.button("Mute").clicked() {
-                            self.update_targets_from_context_menu(
-                                &routes,
-                                Some(column),
-                                row,
-                                ControlPanelRouteCodes::MUTE,
-                            );
+                egui::Popup::context_menu(&response).show(|ui| {
+                    if ui.button("Mute").clicked() {
+                        self.update_targets_from_context_menu(
+                            &routes,
+                            Some(column),
+                            row,
+                            ControlPanelRouteCodes::MUTE,
+                        );
 
-                            ui.close();
-                        }
+                        ui.close();
+                    }
 
-                        if ui.button("Mute Row").clicked() {
-                            self.update_targets_from_context_menu(
-                                &routes,
-                                None,
-                                row,
-                                ControlPanelRouteCodes::MUTE,
-                            );
+                    if ui.button("Mute Row").clicked() {
+                        self.update_targets_from_context_menu(
+                            &routes,
+                            None,
+                            row,
+                            ControlPanelRouteCodes::MUTE,
+                        );
 
-                            ui.close();
-                        }
+                        ui.close();
+                    }
 
-                        if ui.button("Oscillator1").clicked() {
-                            self.update_targets_from_context_menu(
-                                &routes,
-                                Some(column),
-                                row,
-                                ControlPanelRouteCodes::OSC_1,
-                            );
+                    if ui.button("Oscillator1").clicked() {
+                        self.update_targets_from_context_menu(
+                            &routes,
+                            Some(column),
+                            row,
+                            ControlPanelRouteCodes::OSC_1,
+                        );
 
-                            ui.close();
-                        }
+                        ui.close();
+                    }
 
-                        if ui.button("Oscillator2").clicked() {
-                            self.update_targets_from_context_menu(
-                                &routes,
-                                Some(column),
-                                row,
-                                ControlPanelRouteCodes::OSC_2,
-                            );
+                    if ui.button("Oscillator2").clicked() {
+                        self.update_targets_from_context_menu(
+                            &routes,
+                            Some(column),
+                            row,
+                            ControlPanelRouteCodes::OSC_2,
+                        );
 
-                            ui.close();
-                        }
-                    });
+                        ui.close();
+                    }
+                });
             }
         }
     }
