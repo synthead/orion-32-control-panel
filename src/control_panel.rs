@@ -249,6 +249,8 @@ impl ControlPanel {
 
         let control_panel = Self::new();
 
+        control_panel.create_config_dir();
+
         eframe::run_native(
             Self::WINDOW_TITLE,
             options,
@@ -274,6 +276,10 @@ impl ControlPanel {
                 Ok(Box::new(control_panel))
             }),
         )
+    }
+
+    pub(crate) fn create_config_dir(&self) {
+        self.routing.create_config_dir();
     }
 
     fn ui_content(&mut self, ui: &mut egui::Ui) {

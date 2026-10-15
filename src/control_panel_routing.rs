@@ -93,6 +93,8 @@ pub(crate) struct ControlPanelRouting {
 
     text_editor: Arc<Mutex<TextEditor>>,
 
+    config_dir: Option<std::path::PathBuf>,
+
     undo_buffer: Vec<(u8, [u8; 32], [u8; 32])>,
     undo_cursor: usize,
 
@@ -118,6 +120,8 @@ pub(crate) struct ControlPanelRouting {
 }
 
 impl ControlPanelRouting {
+    const CONFIG_DIR: &str = "Orion 32 Control Panel";
+
     const TEXT_COLOR: egui::Color32 = egui::Color32::WHITE;
     const TEXT_SIZE: f32 = 12.0;
 
@@ -136,6 +140,9 @@ impl ControlPanelRouting {
         orion_hid: Arc<Mutex<OrionHid>>,
         text_editor: Arc<Mutex<TextEditor>>,
     ) -> Self {
+        let config_dir = directories::BaseDirs::new()
+            .map(|dirs| dirs.config_dir().join(ControlPanelRouting::CONFIG_DIR));
+
         let labels = std::array::from_fn(|group| {
             let start_at = if group == 3 { 33 } else { 1 };
 
@@ -145,6 +152,8 @@ impl ControlPanelRouting {
         Self {
             orion_state,
             orion_hid,
+
+            config_dir,
 
             text_editor,
 
@@ -231,6 +240,17 @@ impl ControlPanelRouting {
 
         self.clear_target_selection_when_outside(ui);
         self.update_targets_on_mouseup(ui, &orion_state.routes);
+    }
+
+    pub(crate) fn create_config_dir(&self) {
+        if let Some(config_dir) = &self.config_dir {
+            std::fs::create_dir_all(config_dir).unwrap_or_else(|error| {
+                panic!(
+                    "Failed to create config directory '{}': {error}",
+                    config_dir.display()
+                )
+            });
+        }
     }
 
     fn draw_base_graphics(ui: &mut egui::Ui) {
