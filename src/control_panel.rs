@@ -80,6 +80,11 @@ impl ControlPanelDimensions {
     const VU_SOURCE_Y: u16 = 38;
     const VU_SOURCE_WIDTH: u8 = 83;
 
+    const VU_METER_LEFT_X: usize = 135;
+    const VU_METER_RIGHT_X: usize = 716;
+    const VU_METER_X_STEP: usize = 11;
+    const VU_METER_Y: usize = 60;
+
     const CLOCK_CLOCK_SOURCE_X: u16 = 508;
     const CLOCK_SAMPLE_RATE_X: u16 = 597;
     const CLOCK_Y: u16 = 92;
@@ -663,21 +668,23 @@ impl ControlPanel {
 
     fn draw_vu_meters(ui: &mut egui::Ui, left_vu_values: &[u8; 32], right_vu_values: &[u8; 32]) {
         for vu_meter_x in 0..32 {
-            let pos_x_1 = 135 + vu_meter_x * 11;
-            let pos_x_2 = pos_x_1 + 581;
+            let pos_x = vu_meter_x * ControlPanelDimensions::VU_METER_X_STEP;
+
+            let pos_x_left = ControlPanelDimensions::VU_METER_LEFT_X + pos_x;
+            let pos_x_right = ControlPanelDimensions::VU_METER_RIGHT_X + pos_x;
 
             render_vu_meter!(
                 ui,
-                pos_x_1,
-                60,
+                pos_x_left,
+                ControlPanelDimensions::VU_METER_Y,
                 left_vu_values[vu_meter_x],
                 "MonitorPeakMeter/default/background"
             );
 
             render_vu_meter!(
                 ui,
-                pos_x_2,
-                60,
+                pos_x_right,
+                ControlPanelDimensions::VU_METER_Y,
                 right_vu_values[vu_meter_x],
                 "MonitorPeakMeter/default/background"
             );
