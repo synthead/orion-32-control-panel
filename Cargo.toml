@@ -4,8 +4,11 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+directories = "6.0.0"
 eframe = "0.36.2"
 egui = "0.36.2"
 egui_extras = { version = "0.36.2", features = ["image"] }
 env_logger = { version = "0.11.11", features = ["auto-color", "humantime"] }
 hidapi = "2.6.7"
+rfd = "0.17.2"
+serde-pickle = "1.2.0"
