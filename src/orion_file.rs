@@ -29,7 +29,10 @@ impl OrionFile {
             let group = Self::list(&input[row]);
 
             std::array::from_fn(|col| {
-                Self::string(Self::field(Self::dict(&group[col]), "value")).clone()
+                let item = Self::dict(&group[col]);
+                let label = Self::string(Self::field(item, "value"));
+
+                label.clone()
             })
         });
 
@@ -40,9 +43,10 @@ impl OrionFile {
 
             std::array::from_fn(|col| {
                 let item = Self::dict(&group[col]);
+                let src_col = Self::i64_value(Self::field(item, "src_col"));
+                let src_row = Self::i64_value(Self::field(item, "src_row"));
 
-                (Self::i64_value(Self::field(item, "src_col")) * 0x08
-                    + Self::i64_value(Self::field(item, "src_row"))) as u8
+                (src_col * 0x08 + src_row) as u8
             })
         });
 
