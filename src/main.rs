@@ -12,6 +12,7 @@ mod control_panel_settings;
 mod drag_value;
 mod text_editor;
 
+mod orion_file;
 mod orion_hid;
 mod orion_hid_poller;
 mod orion_state;

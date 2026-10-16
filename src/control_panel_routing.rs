@@ -5,6 +5,7 @@ use std::path::PathBuf;
 use std::sync::Arc;
 use std::sync::Mutex;
 
+use crate::orion_file::OrionFile;
 use crate::orion_hid::OrionHid;
 use crate::orion_state::OrionState;
 
@@ -381,7 +382,23 @@ impl ControlPanelRouting {
         }
 
         if load_response.clicked() {
-            let file = self.pick_file();
+            if let Some(file) = self.pick_file() {
+                let orion_file = OrionFile::new(file);
+
+                let (labels, routes) = orion_file.decode();
+
+                self.labels = labels;
+
+                {
+                    let mut orion_hid = self.orion_hid.lock().unwrap();
+
+                    for row in 0..7 {
+                        orion_hid.queue_routes(row, &routes[row as usize]);
+                    }
+                }
+
+                self.clear_undo();
+            }
         }
     }
 
@@ -975,6 +992,11 @@ impl ControlPanelRouting {
             .queue_routes(row, &new_routes);
 
         self.undo_cursor += 1;
+    }
+
+    fn clear_undo(&mut self) {
+        self.undo_buffer = Vec::new();
+        self.undo_cursor = 0;
     }
 
     fn pick_file(&self) -> Option<PathBuf> {
