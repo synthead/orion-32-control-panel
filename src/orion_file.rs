@@ -17,14 +17,11 @@ impl OrionFile {
     pub fn decode(&self) -> ([[String; 32]; 7], [[u8; 32]; 7]) {
         let reader = File::open(&self.file)
             .unwrap_or_else(|error| panic!("Failed to open {}: {}", self.file.display(), error));
-
         let value = serde_pickle::value_from_reader(reader, Default::default())
             .unwrap_or_else(|error| panic!("Failed to decode {}: {}", self.file.display(), error));
-
         let grids = Self::dict(Self::field(Self::dict(&value), "grids"));
 
         let input = Self::list(Self::field(grids, "input"));
-
         let labels = std::array::from_fn(|row| {
             let group = Self::list(&input[row]);
 
@@ -37,7 +34,6 @@ impl OrionFile {
         });
 
         let output = Self::list(Self::field(grids, "output"));
-
         let routes = std::array::from_fn(|row| {
             let group = Self::list(&output[row]);
 
