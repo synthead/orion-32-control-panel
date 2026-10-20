@@ -6,7 +6,7 @@ use crate::orion_state::OrionState;
 
 pub(crate) struct OrionHidPoller {
     hid_api: Option<HidApi>,
-    orion_hid: Option<HidDevice>,
+    hid_device: Option<HidDevice>,
     orion_state: Arc<Mutex<OrionState>>,
     hid_write_rx: mpsc::Receiver<[u8; 64]>,
 }
@@ -24,18 +24,18 @@ impl OrionHidPoller {
             orion_state,
             hid_write_rx,
             hid_api: None,
-            orion_hid: None,
+            hid_device: None,
         }
     }
 
     pub(crate) fn poll_and_update_state(&mut self) {
-        if self.orion_hid.is_none() && !self.try_connect() {
+        if self.hid_device.is_none() && !self.try_connect() {
             self.discard_pending_writes();
             return;
         }
 
         while let Ok(packet) = self.hid_write_rx.try_recv() {
-            let result = self.orion_hid.as_ref().unwrap().write(&packet);
+            let result = self.hid_device.as_ref().unwrap().write(&packet);
 
             if result.is_err() {
                 self.disconnect();
@@ -47,7 +47,7 @@ impl OrionHidPoller {
         let mut hid_data = [0u8; 64];
 
         match self
-            .orion_hid
+            .hid_device
             .as_ref()
             .unwrap()
             .read_timeout(&mut hid_data, Self::READ_TIMEOUT_MS)
@@ -154,8 +154,8 @@ impl OrionHidPoller {
             }
         };
 
-        let orion_hid = match hid_api.open(Self::USB_VENDOR, Self::USB_PRODUCT) {
-            Ok(orion_hid) => orion_hid,
+        let hid_device = match hid_api.open(Self::USB_VENDOR, Self::USB_PRODUCT) {
+            Ok(hid_device) => hid_device,
             Err(_) => {
                 self.set_present(false);
                 return false;
@@ -163,7 +163,7 @@ impl OrionHidPoller {
         };
 
         self.hid_api = Some(hid_api);
-        self.orion_hid = Some(orion_hid);
+        self.hid_device = Some(hid_device);
 
         self.set_present(true);
 
@@ -171,7 +171,7 @@ impl OrionHidPoller {
     }
 
     fn disconnect(&mut self) {
-        self.orion_hid = None;
+        self.hid_device = None;
         self.hid_api = None;
 
         self.set_present(false);
