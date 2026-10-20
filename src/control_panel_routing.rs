@@ -100,7 +100,6 @@ pub(crate) struct ControlPanelRouting {
     undo_cursor: usize,
 
     labels: [[String; 32]; 7],
-    is_24_channel: bool,
 
     source_counts: [usize; 7],
     target_counts: [usize; 7],
@@ -162,7 +161,6 @@ impl ControlPanelRouting {
             undo_cursor: 0,
 
             labels,
-            is_24_channel: false,
 
             source_counts: [0; 7],
             target_counts: [0; 7],
@@ -187,9 +185,11 @@ impl ControlPanelRouting {
     pub(crate) fn draw(&mut self, ui: &mut egui::Ui) {
         let orion_state = self.orion_state.lock().unwrap().clone();
 
-        self.is_24_channel = orion_state.usb_channels_spdif_src & 0x02 == 0x00;
-
-        let usb_channel_count = if self.is_24_channel { 24 } else { 32 };
+        let usb_channel_count = if orion_state.usb_channels_spdif_src & 0x02 == 0x00 {
+            24
+        } else {
+            32
+        };
 
         let madi_1_count = match orion_state.sample_rate {
             5 | 6 => 16,
@@ -872,7 +872,7 @@ impl ControlPanelRouting {
                 let row = route % ControlPanelRouteCodes::COLUMN;
                 let column = route / ControlPanelRouteCodes::COLUMN;
 
-                if self.is_24_channel && row == 1 && column >= 24 {
+                if row == ControlPanelRouteCodes::USB && column as usize >= self.source_counts[1] {
                     return None;
                 }
 
@@ -888,17 +888,14 @@ impl ControlPanelRouting {
             ControlPanelRouteCodes::MUTE => ControlPanelRouteLabels::MUTE.to_string(),
 
             _ => {
-                let source_row = route % ControlPanelRouteCodes::COLUMN;
-                let source_column = route / ControlPanelRouteCodes::COLUMN;
+                let row = route % ControlPanelRouteCodes::COLUMN;
+                let column = route / ControlPanelRouteCodes::COLUMN;
 
-                if self.is_24_channel
-                    && source_row == ControlPanelRouteCodes::USB
-                    && source_column >= 24
-                {
+                if row == ControlPanelRouteCodes::USB && column as usize >= self.source_counts[1] {
                     return ControlPanelRouteLabels::MUTE.to_string();
                 }
 
-                self.labels[source_row as usize][source_column as usize].clone()
+                self.labels[row as usize][column as usize].clone()
             }
         }
     }
@@ -910,17 +907,14 @@ impl ControlPanelRouting {
             ControlPanelRouteCodes::MUTE => ControlPanelRouteColors::MUTE,
 
             _ => {
-                let source_row = route % ControlPanelRouteCodes::COLUMN;
-                let source_column = route / ControlPanelRouteCodes::COLUMN;
+                let row = route % ControlPanelRouteCodes::COLUMN;
+                let column = route / ControlPanelRouteCodes::COLUMN;
 
-                if self.is_24_channel
-                    && source_row == ControlPanelRouteCodes::USB
-                    && source_column >= 24
-                {
+                if row == ControlPanelRouteCodes::USB && column as usize >= self.source_counts[1] {
                     return ControlPanelRouteColors::MUTE;
                 }
 
-                match source_row {
+                match row {
                     ControlPanelRouteCodes::ADC_DAC => ControlPanelRouteColors::ADC_DAC,
                     ControlPanelRouteCodes::USB => ControlPanelRouteColors::USB,
                     ControlPanelRouteCodes::MADI_1 => ControlPanelRouteColors::MADI,
