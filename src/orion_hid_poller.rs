@@ -183,7 +183,7 @@ impl OrionHidPoller {
         orion_state.present = present;
 
         if !present {
-          orion_state.initialized = false;
+            orion_state.initialized = false;
         }
     }
 
