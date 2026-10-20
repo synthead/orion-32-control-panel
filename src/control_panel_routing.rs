@@ -871,7 +871,10 @@ impl ControlPanelRouting {
                 let route_type = route % ControlPanelRouteCodes::COLUMN;
                 let route_index = route / ControlPanelRouteCodes::COLUMN;
 
-                if self.is_24_channel && route_type == 1 && route_index >= 24 {
+                if self.is_24_channel
+                    && route_type == ControlPanelRouteCodes::USB
+                    && route_index >= 24
+                {
                     return ControlPanelRouteLabels::MUTE.to_string();
                 }
 
@@ -890,7 +893,10 @@ impl ControlPanelRouting {
                 let route_type = route % ControlPanelRouteCodes::COLUMN;
                 let route_index = route / ControlPanelRouteCodes::COLUMN;
 
-                if self.is_24_channel && route_type == 1 && route_index >= 24 {
+                if self.is_24_channel
+                    && route_type == ControlPanelRouteCodes::USB
+                    && route_index >= 24
+                {
                     return ControlPanelRouteColors::MUTE;
                 }
 
