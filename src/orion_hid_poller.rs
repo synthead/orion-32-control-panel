@@ -112,19 +112,19 @@ impl OrionHidPoller {
     fn transform_routes(hid_data: &[u8; 64], orion_state: &mut OrionState) {
         let source_index = hid_data[16] as usize;
 
-        orion_state.routes[source_index] = hid_data[17..49].try_into().unwrap()
+        orion_state.routes[source_index] = hid_data[17..49].try_into().unwrap();
     }
 
     fn transform_mixer_levels(hid_data: &[u8; 64], orion_state: &mut OrionState) {
-        orion_state.mixer_levels = hid_data[16..49].try_into().unwrap()
+        orion_state.mixer_levels = hid_data[16..49].try_into().unwrap();
     }
 
     fn transform_mixer_pans_solos_mutes(hid_data: &[u8; 64], orion_state: &mut OrionState) {
-        orion_state.mixer_pans_solos_mutes = hid_data[16..49].try_into().unwrap()
+        orion_state.mixer_pans_solos_mutes = hid_data[16..49].try_into().unwrap();
     }
 
     fn transform_ad_phases(hid_data: &[u8; 64], orion_state: &mut OrionState) {
-        orion_state.ad_phases = hid_data[17..21].try_into().unwrap()
+        orion_state.ad_phases = hid_data[17..21].try_into().unwrap();
     }
 
     fn hid_api(&mut self) -> &mut HidApi {
