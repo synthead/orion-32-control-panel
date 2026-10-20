@@ -888,17 +888,17 @@ impl ControlPanelRouting {
             ControlPanelRouteCodes::MUTE => ControlPanelRouteLabels::MUTE.to_string(),
 
             _ => {
-                let route_type = route % ControlPanelRouteCodes::COLUMN;
-                let route_index = route / ControlPanelRouteCodes::COLUMN;
+                let source_row = route % ControlPanelRouteCodes::COLUMN;
+                let source_column = route / ControlPanelRouteCodes::COLUMN;
 
                 if self.is_24_channel
-                    && route_type == ControlPanelRouteCodes::USB
-                    && route_index >= 24
+                    && source_row == ControlPanelRouteCodes::USB
+                    && source_column >= 24
                 {
                     return ControlPanelRouteLabels::MUTE.to_string();
                 }
 
-                self.labels[route_type as usize][route_index as usize].clone()
+                self.labels[source_row as usize][source_column as usize].clone()
             }
         }
     }
@@ -910,17 +910,17 @@ impl ControlPanelRouting {
             ControlPanelRouteCodes::MUTE => ControlPanelRouteColors::MUTE,
 
             _ => {
-                let route_type = route % ControlPanelRouteCodes::COLUMN;
-                let route_index = route / ControlPanelRouteCodes::COLUMN;
+                let source_row = route % ControlPanelRouteCodes::COLUMN;
+                let source_column = route / ControlPanelRouteCodes::COLUMN;
 
                 if self.is_24_channel
-                    && route_type == ControlPanelRouteCodes::USB
-                    && route_index >= 24
+                    && source_row == ControlPanelRouteCodes::USB
+                    && source_column >= 24
                 {
                     return ControlPanelRouteColors::MUTE;
                 }
 
-                match route_type {
+                match source_row {
                     ControlPanelRouteCodes::ADC_DAC => ControlPanelRouteColors::ADC_DAC,
                     ControlPanelRouteCodes::USB => ControlPanelRouteColors::USB,
                     ControlPanelRouteCodes::MADI_1 => ControlPanelRouteColors::MADI,
