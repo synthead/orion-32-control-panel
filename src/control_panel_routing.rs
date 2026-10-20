@@ -69,7 +69,7 @@ struct ControlPanelRouteCodes;
 impl ControlPanelRouteCodes {
     const ADC_DAC: u8 = 0x00;
     const USB: u8 = 0x01;
-    const MADI: u8 = 0x02;
+    const MADI_1: u8 = 0x02;
     const MADI_2: u8 = 0x03;
     const ADAT: u8 = 0x04;
     const SPDIF: u8 = 0x05;
@@ -901,7 +901,7 @@ impl ControlPanelRouting {
                 match route_type {
                     ControlPanelRouteCodes::ADC_DAC => ControlPanelRouteColors::ADC_DAC,
                     ControlPanelRouteCodes::USB => ControlPanelRouteColors::USB,
-                    ControlPanelRouteCodes::MADI => ControlPanelRouteColors::MADI,
+                    ControlPanelRouteCodes::MADI_1 => ControlPanelRouteColors::MADI,
                     ControlPanelRouteCodes::MADI_2 => ControlPanelRouteColors::MADI,
                     ControlPanelRouteCodes::ADAT => ControlPanelRouteColors::ADAT,
                     ControlPanelRouteCodes::SPDIF => ControlPanelRouteColors::SPDIF,
