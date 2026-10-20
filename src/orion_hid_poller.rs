@@ -2,10 +2,11 @@ use hidapi::{HidApi, HidDevice};
 use std::sync::mpsc;
 use std::sync::{Arc, Mutex};
 
+use crate::orion_hid::OrionHid;
 use crate::orion_state::OrionState;
 
 pub(crate) struct OrionHidPoller {
-    hid_api: Option<HidApi>,
+    hid_api: HidApi,
     hid_device: Option<HidDevice>,
     orion_state: Arc<Mutex<OrionState>>,
     hid_write_rx: mpsc::Receiver<[u8; 64]>,
@@ -20,10 +21,15 @@ impl OrionHidPoller {
         orion_state: Arc<Mutex<OrionState>>,
         hid_write_rx: mpsc::Receiver<[u8; 64]>,
     ) -> Self {
+        let hid_api = HidApi::new().unwrap_or_else(|error| {
+            eprintln!("Failed to initialize HIDAPI: {error}");
+            std::process::exit(1);
+        });
+
         Self {
             orion_state,
             hid_write_rx,
-            hid_api: None,
+            hid_api,
             hid_device: None,
         }
     }
@@ -146,15 +152,7 @@ impl OrionHidPoller {
     }
 
     fn try_connect(&mut self) -> bool {
-        let hid_api = match HidApi::new() {
-            Ok(hid_api) => hid_api,
-            Err(_) => {
-                self.set_present(false);
-                return false;
-            }
-        };
-
-        let hid_device = match hid_api.open(Self::USB_VENDOR, Self::USB_PRODUCT) {
+        let hid_device = match self.hid_api.open(Self::USB_VENDOR, Self::USB_PRODUCT) {
             Ok(hid_device) => hid_device,
             Err(_) => {
                 self.set_present(false);
@@ -162,9 +160,7 @@ impl OrionHidPoller {
             }
         };
 
-        self.hid_api = Some(hid_api);
         self.hid_device = Some(hid_device);
-
         self.set_present(true);
 
         true
@@ -172,8 +168,6 @@ impl OrionHidPoller {
 
     fn disconnect(&mut self) {
         self.hid_device = None;
-        self.hid_api = None;
-
         self.set_present(false);
     }
 
