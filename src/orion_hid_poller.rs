@@ -1,8 +1,6 @@
-use hidapi::HidApi;
-use hidapi::HidDevice;
+use hidapi::{HidApi, HidDevice};
 use std::sync::mpsc;
-use std::sync::Arc;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 
 use crate::orion_state::OrionState;
 
@@ -16,6 +14,7 @@ pub(crate) struct OrionHidPoller {
 impl OrionHidPoller {
     const USB_VENDOR: u16 = 0x23e5;
     const USB_PRODUCT: u16 = 0xa040;
+    const READ_TIMEOUT_MS: i32 = 100;
 
     pub(crate) fn new(
         orion_state: Arc<Mutex<OrionState>>,
@@ -30,20 +29,39 @@ impl OrionHidPoller {
     }
 
     pub(crate) fn poll_and_update_state(&mut self) {
+        if self.orion_hid.is_none() && !self.try_connect() {
+            self.discard_pending_writes();
+            return;
+        }
+
         while let Ok(packet) = self.hid_write_rx.try_recv() {
-            self.orion_hid()
-                .write(&packet)
-                .expect("Failed to write HID packet");
+            let result = self.orion_hid.as_ref().unwrap().write(&packet);
+
+            if result.is_err() {
+                self.disconnect();
+                self.discard_pending_writes();
+                return;
+            }
         }
 
         let mut hid_data = [0u8; 64];
 
-        self.orion_hid()
-            .read(&mut hid_data)
-            .expect("Failed to read HID packet");
+        match self
+            .orion_hid
+            .as_ref()
+            .unwrap()
+            .read_timeout(&mut hid_data, Self::READ_TIMEOUT_MS)
+        {
+            Ok(64) => {
+                let mut orion_state = self.orion_state.lock().unwrap();
 
-        let mut state = self.orion_state.lock().unwrap();
-        Self::update_orion_state(&hid_data, &mut state);
+                Self::update_orion_state(&hid_data, &mut orion_state);
+            }
+            Ok(_) => {}
+            Err(_) => {
+                self.disconnect();
+            }
+        }
     }
 
     fn update_orion_state(hid_data: &[u8; 64], orion_state: &mut OrionState) {
@@ -127,21 +145,49 @@ impl OrionHidPoller {
         orion_state.ad_phases = hid_data[17..21].try_into().unwrap();
     }
 
-    fn hid_api(&mut self) -> &mut HidApi {
-        self.hid_api
-            .get_or_insert_with(|| HidApi::new().expect("Failed to create API instance"))
+    fn try_connect(&mut self) -> bool {
+        let hid_api = match HidApi::new() {
+            Ok(hid_api) => hid_api,
+            Err(_) => {
+                self.set_present(false);
+                return false;
+            }
+        };
+
+        let orion_hid = match hid_api.open(Self::USB_VENDOR, Self::USB_PRODUCT) {
+            Ok(orion_hid) => orion_hid,
+            Err(_) => {
+                self.set_present(false);
+                return false;
+            }
+        };
+
+        self.hid_api = Some(hid_api);
+        self.orion_hid = Some(orion_hid);
+
+        self.set_present(true);
+
+        true
     }
 
-    fn orion_hid(&mut self) -> &mut HidDevice {
-        if self.orion_hid.is_none() {
-            let device = self
-                .hid_api()
-                .open(Self::USB_VENDOR, Self::USB_PRODUCT)
-                .expect("Failed to open device");
+    fn disconnect(&mut self) {
+        self.orion_hid = None;
+        self.hid_api = None;
 
-            self.orion_hid = Some(device);
+        self.set_present(false);
+    }
+
+    fn set_present(&self, present: bool) {
+        let mut orion_state = self.orion_state.lock().unwrap();
+
+        orion_state.present = present;
+
+        if !present {
+          orion_state.initialized = false;
         }
+    }
 
-        self.orion_hid.as_mut().unwrap()
+    fn discard_pending_writes(&self) {
+        while self.hid_write_rx.try_recv().is_ok() {}
     }
 }
