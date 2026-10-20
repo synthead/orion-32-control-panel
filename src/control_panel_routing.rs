@@ -376,11 +376,33 @@ impl ControlPanelRouting {
         }
 
         if save_response.clicked() {
-            let file = self.pick_file();
+            let mut dialog = rfd::FileDialog::new().add_filter("Orion 32 Routing File", &["o32r"]);
+
+            if let Some(config_dir) = &self.config_dir {
+                dialog = dialog.set_directory(config_dir);
+            }
+
+            if let Some(file) = dialog.save_file() {
+                let orion_file = OrionFile::new(file);
+                let orion_state = self.orion_state.lock().unwrap().clone();
+
+                orion_file.encode(
+                    &self.labels,
+                    &orion_state.routes,
+                    &self.source_counts,
+                    &self.target_counts,
+                );
+            }
         }
 
         if load_response.clicked() {
-            if let Some(file) = self.pick_file() {
+            let mut dialog = rfd::FileDialog::new().add_filter("Orion 32 Routing File", &["o32r"]);
+
+            if let Some(config_dir) = &self.config_dir {
+                dialog = dialog.set_directory(config_dir);
+            }
+
+            if let Some(file) = dialog.pick_file() {
                 let orion_file = OrionFile::new(file);
 
                 let (labels, routes) = orion_file.decode();
@@ -391,7 +413,7 @@ impl ControlPanelRouting {
                     let mut orion_hid = self.orion_hid.lock().unwrap();
 
                     for row in 0..7 {
-                        orion_hid.queue_routes(row, &routes[row as usize]);
+                        orion_hid.queue_routes(row as u8, &routes[row]);
                     }
                 }
 
@@ -1001,15 +1023,5 @@ impl ControlPanelRouting {
     fn clear_undo(&mut self) {
         self.undo_buffer = Vec::new();
         self.undo_cursor = 0;
-    }
-
-    fn pick_file(&self) -> Option<PathBuf> {
-        let mut dialog = rfd::FileDialog::new().add_filter("Orion 32 Routing File", &["o32r"]);
-
-        if let Some(config_dir) = &self.config_dir {
-            dialog = dialog.set_directory(config_dir);
-        }
-
-        dialog.pick_file()
     }
 }
