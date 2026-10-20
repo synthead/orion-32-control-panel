@@ -1,5 +1,8 @@
 #[derive(Clone)]
 pub(crate) struct OrionState {
+    pub(crate) present: bool,
+    pub(crate) initialized: bool,
+
     pub(crate) serial: [u8; 13],
     pub(crate) hardware_version: [u8; 8],
     pub(crate) firmware_version: [u8; 2],
@@ -29,6 +32,9 @@ pub(crate) struct OrionState {
 impl Default for OrionState {
     fn default() -> Self {
         Self {
+            present: false,
+            initialized: false,
+
             serial: [0; 13],
             hardware_version: [0; 8],
             firmware_version: [0; 2],
