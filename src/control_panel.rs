@@ -663,10 +663,10 @@ impl ControlPanel {
 
                 orion_hid.queue_preset(preset);
 
-                orion_hid.queue_get_routes();
-                orion_hid.queue_get_mixer_levels();
-                orion_hid.queue_get_mixer_pans();
-                orion_hid.queue_get_ad_phases();
+                self.orion_state
+                    .lock()
+                    .unwrap()
+                    .acquired_routes_mixer_ad_phases = false;
             }
         }
     }
