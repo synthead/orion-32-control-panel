@@ -5,6 +5,7 @@ use crate::orion_hid::OrionHid;
 use crate::orion_state::OrionState;
 
 use crate::drag_value::DragValue;
+use crate::ignore_value::IgnoreValue;
 use crate::text_editor::TextEditor;
 
 use crate::control_panel_helpers::ControlPanelHelpers;
@@ -77,6 +78,7 @@ pub(crate) struct ControlPanelSettings {
     text_editor: Arc<Mutex<TextEditor>>,
     drag_value: Arc<Mutex<DragValue>>,
 
+    brightness_ignore: IgnoreValue,
     pub(crate) enabled: bool,
 }
 
@@ -107,6 +109,7 @@ impl ControlPanelSettings {
             text_editor,
             drag_value,
 
+            brightness_ignore: IgnoreValue::new(),
             enabled: false,
         }
     }
@@ -319,7 +322,7 @@ impl ControlPanelSettings {
         }
     }
 
-    fn draw_brightness(&mut self, ui: &mut egui::Ui, brightness: u8) {
+    fn draw_brightness(&mut self, ui: &mut egui::Ui, mut brightness: u8) {
         let hitbox_rect = egui::Rect::from_min_size(
             egui::pos2(
                 ControlPanelSettingsDimensions::BRIGHTNESS_SLIDER_HITBOX_X,
@@ -330,6 +333,8 @@ impl ControlPanelSettings {
                 ControlPanelSettingsDimensions::BRIGHTNESS_SLIDER_HITBOX_HEIGHT,
             ),
         );
+
+        brightness = self.brightness_ignore.value_with_ignore(brightness);
 
         let (brightness, should_write) = self.drag_value.lock().unwrap().value_with_drag(
             ui,
@@ -343,6 +348,7 @@ impl ControlPanelSettings {
         );
 
         if should_write {
+            self.brightness_ignore.begin_ignore(brightness);
             self.orion_hid.lock().unwrap().queue_brightness(brightness);
         }
 
