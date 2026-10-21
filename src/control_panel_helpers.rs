@@ -37,27 +37,6 @@ macro_rules! render_asset {
 pub(crate) struct ControlPanelHelpers;
 
 impl ControlPanelHelpers {
-    pub(crate) fn draw_text(
-        ui: &mut egui::Ui,
-        center_x: u16,
-        pos_y: u16,
-        color: (u8, u8, u8),
-        text: &str,
-        size: f32,
-    ) {
-        let color = egui::Color32::from_rgb(color.0, color.1, color.2);
-        let label = egui::Label::new(egui::RichText::new(text).strong().size(size).color(color));
-        let (_, galley, _) = label.layout_in_ui(ui);
-
-        let pos_x = center_x as f32 - galley.size().x / 2.0;
-
-        ui.painter().galley(
-            egui::pos2(pos_x, pos_y as f32),
-            galley,
-            egui::Color32::PLACEHOLDER,
-        );
-    }
-
     pub(crate) fn draw_combobox(
         ui: &mut egui::Ui,
         x: u16,

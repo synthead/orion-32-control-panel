@@ -963,13 +963,12 @@ impl ControlPanelRouting {
 
         ui.painter().rect_filled(rect, 0.0, color);
 
-        ControlPanelHelpers::draw_text(
-            ui,
-            pos_x as u16 + 15,
-            pos_y as u16,
-            (0xff, 0xff, 0xff),
+        ui.painter().text(
+            egui::pos2(pos_x + 15.0, pos_y),
+            egui::Align2::CENTER_TOP,
             label,
-            12.0,
+            egui::FontId::proportional(12.0),
+            egui::Color32::WHITE,
         );
 
         rect
