@@ -37,15 +37,16 @@ impl OrionHidPoller {
     pub(crate) fn poll_and_update_state(&mut self) {
         if self.hid_device.is_none() && !self.try_connect() {
             self.discard_pending_writes();
+
+            return;
+        }
+
+        if !self.ensure_init() {
             return;
         }
 
         while let Ok(packet) = self.hid_write_rx.try_recv() {
-            let result = self.hid_device.as_ref().unwrap().write(&packet);
-
-            if result.is_err() {
-                self.disconnect();
-                self.discard_pending_writes();
+            if !self.write_packet(&packet) {
                 return;
             }
         }
@@ -68,6 +69,42 @@ impl OrionHidPoller {
                 self.disconnect();
             }
         }
+    }
+
+    fn ensure_init(&mut self) -> bool {
+        let (acquired_serial_firmware, acquired_routes_mixer_ad_phases) = {
+            let orion_state = self.orion_state.lock().unwrap();
+
+            (
+                orion_state.acquired_serial_firmware,
+                orion_state.acquired_routes_mixer_ad_phases,
+            )
+        };
+
+        if !acquired_serial_firmware {
+            for packet in OrionHid::create_get_serial_firmware() {
+                if !self.write_packet(&packet) {
+                    return false;
+                }
+            }
+
+            self.orion_state.lock().unwrap().acquired_serial_firmware = true;
+        }
+
+        if !acquired_routes_mixer_ad_phases {
+            for packet in OrionHid::create_get_routes_mixer_ad_phases() {
+                if !self.write_packet(&packet) {
+                    return false;
+                }
+            }
+
+            self.orion_state
+                .lock()
+                .unwrap()
+                .acquired_routes_mixer_ad_phases = true;
+        }
+
+        true
     }
 
     fn update_orion_state(hid_data: &[u8; 64], orion_state: &mut OrionState) {
@@ -166,6 +203,18 @@ impl OrionHidPoller {
         true
     }
 
+    fn write_packet(&mut self, packet: &[u8; 64]) -> bool {
+        match self.hid_device.as_ref().unwrap().write(packet) {
+            Ok(_) => true,
+            Err(_) => {
+                self.disconnect();
+                self.discard_pending_writes();
+
+                false
+            }
+        }
+    }
+
     fn disconnect(&mut self) {
         self.hid_device = None;
         self.set_present(false);
@@ -177,7 +226,8 @@ impl OrionHidPoller {
         orion_state.present = present;
 
         if !present {
-            orion_state.initialized = false;
+            orion_state.acquired_serial_firmware = false;
+            orion_state.acquired_routes_mixer_ad_phases = false;
         }
     }
 
