@@ -185,8 +185,7 @@ impl ControlPanel {
             hid_write_rx,
         )));
 
-        let mut orion_hid = OrionHid::new(hid_write_tx, Arc::clone(&orion_state));
-        orion_hid.queue_init();
+        let orion_hid = OrionHid::new(hid_write_tx, Arc::clone(&orion_state));
 
         let orion_hid = Arc::new(Mutex::new(orion_hid));
         let text_editor = Arc::new(Mutex::new(TextEditor::new()));
