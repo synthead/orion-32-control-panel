@@ -10,6 +10,7 @@ mod control_panel_routing;
 mod control_panel_settings;
 
 mod drag_value;
+mod ignore_value;
 mod text_editor;
 
 mod orion_file;
