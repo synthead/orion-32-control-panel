@@ -6,10 +6,11 @@ use crate::orion_hid::OrionHid;
 use crate::orion_state::OrionState;
 
 pub(crate) struct OrionHidPoller {
-    hid_api: HidApi,
-    hid_device: Option<HidDevice>,
     orion_state: Arc<Mutex<OrionState>>,
     hid_write_rx: mpsc::Receiver<[u8; 64]>,
+
+    hid_api: HidApi,
+    hid_device: Option<HidDevice>,
 }
 
 impl OrionHidPoller {
@@ -29,6 +30,7 @@ impl OrionHidPoller {
         Self {
             orion_state,
             hid_write_rx,
+
             hid_api,
             hid_device: None,
         }
