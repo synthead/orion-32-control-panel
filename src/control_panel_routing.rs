@@ -12,9 +12,9 @@ use crate::text_editor::TextEditor;
 
 use crate::render_asset;
 
-struct ControlPanelRouteColors;
+struct ControlPanelRoutingColors;
 
-impl ControlPanelRouteColors {
+impl ControlPanelRoutingColors {
     const ADC_DAC: egui::Color32 = egui::Color32::from_rgb(0x20, 0xa4, 0xf7);
     const USB: egui::Color32 = egui::Color32::from_rgb(0x00, 0x73, 0xff);
     const MADI: egui::Color32 = egui::Color32::from_rgb(0xff, 0xb8, 0x00);
@@ -28,9 +28,9 @@ impl ControlPanelRouteColors {
     const TEXT: egui::Color32 = egui::Color32::WHITE;
 }
 
-struct ControlPanelRouteDimensions;
+struct ControlPanelRoutingDimensions;
 
-impl ControlPanelRouteDimensions {
+impl ControlPanelRoutingDimensions {
     const BACKGROUND_X: u16 = 0;
     const BACKGROUND_Y: u16 = 226;
 
@@ -65,9 +65,9 @@ impl ControlPanelRouteDimensions {
     const HOWTO_Y: u16 = 652;
 }
 
-struct ControlPanelRouteCodes;
+struct ControlPanelRoutingCodes;
 
-impl ControlPanelRouteCodes {
+impl ControlPanelRoutingCodes {
     const ADC_DAC: u8 = 0x00;
     const USB: u8 = 0x01;
     const MADI_1: u8 = 0x02;
@@ -81,9 +81,9 @@ impl ControlPanelRouteCodes {
     const COLUMN: u8 = 0x08;
 }
 
-struct ControlPanelRouteLabels;
+struct ControlPanelRoutingLabels;
 
-impl ControlPanelRouteLabels {
+impl ControlPanelRoutingLabels {
     const OSC_1: &str = "O1";
     const OSC_2: &str = "O2";
     const MUTE: &str = "M";
@@ -255,8 +255,8 @@ impl ControlPanelRouting {
     fn draw_base_graphics(ui: &mut egui::Ui) {
         render_asset!(
             ui,
-            ControlPanelRouteDimensions::BACKGROUND_X,
-            ControlPanelRouteDimensions::BACKGROUND_Y,
+            ControlPanelRoutingDimensions::BACKGROUND_X,
+            ControlPanelRoutingDimensions::BACKGROUND_Y,
             "Routing/default/background",
             1.0,
             0.0,
@@ -265,8 +265,8 @@ impl ControlPanelRouting {
 
         render_asset!(
             ui,
-            ControlPanelRouteDimensions::HOWTO_X,
-            ControlPanelRouteDimensions::HOWTO_Y,
+            ControlPanelRoutingDimensions::HOWTO_X,
+            ControlPanelRoutingDimensions::HOWTO_Y,
             "HowtoButton/default/released",
             1.0,
             0.0,
@@ -277,8 +277,8 @@ impl ControlPanelRouting {
     fn draw_undo(&mut self, ui: &mut egui::Ui) {
         let undo_response = render_asset!(
             ui,
-            ControlPanelRouteDimensions::NAV_X,
-            ControlPanelRouteDimensions::NAV_UNDO_Y,
+            ControlPanelRoutingDimensions::NAV_X,
+            ControlPanelRoutingDimensions::NAV_UNDO_Y,
             "UndoButton/default/released",
             1.0,
             0.0,
@@ -288,8 +288,8 @@ impl ControlPanelRouting {
         if undo_response.is_pointer_button_down_on() != undo_response.hovered() {
             render_asset!(
                 ui,
-                ControlPanelRouteDimensions::NAV_X,
-                ControlPanelRouteDimensions::NAV_UNDO_Y,
+                ControlPanelRoutingDimensions::NAV_X,
+                ControlPanelRoutingDimensions::NAV_UNDO_Y,
                 "UndoButton/default/pressed",
                 1.0,
                 0.0,
@@ -299,8 +299,8 @@ impl ControlPanelRouting {
 
         let redo_response = render_asset!(
             ui,
-            ControlPanelRouteDimensions::NAV_X,
-            ControlPanelRouteDimensions::NAV_REDO_Y,
+            ControlPanelRoutingDimensions::NAV_X,
+            ControlPanelRoutingDimensions::NAV_REDO_Y,
             "RedoButton/default/released",
             1.0,
             0.0,
@@ -310,8 +310,8 @@ impl ControlPanelRouting {
         if redo_response.is_pointer_button_down_on() != redo_response.hovered() {
             render_asset!(
                 ui,
-                ControlPanelRouteDimensions::NAV_X,
-                ControlPanelRouteDimensions::NAV_REDO_Y,
+                ControlPanelRoutingDimensions::NAV_X,
+                ControlPanelRoutingDimensions::NAV_REDO_Y,
                 "RedoButton/default/pressed",
                 1.0,
                 0.0,
@@ -331,8 +331,8 @@ impl ControlPanelRouting {
     fn draw_save(&mut self, ui: &mut egui::Ui) {
         let save_response = render_asset!(
             ui,
-            ControlPanelRouteDimensions::NAV_X,
-            ControlPanelRouteDimensions::NAV_SAVE_Y,
+            ControlPanelRoutingDimensions::NAV_X,
+            ControlPanelRoutingDimensions::NAV_SAVE_Y,
             "SaveRoutingButton/default/released",
             1.0,
             0.0,
@@ -342,8 +342,8 @@ impl ControlPanelRouting {
         if save_response.is_pointer_button_down_on() != save_response.hovered() {
             render_asset!(
                 ui,
-                ControlPanelRouteDimensions::NAV_X,
-                ControlPanelRouteDimensions::NAV_SAVE_Y,
+                ControlPanelRoutingDimensions::NAV_X,
+                ControlPanelRoutingDimensions::NAV_SAVE_Y,
                 "SaveRoutingButton/default/pressed",
                 1.0,
                 0.0,
@@ -353,8 +353,8 @@ impl ControlPanelRouting {
 
         let load_response = render_asset!(
             ui,
-            ControlPanelRouteDimensions::NAV_X,
-            ControlPanelRouteDimensions::NAV_LOAD_Y,
+            ControlPanelRoutingDimensions::NAV_X,
+            ControlPanelRoutingDimensions::NAV_LOAD_Y,
             "LoadRoutingButton/default/released",
             1.0,
             0.0,
@@ -364,8 +364,8 @@ impl ControlPanelRouting {
         if load_response.is_pointer_button_down_on() != load_response.hovered() {
             render_asset!(
                 ui,
-                ControlPanelRouteDimensions::NAV_X,
-                ControlPanelRouteDimensions::NAV_LOAD_Y,
+                ControlPanelRoutingDimensions::NAV_X,
+                ControlPanelRoutingDimensions::NAV_LOAD_Y,
                 "LoadRoutingButton/default/pressed",
                 1.0,
                 0.0,
@@ -426,7 +426,7 @@ impl ControlPanelRouting {
 
         let color = if self.source_select_row == row && self.source_select_columns.contains(&column)
         {
-            ControlPanelRouteColors::SELECT
+            ControlPanelRoutingColors::SELECT
         } else {
             self.color_for_route(row)
         };
@@ -434,8 +434,8 @@ impl ControlPanelRouting {
         let rect = egui::Rect::from_min_size(
             egui::pos2(pos_x, pos_y),
             egui::vec2(
-                ControlPanelRouteDimensions::SIZE_X,
-                ControlPanelRouteDimensions::SIZE_Y,
+                ControlPanelRoutingDimensions::SIZE_X,
+                ControlPanelRoutingDimensions::SIZE_Y,
             ),
         );
 
@@ -459,8 +459,8 @@ impl ControlPanelRouting {
             rect,
             &id_with,
             &label,
-            ControlPanelRouteDimensions::TEXT_SIZE,
-            ControlPanelRouteColors::TEXT,
+            ControlPanelRoutingDimensions::TEXT_SIZE,
+            ControlPanelRoutingColors::TEXT,
         );
     }
 
@@ -487,8 +487,8 @@ impl ControlPanelRouting {
             rect,
             &format!("route_{column}_{row}"),
             &label,
-            ControlPanelRouteDimensions::TEXT_SIZE,
-            ControlPanelRouteColors::TEXT,
+            ControlPanelRoutingDimensions::TEXT_SIZE,
+            ControlPanelRoutingColors::TEXT,
         );
 
         if let Some((route_text, tab)) = level_edit_result {
@@ -595,7 +595,7 @@ impl ControlPanelRouting {
                 let route = routes[column];
 
                 let color = if self.target_select_cell == Some([column as u8, row as u8]) {
-                    ControlPanelRouteColors::SELECT
+                    ControlPanelRoutingColors::SELECT
                 } else {
                     self.color_for_route(route)
                 };
@@ -622,7 +622,7 @@ impl ControlPanelRouting {
                             &routes,
                             Some(column),
                             row,
-                            ControlPanelRouteCodes::MUTE,
+                            ControlPanelRoutingCodes::MUTE,
                         );
 
                         ui.close();
@@ -633,7 +633,7 @@ impl ControlPanelRouting {
                             &routes,
                             None,
                             row,
-                            ControlPanelRouteCodes::MUTE,
+                            ControlPanelRoutingCodes::MUTE,
                         );
 
                         ui.close();
@@ -644,7 +644,7 @@ impl ControlPanelRouting {
                             &routes,
                             Some(column),
                             row,
-                            ControlPanelRouteCodes::OSC_1,
+                            ControlPanelRoutingCodes::OSC_1,
                         );
 
                         ui.close();
@@ -655,7 +655,7 @@ impl ControlPanelRouting {
                             &routes,
                             Some(column),
                             row,
-                            ControlPanelRouteCodes::OSC_2,
+                            ControlPanelRoutingCodes::OSC_2,
                         );
 
                         ui.close();
@@ -717,13 +717,13 @@ impl ControlPanelRouting {
 
         ui.painter().text(
             egui::pos2(
-                ControlPanelRouteDimensions::TEXT_X,
-                ControlPanelRouteDimensions::TEXT_Y,
+                ControlPanelRoutingDimensions::TEXT_X,
+                ControlPanelRoutingDimensions::TEXT_Y,
             ),
             egui::Align2::LEFT_TOP,
             text,
-            egui::FontId::proportional(ControlPanelRouteDimensions::TEXT_SIZE),
-            ControlPanelRouteColors::TEXT,
+            egui::FontId::proportional(ControlPanelRoutingDimensions::TEXT_SIZE),
+            ControlPanelRoutingColors::TEXT,
         );
     }
 
@@ -732,8 +732,8 @@ impl ControlPanelRouting {
         if signals == 0x09 {
             render_asset!(
                 ui,
-                ControlPanelRouteDimensions::PRESENSE_X,
-                ControlPanelRouteDimensions::PRESENSE_USB_PLAY_Y,
+                ControlPanelRoutingDimensions::PRESENSE_X,
+                ControlPanelRoutingDimensions::PRESENSE_USB_PLAY_Y,
                 "PresenceLed/default/pressed",
                 1.0,
                 0.0,
@@ -742,8 +742,8 @@ impl ControlPanelRouting {
         } else {
             render_asset!(
                 ui,
-                ControlPanelRouteDimensions::PRESENSE_X,
-                ControlPanelRouteDimensions::PRESENSE_USB_PLAY_Y,
+                ControlPanelRoutingDimensions::PRESENSE_X,
+                ControlPanelRoutingDimensions::PRESENSE_USB_PLAY_Y,
                 "PresenceLed/default/released",
                 1.0,
                 0.0,
@@ -753,8 +753,8 @@ impl ControlPanelRouting {
 
         render_asset!(
             ui,
-            ControlPanelRouteDimensions::PRESENSE_X,
-            ControlPanelRouteDimensions::PRESENSE_MADI_IN_Y,
+            ControlPanelRoutingDimensions::PRESENSE_X,
+            ControlPanelRoutingDimensions::PRESENSE_MADI_IN_Y,
             "PresenceLed/default/released",
             1.0,
             0.0,
@@ -763,8 +763,8 @@ impl ControlPanelRouting {
 
         render_asset!(
             ui,
-            ControlPanelRouteDimensions::PRESENSE_X,
-            ControlPanelRouteDimensions::PRESENSE_ADAT_IN_Y,
+            ControlPanelRoutingDimensions::PRESENSE_X,
+            ControlPanelRoutingDimensions::PRESENSE_ADAT_IN_Y,
             "PresenceLed/default/released",
             1.0,
             0.0,
@@ -773,8 +773,8 @@ impl ControlPanelRouting {
 
         render_asset!(
             ui,
-            ControlPanelRouteDimensions::PRESENSE_ADAT_IN_2_X,
-            ControlPanelRouteDimensions::PRESENSE_ADAT_IN_Y,
+            ControlPanelRoutingDimensions::PRESENSE_ADAT_IN_2_X,
+            ControlPanelRoutingDimensions::PRESENSE_ADAT_IN_Y,
             "PresenceLed/default/released",
             1.0,
             0.0,
@@ -783,8 +783,8 @@ impl ControlPanelRouting {
 
         render_asset!(
             ui,
-            ControlPanelRouteDimensions::PRESENSE_X,
-            ControlPanelRouteDimensions::PRESENSE_SPDIF_IN_Y,
+            ControlPanelRoutingDimensions::PRESENSE_X,
+            ControlPanelRoutingDimensions::PRESENSE_SPDIF_IN_Y,
             "PresenceLed/default/released",
             1.0,
             0.0,
@@ -816,7 +816,7 @@ impl ControlPanelRouting {
                     }
 
                     let route =
-                        source_column * ControlPanelRouteCodes::COLUMN + self.source_select_row;
+                        source_column * ControlPanelRoutingCodes::COLUMN + self.source_select_row;
 
                     new_routes[target_column as usize + column_index] = route;
                 }
@@ -862,15 +862,16 @@ impl ControlPanelRouting {
 
     fn source_cell_for_route(&self, route: u8) -> Option<[u8; 2]> {
         match route {
-            ControlPanelRouteCodes::OSC_1
-            | ControlPanelRouteCodes::OSC_2
-            | ControlPanelRouteCodes::MUTE => None,
+            ControlPanelRoutingCodes::OSC_1
+            | ControlPanelRoutingCodes::OSC_2
+            | ControlPanelRoutingCodes::MUTE => None,
 
             _ => {
-                let row = route % ControlPanelRouteCodes::COLUMN;
-                let column = route / ControlPanelRouteCodes::COLUMN;
+                let row = route % ControlPanelRoutingCodes::COLUMN;
+                let column = route / ControlPanelRoutingCodes::COLUMN;
 
-                if row == ControlPanelRouteCodes::USB && column as usize >= self.source_counts[1] {
+                if row == ControlPanelRoutingCodes::USB && column as usize >= self.source_counts[1]
+                {
                     return None;
                 }
 
@@ -881,16 +882,17 @@ impl ControlPanelRouting {
 
     fn label_for_route(&self, route: u8) -> String {
         match route {
-            ControlPanelRouteCodes::OSC_1 => ControlPanelRouteLabels::OSC_1.to_string(),
-            ControlPanelRouteCodes::OSC_2 => ControlPanelRouteLabels::OSC_2.to_string(),
-            ControlPanelRouteCodes::MUTE => ControlPanelRouteLabels::MUTE.to_string(),
+            ControlPanelRoutingCodes::OSC_1 => ControlPanelRoutingLabels::OSC_1.to_string(),
+            ControlPanelRoutingCodes::OSC_2 => ControlPanelRoutingLabels::OSC_2.to_string(),
+            ControlPanelRoutingCodes::MUTE => ControlPanelRoutingLabels::MUTE.to_string(),
 
             _ => {
-                let row = route % ControlPanelRouteCodes::COLUMN;
-                let column = route / ControlPanelRouteCodes::COLUMN;
+                let row = route % ControlPanelRoutingCodes::COLUMN;
+                let column = route / ControlPanelRoutingCodes::COLUMN;
 
-                if row == ControlPanelRouteCodes::USB && column as usize >= self.source_counts[1] {
-                    return ControlPanelRouteLabels::MUTE.to_string();
+                if row == ControlPanelRoutingCodes::USB && column as usize >= self.source_counts[1]
+                {
+                    return ControlPanelRoutingLabels::MUTE.to_string();
                 }
 
                 self.labels[row as usize][column as usize].clone()
@@ -900,26 +902,27 @@ impl ControlPanelRouting {
 
     fn color_for_route(&self, route: u8) -> egui::Color32 {
         match route {
-            ControlPanelRouteCodes::OSC_1 => ControlPanelRouteColors::OSC_1,
-            ControlPanelRouteCodes::OSC_2 => ControlPanelRouteColors::OSC_2,
-            ControlPanelRouteCodes::MUTE => ControlPanelRouteColors::MUTE,
+            ControlPanelRoutingCodes::OSC_1 => ControlPanelRoutingColors::OSC_1,
+            ControlPanelRoutingCodes::OSC_2 => ControlPanelRoutingColors::OSC_2,
+            ControlPanelRoutingCodes::MUTE => ControlPanelRoutingColors::MUTE,
 
             _ => {
-                let row = route % ControlPanelRouteCodes::COLUMN;
-                let column = route / ControlPanelRouteCodes::COLUMN;
+                let row = route % ControlPanelRoutingCodes::COLUMN;
+                let column = route / ControlPanelRoutingCodes::COLUMN;
 
-                if row == ControlPanelRouteCodes::USB && column as usize >= self.source_counts[1] {
-                    return ControlPanelRouteColors::MUTE;
+                if row == ControlPanelRoutingCodes::USB && column as usize >= self.source_counts[1]
+                {
+                    return ControlPanelRoutingColors::MUTE;
                 }
 
                 match row {
-                    ControlPanelRouteCodes::ADC_DAC => ControlPanelRouteColors::ADC_DAC,
-                    ControlPanelRouteCodes::USB => ControlPanelRouteColors::USB,
-                    ControlPanelRouteCodes::MADI_1 => ControlPanelRouteColors::MADI,
-                    ControlPanelRouteCodes::MADI_2 => ControlPanelRouteColors::MADI,
-                    ControlPanelRouteCodes::ADAT => ControlPanelRouteColors::ADAT,
-                    ControlPanelRouteCodes::SPDIF => ControlPanelRouteColors::SPDIF,
-                    ControlPanelRouteCodes::MIX_LR => ControlPanelRouteColors::MIX_LR,
+                    ControlPanelRoutingCodes::ADC_DAC => ControlPanelRoutingColors::ADC_DAC,
+                    ControlPanelRoutingCodes::USB => ControlPanelRoutingColors::USB,
+                    ControlPanelRoutingCodes::MADI_1 => ControlPanelRoutingColors::MADI,
+                    ControlPanelRoutingCodes::MADI_2 => ControlPanelRoutingColors::MADI,
+                    ControlPanelRoutingCodes::ADAT => ControlPanelRoutingColors::ADAT,
+                    ControlPanelRoutingCodes::SPDIF => ControlPanelRoutingColors::SPDIF,
+                    ControlPanelRoutingCodes::MIX_LR => ControlPanelRoutingColors::MIX_LR,
 
                     _ => egui::Color32::BLACK,
                 }
@@ -929,14 +932,14 @@ impl ControlPanelRouting {
 
     fn cell_pos(column: u8, row: u8, is_source: bool) -> (f32, f32) {
         let base_pos_y = if is_source {
-            ControlPanelRouteDimensions::START_Y_SOURCE
+            ControlPanelRoutingDimensions::START_Y_SOURCE
         } else {
-            ControlPanelRouteDimensions::START_Y_TARGET
+            ControlPanelRoutingDimensions::START_Y_TARGET
         };
 
-        let pos_x = ControlPanelRouteDimensions::START_X
-            + column as f32 * ControlPanelRouteDimensions::STEP_X;
-        let pos_y = base_pos_y + row as f32 * ControlPanelRouteDimensions::STEP_Y;
+        let pos_x = ControlPanelRoutingDimensions::START_X
+            + column as f32 * ControlPanelRoutingDimensions::STEP_X;
+        let pos_y = base_pos_y + row as f32 * ControlPanelRoutingDimensions::STEP_Y;
 
         (pos_x, pos_y)
     }
@@ -954,8 +957,8 @@ impl ControlPanelRouting {
         let rect = egui::Rect::from_min_size(
             egui::pos2(pos_x, pos_y),
             egui::vec2(
-                ControlPanelRouteDimensions::SIZE_X,
-                ControlPanelRouteDimensions::SIZE_Y,
+                ControlPanelRoutingDimensions::SIZE_X,
+                ControlPanelRoutingDimensions::SIZE_Y,
             ),
         );
 
@@ -965,8 +968,8 @@ impl ControlPanelRouting {
             egui::pos2(pos_x + 15.0, pos_y),
             egui::Align2::CENTER_TOP,
             label,
-            egui::FontId::proportional(ControlPanelRouteDimensions::TEXT_SIZE),
-            ControlPanelRouteColors::TEXT,
+            egui::FontId::proportional(ControlPanelRoutingDimensions::TEXT_SIZE),
+            ControlPanelRoutingColors::TEXT,
         );
 
         rect
