@@ -212,7 +212,11 @@ impl OrionHidPoller {
     }
 
     fn write_packet(&mut self, packet: &[u8; 64]) -> bool {
-        match self.hid_device.as_ref().unwrap().write(packet) {
+        let mut packet_with_report = [0u8; 65];
+
+        packet_with_report[1..].copy_from_slice(packet);
+
+        match self.hid_device.as_ref().unwrap().write(&packet_with_report) {
             Ok(_) => true,
             Err(_) => {
                 self.disconnect();
