@@ -25,6 +25,7 @@ impl ControlPanelRouteColors {
     const OSC_2: egui::Color32 = egui::Color32::from_rgb(0x90, 0x38, 0xa7);
     const MUTE: egui::Color32 = egui::Color32::from_rgb(0x7b, 0x7b, 0x7b);
     const SELECT: egui::Color32 = egui::Color32::from_rgb(0x91, 0xb4, 0xdf);
+    const TEXT: egui::Color32 = egui::Color32::WHITE;
 }
 
 struct ControlPanelRouteDimensions;
@@ -121,9 +122,6 @@ pub(crate) struct ControlPanelRouting {
 
 impl ControlPanelRouting {
     const CONFIG_DIR: &str = "Orion 32 Control Panel";
-
-    const TEXT_COLOR: egui::Color32 = egui::Color32::WHITE;
-    const TEXT_SIZE: f32 = 12.0;
 
     const SOURCE_ROW_LABELS: [&str; 7] = [
         "ADC",
@@ -461,8 +459,8 @@ impl ControlPanelRouting {
             rect,
             &id_with,
             &label,
-            Self::TEXT_SIZE,
-            Self::TEXT_COLOR,
+            ControlPanelRouteDimensions::TEXT_SIZE,
+            ControlPanelRouteColors::TEXT,
         );
     }
 
@@ -489,8 +487,8 @@ impl ControlPanelRouting {
             rect,
             &format!("route_{column}_{row}"),
             &label,
-            Self::TEXT_SIZE,
-            Self::TEXT_COLOR,
+            ControlPanelRouteDimensions::TEXT_SIZE,
+            ControlPanelRouteColors::TEXT,
         );
 
         if let Some((route_text, tab)) = level_edit_result {
@@ -725,7 +723,7 @@ impl ControlPanelRouting {
             egui::Align2::LEFT_TOP,
             text,
             egui::FontId::proportional(ControlPanelRouteDimensions::TEXT_SIZE),
-            egui::Color32::WHITE,
+            ControlPanelRouteColors::TEXT,
         );
     }
 
@@ -967,8 +965,8 @@ impl ControlPanelRouting {
             egui::pos2(pos_x + 15.0, pos_y),
             egui::Align2::CENTER_TOP,
             label,
-            egui::FontId::proportional(12.0),
-            egui::Color32::WHITE,
+            egui::FontId::proportional(ControlPanelRouteDimensions::TEXT_SIZE),
+            ControlPanelRouteColors::TEXT,
         );
 
         rect
