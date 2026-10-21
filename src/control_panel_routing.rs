@@ -46,7 +46,7 @@ impl ControlPanelRouteDimensions {
 
     const TEXT_X: f32 = 128.0;
     const TEXT_Y: f32 = 409.0;
-    const TEXT_SIZE: f32 = 12.0;
+    const TEXT_SIZE: f32 = 10.5;
 
     const PRESENSE_X: u16 = 1095;
     const PRESENSE_ADAT_IN_2_X: u16 = 1112;
