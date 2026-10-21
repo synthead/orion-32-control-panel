@@ -1,7 +1,8 @@
 #[derive(Clone)]
 pub(crate) struct OrionState {
     pub(crate) present: bool,
-    pub(crate) initialized: bool,
+    pub(crate) acquired_serial_firmware: bool,
+    pub(crate) acquired_routes_mixer_ad_phases: bool,
 
     pub(crate) serial: [u8; 13],
     pub(crate) hardware_version: [u8; 8],
@@ -33,7 +34,8 @@ impl Default for OrionState {
     fn default() -> Self {
         Self {
             present: false,
-            initialized: false,
+            acquired_serial_firmware: false,
+            acquired_routes_mixer_ad_phases: false,
 
             serial: [0; 13],
             hardware_version: [0; 8],
