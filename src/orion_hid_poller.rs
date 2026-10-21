@@ -41,14 +41,14 @@ impl OrionHidPoller {
             return;
         }
 
-        if !self.ensure_init() {
-            return;
-        }
-
         while let Ok(packet) = self.hid_write_rx.try_recv() {
             if !self.write_packet(&packet) {
                 return;
             }
+        }
+
+        if !self.ensure_init() {
+            return;
         }
 
         let mut hid_data = [0u8; 64];
