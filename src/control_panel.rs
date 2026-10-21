@@ -662,11 +662,6 @@ impl ControlPanel {
                 }
 
                 orion_hid.queue_preset(preset);
-
-                self.orion_state
-                    .lock()
-                    .unwrap()
-                    .acquired_routes_mixer_ad_phases = false;
             }
         }
     }

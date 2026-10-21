@@ -135,6 +135,8 @@ impl OrionHidPoller {
     }
 
     fn transform_vu(hid_data: &[u8; 64], orion_state: &mut OrionState) {
+        let last_preset = orion_state.preset_standby & 0x07;
+
         orion_state.left_vu_source = hid_data[30] & 0x0f;
         orion_state.right_vu_source = hid_data[30] >> 4;
 
@@ -159,6 +161,10 @@ impl OrionHidPoller {
         };
 
         *vu = hid_data[32..].try_into().unwrap();
+
+        if last_preset != u8::MAX && last_preset != orion_state.preset_standby & 0x07 {
+            orion_state.acquired_routes_mixer_ad_phases = false;
+        }
     }
 
     fn transform_serial(hid_data: &[u8; 64], orion_state: &mut OrionState) {

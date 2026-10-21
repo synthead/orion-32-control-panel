@@ -49,7 +49,7 @@ impl Default for OrionState {
             sample_rate: 0,
             line_out: 0,
             signals: 0,
-            preset_standby: 0,
+            preset_standby: u8::MAX,
 
             trims: 0,
             oscillators: 0,
