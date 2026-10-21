@@ -20,39 +20,6 @@ impl OrionHid {
         }
     }
 
-    pub(crate) fn queue_init(&mut self) {
-        self.queue_get_serial();
-        self.queue_get_firmware_version();
-        self.queue_get_routes();
-        self.queue_get_mixer_levels();
-        self.queue_get_mixer_pans();
-        self.queue_get_ad_phases();
-    }
-
-    pub(crate) fn queue_get_serial(&mut self) {
-        self.queue_packet(0x74, 0x10, 0x00, 0x01, &[]);
-    }
-
-    pub(crate) fn queue_get_firmware_version(&mut self) {
-        self.queue_packet(0x74, 0x10, 0x00, 0x00, &[]);
-    }
-
-    pub(crate) fn queue_get_routes(&mut self) {
-        self.queue_packet(0x74, 0x10, 0x00, 0x02, &[]);
-    }
-
-    pub(crate) fn queue_get_mixer_levels(&mut self) {
-        self.queue_packet(0x74, 0x10, 0x00, 0x04, &[]);
-    }
-
-    pub(crate) fn queue_get_mixer_pans(&mut self) {
-        self.queue_packet(0x74, 0x10, 0x00, 0x05, &[]);
-    }
-
-    pub(crate) fn queue_get_ad_phases(&mut self) {
-        self.queue_packet(0x74, 0x10, 0x00, 0x06, &[]);
-    }
-
     pub(crate) fn queue_line_out(&mut self, line_out: u8) {
         self.queue_packet(0x70, 0x12, 0x00, 0x00, &[0x08, line_out]);
     }
@@ -148,6 +115,52 @@ impl OrionHid {
     }
 
     fn queue_packet(&mut self, byte_0: u8, byte_4: u8, byte_8: u8, byte_12: u8, payload: &[u8]) {
+        let packet = Self::create_packet(byte_0, byte_4, byte_8, byte_12, payload);
+
+        let _ = self.hid_write_tx.send(packet);
+    }
+
+    pub(crate) fn create_get_serial_firmware() -> [[u8; 64]; 2] {
+        [
+            Self::create_get_serial(),
+            Self::create_get_firmware_version(),
+        ]
+    }
+
+    pub(crate) fn create_get_routes_mixer_ad_phases() -> [[u8; 64]; 4] {
+        [
+            Self::create_get_routes(),
+            Self::create_get_mixer_levels(),
+            Self::create_get_mixer_pans(),
+            Self::create_get_ad_phases(),
+        ]
+    }
+
+    pub(crate) fn create_get_serial() -> [u8; 64] {
+        Self::create_packet(0x74, 0x10, 0x00, 0x01, &[])
+    }
+
+    pub(crate) fn create_get_firmware_version() -> [u8; 64] {
+        Self::create_packet(0x74, 0x10, 0x00, 0x00, &[])
+    }
+
+    pub(crate) fn create_get_routes() -> [u8; 64] {
+        Self::create_packet(0x74, 0x10, 0x00, 0x02, &[])
+    }
+
+    pub(crate) fn create_get_mixer_levels() -> [u8; 64] {
+        Self::create_packet(0x74, 0x10, 0x00, 0x04, &[])
+    }
+
+    pub(crate) fn create_get_mixer_pans() -> [u8; 64] {
+        Self::create_packet(0x74, 0x10, 0x00, 0x05, &[])
+    }
+
+    pub(crate) fn create_get_ad_phases() -> [u8; 64] {
+        Self::create_packet(0x74, 0x10, 0x00, 0x06, &[])
+    }
+
+    fn create_packet(byte_0: u8, byte_4: u8, byte_8: u8, byte_12: u8, payload: &[u8]) -> [u8; 64] {
         let mut packet = [0u8; 64];
 
         packet[0] = byte_0;
@@ -156,6 +169,6 @@ impl OrionHid {
         packet[12] = byte_12;
         packet[16..16 + payload.len()].copy_from_slice(payload);
 
-        let _ = self.hid_write_tx.send(packet);
+        packet
     }
 }
