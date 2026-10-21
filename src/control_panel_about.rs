@@ -114,7 +114,7 @@ impl ControlPanelAbout {
     }
 
     fn draw_fields(&mut self, ui: &mut egui::Ui, orion_state: &OrionState) {
-        let control_panel_version = env!("CARGO_PKG_VERSION").to_string();
+        let control_panel_version = format!("OSS {}", env!("CARGO_PKG_VERSION"));
         let hardware_version = String::from_utf8_lossy(&orion_state.hardware_version).to_string();
         let serial = String::from_utf8_lossy(&orion_state.serial).to_string();
         let firmware_version =
