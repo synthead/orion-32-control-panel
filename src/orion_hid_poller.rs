@@ -235,8 +235,6 @@ impl OrionHidPoller {
     fn set_present(&self, present: bool) {
         let mut orion_state = self.orion_state.lock().unwrap();
 
-        orion_state.present = present;
-
         if !present {
             orion_state.acquired_serial_firmware = false;
             orion_state.acquired_routes_mixer_ad_phases = false;
