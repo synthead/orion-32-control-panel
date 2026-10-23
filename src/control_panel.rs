@@ -6,6 +6,7 @@ use std::thread;
 use crate::orion_hid::OrionHid;
 use crate::orion_hid_poller::OrionHidPoller;
 use crate::orion_state::OrionState;
+use crate::orion_state::OrionStateInitSteps;
 
 use crate::drag_value::DragValue;
 use crate::ignore_value::IgnoreValue;
@@ -291,10 +292,13 @@ impl ControlPanel {
             .show(ui, |ui| {
                 let orion_state = self.orion_state.lock().unwrap().clone();
 
-                if !orion_state
-                    .inits_completed
-                    .iter()
-                    .all(|&completed| completed)
+                if orion_state.inits_completed
+                    != OrionStateInitSteps::SERIAL_NUMBER
+                        | OrionStateInitSteps::FIRMWARE_VERSION
+                        | OrionStateInitSteps::ROUTES
+                        | OrionStateInitSteps::MIXER_LEVELS
+                        | OrionStateInitSteps::MIXER_PANS_SOLOS_MUTES
+                        | OrionStateInitSteps::AD_PHASES
                 {
                     self.devices.draw(ui);
 

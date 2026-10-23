@@ -53,11 +53,7 @@ impl ControlPanelDevices {
         Self::draw_base_graphics(ui);
         self.draw_window_buttons(ui);
 
-        self.draw_devices_list(
-            ui,
-            &orion_state.serial,
-            orion_state.inits_completed[OrionStateInitSteps::SERIAL_NUMBER],
-        );
+        self.draw_devices_list(ui, &orion_state.serial, orion_state.inits_completed);
     }
 
     fn draw_base_graphics(ui: &mut egui::Ui) {
@@ -127,12 +123,7 @@ impl ControlPanelDevices {
         }
     }
 
-    fn draw_devices_list(
-        &mut self,
-        ui: &mut egui::Ui,
-        serial: &[u8; 13],
-        serial_number_init_completed: bool,
-    ) {
+    fn draw_devices_list(&mut self, ui: &mut egui::Ui, serial: &[u8; 13], inits_completed: u8) {
         let serial_text = String::from_utf8_lossy(serial);
 
         egui::Area::new(egui::Id::new("hello_world"))
@@ -163,7 +154,7 @@ impl ControlPanelDevices {
                 );
 
                 egui::Frame::new().inner_margin(3.0).show(ui, |ui| {
-                    if serial_number_init_completed {
+                    if inits_completed & OrionStateInitSteps::SERIAL_NUMBER != 0 {
                         ui.add(
                             egui::Label::new(
                                 egui::RichText::new(serial_text)

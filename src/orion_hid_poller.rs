@@ -169,13 +169,13 @@ impl OrionHidPoller {
         orion_state.serial = hid_data[36..49].try_into().unwrap();
         orion_state.hardware_version = hid_data[52..60].try_into().unwrap();
 
-        orion_state.inits_completed[OrionStateInitSteps::SERIAL_NUMBER] = true;
+        orion_state.inits_completed |= OrionStateInitSteps::SERIAL_NUMBER;
     }
 
     fn transform_firmware_version(hid_data: &[u8; 64], orion_state: &mut OrionState) {
         orion_state.firmware_version = hid_data[16..18].try_into().unwrap();
 
-        orion_state.inits_completed[OrionStateInitSteps::FIRMWARE_VERSION] = true;
+        orion_state.inits_completed |= OrionStateInitSteps::FIRMWARE_VERSION;
     }
 
     fn transform_routes(hid_data: &[u8; 64], orion_state: &mut OrionState) {
@@ -183,25 +183,25 @@ impl OrionHidPoller {
 
         orion_state.routes[source_index] = hid_data[17..49].try_into().unwrap();
 
-        orion_state.inits_completed[OrionStateInitSteps::ROUTES] = true;
+        orion_state.inits_completed |= OrionStateInitSteps::ROUTES;
     }
 
     fn transform_mixer_levels(hid_data: &[u8; 64], orion_state: &mut OrionState) {
         orion_state.mixer_levels = hid_data[16..49].try_into().unwrap();
 
-        orion_state.inits_completed[OrionStateInitSteps::MIXER_LEVELS] = true;
+        orion_state.inits_completed |= OrionStateInitSteps::MIXER_LEVELS;
     }
 
     fn transform_mixer_pans_solos_mutes(hid_data: &[u8; 64], orion_state: &mut OrionState) {
         orion_state.mixer_pans_solos_mutes = hid_data[16..49].try_into().unwrap();
 
-        orion_state.inits_completed[OrionStateInitSteps::MIXER_PANS_SOLOS_MUTES] = true;
+        orion_state.inits_completed |= OrionStateInitSteps::MIXER_PANS_SOLOS_MUTES;
     }
 
     fn transform_ad_phases(hid_data: &[u8; 64], orion_state: &mut OrionState) {
         orion_state.ad_phases = hid_data[17..21].try_into().unwrap();
 
-        orion_state.inits_completed[OrionStateInitSteps::AD_PHASES] = true;
+        orion_state.inits_completed |= OrionStateInitSteps::AD_PHASES;
     }
 
     fn try_connect(&mut self) -> bool {
@@ -244,7 +244,7 @@ impl OrionHidPoller {
         let orion_state = Arc::clone(&self.orion_state);
         let mut orion_state = orion_state.lock().unwrap();
 
-        orion_state.inits_completed = [false; 6];
+        orion_state.inits_completed = 0;
     }
 
     fn discard_pending_writes(&self) {
