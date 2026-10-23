@@ -12,6 +12,7 @@ use crate::ignore_value::IgnoreValue;
 use crate::text_editor::TextEditor;
 
 use crate::control_panel_ad_phase::ControlPanelAdPhase;
+use crate::control_panel_devices::ControlPanelDevices;
 use crate::control_panel_helpers::ControlPanelHelpers;
 use crate::control_panel_mixer::ControlPanelMixer;
 use crate::control_panel_routing::ControlPanelRouting;
@@ -126,6 +127,7 @@ pub(crate) struct ControlPanel {
     orion_hid: Arc<Mutex<OrionHid>>,
     orion_hid_poller: Arc<Mutex<OrionHidPoller>>,
 
+    devices: ControlPanelDevices,
     routing: ControlPanelRouting,
     mixer: ControlPanelMixer,
     ad_phase: ControlPanelAdPhase,
@@ -190,6 +192,8 @@ impl ControlPanel {
         let text_editor = Arc::new(Mutex::new(TextEditor::new()));
         let drag_value = Arc::new(Mutex::new(DragValue::new()));
 
+        let devices = ControlPanelDevices::new(Arc::clone(&orion_state));
+
         let routing = ControlPanelRouting::new(
             Arc::clone(&orion_state),
             Arc::clone(&orion_hid),
@@ -219,6 +223,7 @@ impl ControlPanel {
             orion_hid,
             orion_hid_poller,
 
+            devices,
             routing,
             mixer,
             ad_phase,
@@ -285,6 +290,16 @@ impl ControlPanel {
             .frame(egui::Frame::NONE)
             .show(ui, |ui| {
                 let orion_state = self.orion_state.lock().unwrap().clone();
+
+                if !orion_state
+                    .inits_completed
+                    .iter()
+                    .all(|&completed| completed)
+                {
+                    self.devices.draw(ui);
+
+                    return;
+                }
 
                 Self::draw_base_graphics(ui);
 
