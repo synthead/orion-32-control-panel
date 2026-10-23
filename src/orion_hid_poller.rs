@@ -4,6 +4,7 @@ use std::sync::{Arc, Mutex};
 
 use crate::orion_hid::OrionHid;
 use crate::orion_state::OrionState;
+use crate::orion_state::OrionStateInitSteps;
 
 pub(crate) struct OrionHidPoller {
     orion_state: Arc<Mutex<OrionState>>,
@@ -11,6 +12,9 @@ pub(crate) struct OrionHidPoller {
 
     hid_api: HidApi,
     hid_device: Option<HidDevice>,
+
+    init_serial_firmware_written: bool,
+    init_routes_mixer_ad_phases_written: bool,
 }
 
 impl OrionHidPoller {
@@ -33,6 +37,9 @@ impl OrionHidPoller {
 
             hid_api,
             hid_device: None,
+
+            init_serial_firmware_written: false,
+            init_routes_mixer_ad_phases_written: false,
         }
     }
 
@@ -62,9 +69,10 @@ impl OrionHidPoller {
             .read_timeout(&mut hid_data, Self::READ_TIMEOUT_MS)
         {
             Ok(64) => {
-                let mut orion_state = self.orion_state.lock().unwrap();
+                let orion_state = Arc::clone(&self.orion_state);
+                let mut orion_state = orion_state.lock().unwrap();
 
-                Self::update_orion_state(&hid_data, &mut orion_state);
+                self.update_orion_state(&hid_data, &mut orion_state);
             }
             Ok(_) => {}
             Err(_) => {
@@ -74,45 +82,33 @@ impl OrionHidPoller {
     }
 
     fn ensure_init(&mut self) -> bool {
-        let (acquired_serial_firmware, acquired_routes_mixer_ad_phases) = {
-            let orion_state = self.orion_state.lock().unwrap();
-
-            (
-                orion_state.acquired_serial_firmware,
-                orion_state.acquired_routes_mixer_ad_phases,
-            )
-        };
-
-        if !acquired_serial_firmware {
+        if !self.init_serial_firmware_written {
             for packet in OrionHid::create_get_serial_firmware() {
                 if !self.write_packet(&packet) {
                     return false;
                 }
             }
 
-            self.orion_state.lock().unwrap().acquired_serial_firmware = true;
+            self.init_serial_firmware_written = true;
         }
 
-        if !acquired_routes_mixer_ad_phases {
+        if !self.init_routes_mixer_ad_phases_written {
             for packet in OrionHid::create_get_routes_mixer_ad_phases() {
                 if !self.write_packet(&packet) {
                     return false;
                 }
             }
 
-            self.orion_state
-                .lock()
-                .unwrap()
-                .acquired_routes_mixer_ad_phases = true;
+            self.init_routes_mixer_ad_phases_written = true;
         }
 
         true
     }
 
-    fn update_orion_state(hid_data: &[u8; 64], orion_state: &mut OrionState) {
+    fn update_orion_state(&mut self, hid_data: &[u8; 64], orion_state: &mut OrionState) {
         match (hid_data[0], hid_data[4], hid_data[12]) {
             (0x73, 0x00, 0x00) => {
-                Self::transform_vu(hid_data, orion_state);
+                self.transform_vu(hid_data, orion_state);
             }
             (0x75, 0x10, 0x00) => {
                 Self::transform_firmware_version(hid_data, orion_state);
@@ -136,7 +132,7 @@ impl OrionHidPoller {
         }
     }
 
-    fn transform_vu(hid_data: &[u8; 64], orion_state: &mut OrionState) {
+    fn transform_vu(&mut self, hid_data: &[u8; 64], orion_state: &mut OrionState) {
         let last_preset = orion_state.preset_standby & 0x07;
 
         orion_state.left_vu_source = hid_data[30] & 0x0f;
@@ -165,48 +161,60 @@ impl OrionHidPoller {
         *vu = hid_data[32..].try_into().unwrap();
 
         if last_preset != u8::MAX && last_preset != orion_state.preset_standby & 0x07 {
-            orion_state.acquired_routes_mixer_ad_phases = false;
+            self.init_routes_mixer_ad_phases_written = false;
         }
     }
 
     fn transform_serial(hid_data: &[u8; 64], orion_state: &mut OrionState) {
         orion_state.serial = hid_data[36..49].try_into().unwrap();
         orion_state.hardware_version = hid_data[52..60].try_into().unwrap();
+
+        orion_state.inits_completed[OrionStateInitSteps::SERIAL_NUMBER] = true;
     }
 
     fn transform_firmware_version(hid_data: &[u8; 64], orion_state: &mut OrionState) {
         orion_state.firmware_version = hid_data[16..18].try_into().unwrap();
+
+        orion_state.inits_completed[OrionStateInitSteps::FIRMWARE_VERSION] = true;
     }
 
     fn transform_routes(hid_data: &[u8; 64], orion_state: &mut OrionState) {
         let source_index = hid_data[16] as usize;
 
         orion_state.routes[source_index] = hid_data[17..49].try_into().unwrap();
+
+        orion_state.inits_completed[OrionStateInitSteps::ROUTES] = true;
     }
 
     fn transform_mixer_levels(hid_data: &[u8; 64], orion_state: &mut OrionState) {
         orion_state.mixer_levels = hid_data[16..49].try_into().unwrap();
+
+        orion_state.inits_completed[OrionStateInitSteps::MIXER_LEVELS] = true;
     }
 
     fn transform_mixer_pans_solos_mutes(hid_data: &[u8; 64], orion_state: &mut OrionState) {
         orion_state.mixer_pans_solos_mutes = hid_data[16..49].try_into().unwrap();
+
+        orion_state.inits_completed[OrionStateInitSteps::MIXER_PANS_SOLOS_MUTES] = true;
     }
 
     fn transform_ad_phases(hid_data: &[u8; 64], orion_state: &mut OrionState) {
         orion_state.ad_phases = hid_data[17..21].try_into().unwrap();
+
+        orion_state.inits_completed[OrionStateInitSteps::AD_PHASES] = true;
     }
 
     fn try_connect(&mut self) -> bool {
         let hid_device = match self.hid_api.open(Self::USB_VENDOR, Self::USB_PRODUCT) {
             Ok(hid_device) => hid_device,
             Err(_) => {
-                self.set_present(false);
+                self.disconnect();
+
                 return false;
             }
         };
 
         self.hid_device = Some(hid_device);
-        self.set_present(true);
 
         true
     }
@@ -229,16 +237,14 @@ impl OrionHidPoller {
 
     fn disconnect(&mut self) {
         self.hid_device = None;
-        self.set_present(false);
-    }
 
-    fn set_present(&self, present: bool) {
-        let mut orion_state = self.orion_state.lock().unwrap();
+        self.init_serial_firmware_written = false;
+        self.init_routes_mixer_ad_phases_written = false;
 
-        if !present {
-            orion_state.acquired_serial_firmware = false;
-            orion_state.acquired_routes_mixer_ad_phases = false;
-        }
+        let orion_state = Arc::clone(&self.orion_state);
+        let mut orion_state = orion_state.lock().unwrap();
+
+        orion_state.inits_completed = [false; 6];
     }
 
     fn discard_pending_writes(&self) {

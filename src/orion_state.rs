@@ -1,7 +1,17 @@
+pub(crate) struct OrionStateInitSteps;
+
+impl OrionStateInitSteps {
+    pub(crate) const SERIAL_NUMBER: usize = 0;
+    pub(crate) const FIRMWARE_VERSION: usize = 1;
+    pub(crate) const ROUTES: usize = 2;
+    pub(crate) const MIXER_LEVELS: usize = 3;
+    pub(crate) const MIXER_PANS_SOLOS_MUTES: usize = 4;
+    pub(crate) const AD_PHASES: usize = 5;
+}
+
 #[derive(Clone)]
 pub(crate) struct OrionState {
-    pub(crate) acquired_serial_firmware: bool,
-    pub(crate) acquired_routes_mixer_ad_phases: bool,
+    pub(crate) inits_completed: [bool; 6],
 
     pub(crate) serial: [u8; 13],
     pub(crate) hardware_version: [u8; 8],
@@ -32,8 +42,7 @@ pub(crate) struct OrionState {
 impl Default for OrionState {
     fn default() -> Self {
         Self {
-            acquired_serial_firmware: false,
-            acquired_routes_mixer_ad_phases: false,
+            inits_completed: [false; 6],
 
             serial: [0; 13],
             hardware_version: [0; 8],
