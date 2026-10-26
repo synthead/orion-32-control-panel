@@ -14,7 +14,6 @@ use crate::render_asset;
 struct ControlPanelMixerColors;
 
 impl ControlPanelMixerColors {
-    const LABEL: egui::Color32 = egui::Color32::from_rgb(0x20, 0xa4, 0xf7);
     const LABEL_TEXT: egui::Color32 = egui::Color32::WHITE;
     const VALUE_TEXT: egui::Color32 = egui::Color32::from_rgb(0x95, 0x95, 0x95);
 }
@@ -101,10 +100,12 @@ impl ControlPanelMixer {
     }
 
     pub(crate) fn draw(&mut self, ui: &mut egui::Ui) {
-        let orion_state = self.orion_state.lock().unwrap().clone();
+        let mut orion_state = self.orion_state.lock().unwrap().clone();
+
+        orion_state.calculate_channel_counts();
 
         Self::draw_base_graphics(ui);
-        Self::draw_labels(ui);
+        Self::draw_labels(ui, &orion_state);
 
         self.draw_channels(
             ui,
@@ -139,8 +140,12 @@ impl ControlPanelMixer {
         }
     }
 
-    fn draw_labels(ui: &mut egui::Ui) {
+    fn draw_labels(ui: &mut egui::Ui, orion_state: &OrionState) {
         for channel in 0..32 {
+            let route = orion_state.routes[6][channel];
+            let label = orion_state.label_for_route(route);
+            let color = orion_state.color_for_route(route);
+
             let pos_x = ControlPanelMixerDimensions::LABEL_X
                 + channel as f32 * ControlPanelMixerDimensions::STEP_X;
 
@@ -152,13 +157,12 @@ impl ControlPanelMixer {
                 ),
             );
 
-            ui.painter()
-                .rect_filled(rect, 0.0, ControlPanelMixerColors::LABEL);
+            ui.painter().rect_filled(rect, 0.0, color);
 
             ui.painter().text(
                 rect.center(),
                 egui::Align2::CENTER_CENTER,
-                (channel + 1).to_string(),
+                &label,
                 egui::FontId::proportional(ControlPanelMixerDimensions::FONT_SIZE_LABEL),
                 ControlPanelMixerColors::LABEL_TEXT,
             );
