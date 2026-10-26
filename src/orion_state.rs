@@ -12,6 +12,10 @@ impl OrionStateInitSteps {
 #[derive(Clone)]
 pub(crate) struct OrionState {
     pub(crate) labels: [[String; 32]; 7],
+
+    pub(crate) source_counts: [usize; 7],
+    pub(crate) target_counts: [usize; 7],
+
     pub(crate) inits_completed: u8,
 
     pub(crate) serial: [u8; 13],
@@ -50,6 +54,10 @@ impl Default for OrionState {
 
         Self {
             labels,
+
+            source_counts: [0; 7],
+            target_counts: [0; 7],
+
             inits_completed: 0,
 
             serial: [0; 13],
@@ -81,7 +89,7 @@ impl Default for OrionState {
 }
 
 impl OrionState {
-    pub(crate) fn channel_counts(&self) -> [[usize; 7]; 2] {
+    pub(crate) fn calculate_channel_counts(&mut self) {
         let usb_channel_count = if self.usb_channels_spdif_src & 0x02 == 0x00 {
             24
         } else {
@@ -104,7 +112,7 @@ impl OrionState {
             _ => 16,
         };
 
-        let source_counts = [
+        self.source_counts = [
             32,
             usb_channel_count.try_into().unwrap(),
             madi_1_count.try_into().unwrap(),
@@ -114,7 +122,7 @@ impl OrionState {
             2,
         ];
 
-        let target_counts = [
+        self.target_counts = [
             32,
             usb_channel_count.try_into().unwrap(),
             madi_1_count.try_into().unwrap(),
@@ -123,7 +131,5 @@ impl OrionState {
             2,
             32,
         ];
-
-        [source_counts, target_counts]
     }
 }

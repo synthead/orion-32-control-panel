@@ -171,9 +171,11 @@ impl ControlPanelRouting {
     }
 
     pub(crate) fn draw(&mut self, ui: &mut egui::Ui) {
-        let orion_state = self.orion_state.lock().unwrap().clone();
+        let mut orion_state = self.orion_state.lock().unwrap().clone();
 
-        [self.source_counts, self.target_counts] = orion_state.channel_counts();
+        orion_state.calculate_channel_counts();
+        self.source_counts = orion_state.source_counts;
+        self.target_counts = orion_state.target_counts;
 
         Self::draw_base_graphics(ui);
         self.draw_undo(ui);
