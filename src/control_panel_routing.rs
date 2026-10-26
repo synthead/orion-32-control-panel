@@ -173,47 +173,7 @@ impl ControlPanelRouting {
     pub(crate) fn draw(&mut self, ui: &mut egui::Ui) {
         let orion_state = self.orion_state.lock().unwrap().clone();
 
-        let usb_channel_count = if orion_state.usb_channels_spdif_src & 0x02 == 0x00 {
-            24
-        } else {
-            32
-        };
-
-        let madi_1_count = match orion_state.sample_rate {
-            5 | 6 => 16,
-            _ => 32,
-        };
-
-        let madi_2_count = match orion_state.sample_rate {
-            0 | 1 | 2 => 32,
-            _ => 0,
-        };
-
-        let adat_count = match orion_state.sample_rate {
-            3 | 4 => 8,
-            5 | 6 => 4,
-            _ => 16,
-        };
-
-        self.source_counts = [
-            32,
-            usb_channel_count.try_into().unwrap(),
-            madi_1_count.try_into().unwrap(),
-            madi_2_count.try_into().unwrap(),
-            adat_count.try_into().unwrap(),
-            2,
-            2,
-        ];
-
-        self.target_counts = [
-            32,
-            usb_channel_count.try_into().unwrap(),
-            madi_1_count.try_into().unwrap(),
-            madi_2_count.try_into().unwrap(),
-            adat_count.try_into().unwrap(),
-            2,
-            32,
-        ];
+        [self.source_counts, self.target_counts] = orion_state.channel_counts();
 
         Self::draw_base_graphics(ui);
         self.draw_undo(ui);

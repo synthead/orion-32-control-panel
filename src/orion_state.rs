@@ -79,3 +79,51 @@ impl Default for OrionState {
         }
     }
 }
+
+impl OrionState {
+    pub(crate) fn channel_counts(&self) -> [[usize; 7]; 2] {
+        let usb_channel_count = if self.usb_channels_spdif_src & 0x02 == 0x00 {
+            24
+        } else {
+            32
+        };
+
+        let madi_1_count = match self.sample_rate {
+            5 | 6 => 16,
+            _ => 32,
+        };
+
+        let madi_2_count = match self.sample_rate {
+            0 | 1 | 2 => 32,
+            _ => 0,
+        };
+
+        let adat_count = match self.sample_rate {
+            3 | 4 => 8,
+            5 | 6 => 4,
+            _ => 16,
+        };
+
+        let source_counts = [
+            32,
+            usb_channel_count.try_into().unwrap(),
+            madi_1_count.try_into().unwrap(),
+            madi_2_count.try_into().unwrap(),
+            adat_count.try_into().unwrap(),
+            2,
+            2,
+        ];
+
+        let target_counts = [
+            32,
+            usb_channel_count.try_into().unwrap(),
+            madi_1_count.try_into().unwrap(),
+            madi_2_count.try_into().unwrap(),
+            adat_count.try_into().unwrap(),
+            2,
+            32,
+        ];
+
+        [source_counts, target_counts]
+    }
+}
