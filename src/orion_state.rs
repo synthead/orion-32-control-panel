@@ -11,6 +11,7 @@ impl OrionStateInitSteps {
 
 #[derive(Clone)]
 pub(crate) struct OrionState {
+    pub(crate) labels: [[String; 32]; 7],
     pub(crate) inits_completed: u8,
 
     pub(crate) serial: [u8; 13],
@@ -41,7 +42,14 @@ pub(crate) struct OrionState {
 
 impl Default for OrionState {
     fn default() -> Self {
+        let labels = std::array::from_fn(|group| {
+            let start_at = if group == 3 { 33 } else { 1 };
+
+            std::array::from_fn(|i| (i + start_at).to_string())
+        });
+
         Self {
+            labels,
             inits_completed: 0,
 
             serial: [0; 13],

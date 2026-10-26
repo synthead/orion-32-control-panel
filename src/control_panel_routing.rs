@@ -100,8 +100,6 @@ pub(crate) struct ControlPanelRouting {
     undo_buffer: Vec<(u8, [u8; 32], [u8; 32])>,
     undo_cursor: usize,
 
-    labels: [[String; 32]; 7],
-
     source_counts: [usize; 7],
     target_counts: [usize; 7],
 
@@ -141,12 +139,6 @@ impl ControlPanelRouting {
         let config_dir = directories::BaseDirs::new()
             .map(|dirs| dirs.config_dir().join(ControlPanelRouting::CONFIG_DIR));
 
-        let labels = std::array::from_fn(|group| {
-            let start_at = if group == 3 { 33 } else { 1 };
-
-            std::array::from_fn(|i| (i + start_at).to_string())
-        });
-
         Self {
             orion_state,
             orion_hid,
@@ -157,8 +149,6 @@ impl ControlPanelRouting {
 
             undo_buffer: Vec::new(),
             undo_cursor: 0,
-
-            labels,
 
             source_counts: [0; 7],
             target_counts: [0; 7],
@@ -229,11 +219,11 @@ impl ControlPanelRouting {
         self.draw_undo(ui);
         self.draw_save(ui);
 
-        self.draw_sources(ui);
-        self.draw_targets(ui, &orion_state.routes);
+        self.draw_sources(ui, &orion_state.labels);
+        self.draw_targets(ui, &orion_state.routes, &orion_state.labels);
 
-        self.draw_drag(ui);
-        self.draw_text(ui);
+        self.draw_drag(ui, &orion_state.labels);
+        self.draw_text(ui, &orion_state.labels);
 
         self.draw_signals(ui, orion_state.signals);
 
@@ -385,7 +375,7 @@ impl ControlPanelRouting {
                 let orion_state = self.orion_state.lock().unwrap().clone();
 
                 orion_file.encode(
-                    &self.labels,
+                    &orion_state.labels,
                     &orion_state.routes,
                     &self.source_counts,
                     &self.target_counts,
@@ -402,10 +392,13 @@ impl ControlPanelRouting {
 
             if let Some(file) = dialog.pick_file() {
                 let orion_file = OrionFile::new(file);
-
                 let (labels, routes) = orion_file.decode();
 
-                self.labels = labels;
+                {
+                    let mut orion_state = self.orion_state.lock().unwrap();
+
+                    orion_state.labels = labels;
+                }
 
                 {
                     let mut orion_hid = self.orion_hid.lock().unwrap();
@@ -420,8 +413,7 @@ impl ControlPanelRouting {
         }
     }
 
-    fn draw_source(&mut self, ui: &mut egui::Ui, column: u8, row: u8) {
-        let label = self.labels[row as usize][column as usize].clone();
+    fn draw_source(&mut self, ui: &mut egui::Ui, column: u8, row: u8, label: &String) {
         let (pos_x, pos_y) = Self::cell_pos(column, row, true);
 
         let color = if self.source_select_row == row && self.source_select_columns.contains(&column)
@@ -464,8 +456,7 @@ impl ControlPanelRouting {
         );
     }
 
-    fn draw_source_editing(&mut self, ui: &mut egui::Ui, column: u8, row: u8) {
-        let label = self.labels[row as usize][column as usize].clone();
+    fn draw_source_editing(&mut self, ui: &mut egui::Ui, column: u8, row: u8, label: &String) {
         let (pos_x, pos_y) = Self::cell_pos(column, row, true);
         let color = self.color_for_route(row);
 
@@ -492,7 +483,9 @@ impl ControlPanelRouting {
         );
 
         if let Some((route_text, tab)) = level_edit_result {
-            self.labels[row as usize][column as usize] = route_text;
+            let mut orion_state = self.orion_state.lock().unwrap();
+
+            orion_state.labels[row as usize][column as usize] = route_text;
 
             if let Some(tab) = tab {
                 let mut column_next = column as i16 + tab as i16;
@@ -518,17 +511,21 @@ impl ControlPanelRouting {
         }
     }
 
-    fn draw_sources(&mut self, ui: &mut egui::Ui) {
+    fn draw_sources(&mut self, ui: &mut egui::Ui, labels: &[[String; 32]; 7]) {
         for row in 0..self.source_counts.len() as u8 {
             for column in 0..self.source_counts[row as usize] as u8 {
                 if Some([column, row]) != self.label_edit_cell {
-                    self.draw_source(ui, column, row);
+                    let label = labels[row as usize][column as usize].clone();
+
+                    self.draw_source(ui, column, row, &label);
                 }
             }
         }
 
         if let Some([column, row]) = self.label_edit_cell {
-            self.draw_source_editing(ui, column, row);
+            let label = labels[row as usize][column as usize].clone();
+
+            self.draw_source_editing(ui, column, row, &label);
         }
     }
 
@@ -586,7 +583,12 @@ impl ControlPanelRouting {
             .extend(self.source_select_toggle_columns.iter().copied());
     }
 
-    fn draw_targets(&mut self, ui: &mut egui::Ui, all_routes: &[[u8; 32]; 7]) {
+    fn draw_targets(
+        &mut self,
+        ui: &mut egui::Ui,
+        all_routes: &[[u8; 32]; 7],
+        labels: &[[String; 32]; 7],
+    ) {
         self.target_hover_cell = None;
 
         for row in 0..self.target_counts.len() {
@@ -600,7 +602,7 @@ impl ControlPanelRouting {
                     self.color_for_route(route)
                 };
 
-                let label = &self.label_for_route(route);
+                let label = &self.label_for_route(route, &labels);
 
                 let rect =
                     Self::draw_rect_with_label(ui, column as u8, row as u8, false, color, label);
@@ -697,7 +699,7 @@ impl ControlPanelRouting {
         }
     }
 
-    fn draw_text(&self, ui: &mut egui::Ui) {
+    fn draw_text(&self, ui: &mut egui::Ui, labels: &[[String; 32]; 7]) {
         if self.source_select_columns.is_empty() {
             return;
         }
@@ -707,10 +709,7 @@ impl ControlPanelRouting {
             Self::SOURCE_ROW_LABELS[self.source_select_row as usize],
             self.source_select_columns
                 .iter()
-                .map(
-                    |&column| self.labels[self.source_select_row as usize][column as usize]
-                        .as_str()
-                )
+                .map(|&column| labels[self.source_select_row as usize][column as usize].as_str())
                 .collect::<Vec<_>>()
                 .join(", ")
         );
@@ -833,7 +832,7 @@ impl ControlPanelRouting {
         self.source_select_columns.clear();
     }
 
-    fn draw_drag(&mut self, ui: &mut egui::Ui) {
+    fn draw_drag(&mut self, ui: &mut egui::Ui, labels: &[[String; 32]; 7]) {
         if !self.source_mousedown || self.target_hover_cell.is_none() {
             return;
         }
@@ -846,7 +845,7 @@ impl ControlPanelRouting {
                 return;
             }
 
-            let label = &self.labels[self.source_select_row as usize][source_column as usize];
+            let label = &labels[self.source_select_row as usize][source_column as usize];
             let color = self.color_for_route(self.source_select_row);
 
             Self::draw_rect_with_label(
@@ -880,7 +879,7 @@ impl ControlPanelRouting {
         }
     }
 
-    fn label_for_route(&self, route: u8) -> String {
+    fn label_for_route(&self, route: u8, labels: &[[String; 32]; 7]) -> String {
         match route {
             ControlPanelRoutingCodes::OSC_1 => ControlPanelRoutingLabels::OSC_1.to_string(),
             ControlPanelRoutingCodes::OSC_2 => ControlPanelRoutingLabels::OSC_2.to_string(),
@@ -895,7 +894,7 @@ impl ControlPanelRouting {
                     return ControlPanelRoutingLabels::MUTE.to_string();
                 }
 
-                self.labels[row as usize][column as usize].clone()
+                labels[row as usize][column as usize].clone()
             }
         }
     }
