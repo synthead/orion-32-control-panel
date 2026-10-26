@@ -1,3 +1,5 @@
+use crate::routing_constants::{RoutingCodes, RoutingLabelColors, RoutingLabels};
+
 pub(crate) struct OrionStateInitSteps;
 
 impl OrionStateInitSteps {
@@ -131,5 +133,53 @@ impl OrionState {
             2,
             32,
         ];
+    }
+
+    pub(crate) fn label_for_route(&self, route: u8) -> String {
+        match route {
+            RoutingCodes::OSC_1 => RoutingLabels::OSC_1.to_string(),
+            RoutingCodes::OSC_2 => RoutingLabels::OSC_2.to_string(),
+            RoutingCodes::MUTE => RoutingLabels::MUTE.to_string(),
+
+            _ => {
+                let row = route % RoutingCodes::COLUMN;
+                let column = route / RoutingCodes::COLUMN;
+
+                if row == RoutingCodes::USB && column as usize >= self.source_counts[1] {
+                    return RoutingLabels::MUTE.to_string();
+                }
+
+                self.labels[row as usize][column as usize].clone()
+            }
+        }
+    }
+
+    pub(crate) fn color_for_route(&self, route: u8) -> egui::Color32 {
+        match route {
+            RoutingCodes::OSC_1 => RoutingLabelColors::OSC_1,
+            RoutingCodes::OSC_2 => RoutingLabelColors::OSC_2,
+            RoutingCodes::MUTE => RoutingLabelColors::MUTE,
+
+            _ => {
+                let row = route % RoutingCodes::COLUMN;
+                let column = route / RoutingCodes::COLUMN;
+
+                if row == RoutingCodes::USB && column as usize >= self.source_counts[1] {
+                    return RoutingLabelColors::MUTE;
+                }
+
+                match row {
+                    RoutingCodes::ADC_DAC => RoutingLabelColors::ADC_DAC,
+                    RoutingCodes::USB => RoutingLabelColors::USB,
+                    RoutingCodes::MADI_1 => RoutingLabelColors::MADI,
+                    RoutingCodes::MADI_2 => RoutingLabelColors::MADI,
+                    RoutingCodes::ADAT => RoutingLabelColors::ADAT,
+                    RoutingCodes::SPDIF => RoutingLabelColors::SPDIF,
+                    RoutingCodes::MIX_LR => RoutingLabelColors::MIX_LR,
+
+                    _ => egui::Color32::BLACK,
+                }
+            }
+        }
     }
 }

@@ -3,6 +3,8 @@ use std::collections::HashSet;
 use std::sync::Arc;
 use std::sync::Mutex;
 
+use crate::routing_constants::RoutingCodes;
+
 use crate::orion_file::OrionFile;
 use crate::orion_hid::OrionHid;
 use crate::orion_state::OrionState;
@@ -15,15 +17,6 @@ use crate::render_asset;
 struct ControlPanelRoutingColors;
 
 impl ControlPanelRoutingColors {
-    const ADC_DAC: egui::Color32 = egui::Color32::from_rgb(0x20, 0xa4, 0xf7);
-    const USB: egui::Color32 = egui::Color32::from_rgb(0x00, 0x73, 0xff);
-    const MADI: egui::Color32 = egui::Color32::from_rgb(0xff, 0xb8, 0x00);
-    const ADAT: egui::Color32 = egui::Color32::from_rgb(0xff, 0x00, 0x37);
-    const SPDIF: egui::Color32 = egui::Color32::from_rgb(0xd9, 0x24, 0x94);
-    const MIX_LR: egui::Color32 = egui::Color32::from_rgb(0x72, 0xab, 0x20);
-    const OSC_1: egui::Color32 = egui::Color32::from_rgb(0x38, 0x90, 0xa7);
-    const OSC_2: egui::Color32 = egui::Color32::from_rgb(0x90, 0x38, 0xa7);
-    const MUTE: egui::Color32 = egui::Color32::from_rgb(0x7b, 0x7b, 0x7b);
     const SELECT: egui::Color32 = egui::Color32::from_rgb(0x91, 0xb4, 0xdf);
     const TEXT: egui::Color32 = egui::Color32::WHITE;
 }
@@ -63,30 +56,6 @@ impl ControlPanelRoutingDimensions {
 
     const HOWTO_X: u16 = 1094;
     const HOWTO_Y: u16 = 652;
-}
-
-struct ControlPanelRoutingCodes;
-
-impl ControlPanelRoutingCodes {
-    const ADC_DAC: u8 = 0x00;
-    const USB: u8 = 0x01;
-    const MADI_1: u8 = 0x02;
-    const MADI_2: u8 = 0x03;
-    const ADAT: u8 = 0x04;
-    const SPDIF: u8 = 0x05;
-    const MIX_LR: u8 = 0x06;
-    const OSC_1: u8 = 0x07;
-    const OSC_2: u8 = 0x0f;
-    const MUTE: u8 = 0x17;
-    const COLUMN: u8 = 0x08;
-}
-
-struct ControlPanelRoutingLabels;
-
-impl ControlPanelRoutingLabels {
-    const OSC_1: &str = "O1";
-    const OSC_2: &str = "O2";
-    const MUTE: &str = "M";
 }
 
 pub(crate) struct ControlPanelRouting {
@@ -181,10 +150,10 @@ impl ControlPanelRouting {
         self.draw_undo(ui);
         self.draw_save(ui);
 
-        self.draw_sources(ui, &orion_state.labels);
-        self.draw_targets(ui, &orion_state.routes, &orion_state.labels);
+        self.draw_sources(ui, &orion_state);
+        self.draw_targets(ui, &orion_state);
 
-        self.draw_drag(ui, &orion_state.labels);
+        self.draw_drag(ui, &orion_state);
         self.draw_text(ui, &orion_state.labels);
 
         self.draw_signals(ui, orion_state.signals);
@@ -375,14 +344,15 @@ impl ControlPanelRouting {
         }
     }
 
-    fn draw_source(&mut self, ui: &mut egui::Ui, column: u8, row: u8, label: &String) {
+    fn draw_source(&mut self, ui: &mut egui::Ui, column: u8, row: u8, orion_state: &OrionState) {
+        let label = &orion_state.labels[row as usize][column as usize].clone();
         let (pos_x, pos_y) = Self::cell_pos(column, row, true);
 
         let color = if self.source_select_row == row && self.source_select_columns.contains(&column)
         {
             ControlPanelRoutingColors::SELECT
         } else {
-            self.color_for_route(row)
+            orion_state.color_for_route(row)
         };
 
         let rect = egui::Rect::from_min_size(
@@ -418,9 +388,16 @@ impl ControlPanelRouting {
         );
     }
 
-    fn draw_source_editing(&mut self, ui: &mut egui::Ui, column: u8, row: u8, label: &String) {
+    fn draw_source_editing(
+        &mut self,
+        ui: &mut egui::Ui,
+        column: u8,
+        row: u8,
+        orion_state: &OrionState,
+    ) {
+        let label = &orion_state.labels[row as usize][column as usize].clone();
         let (pos_x, pos_y) = Self::cell_pos(column, row, true);
-        let color = self.color_for_route(row);
+        let color = orion_state.color_for_route(row);
 
         let rect = egui::Rect::from_min_size(
             egui::pos2(pos_x - 14.0, pos_y - 2.0),
@@ -473,21 +450,17 @@ impl ControlPanelRouting {
         }
     }
 
-    fn draw_sources(&mut self, ui: &mut egui::Ui, labels: &[[String; 32]; 7]) {
+    fn draw_sources(&mut self, ui: &mut egui::Ui, orion_state: &OrionState) {
         for row in 0..self.source_counts.len() as u8 {
             for column in 0..self.source_counts[row as usize] as u8 {
                 if Some([column, row]) != self.label_edit_cell {
-                    let label = labels[row as usize][column as usize].clone();
-
-                    self.draw_source(ui, column, row, &label);
+                    self.draw_source(ui, column, row, &orion_state);
                 }
             }
         }
 
         if let Some([column, row]) = self.label_edit_cell {
-            let label = labels[row as usize][column as usize].clone();
-
-            self.draw_source_editing(ui, column, row, &label);
+            self.draw_source_editing(ui, column, row, &orion_state);
         }
     }
 
@@ -545,26 +518,21 @@ impl ControlPanelRouting {
             .extend(self.source_select_toggle_columns.iter().copied());
     }
 
-    fn draw_targets(
-        &mut self,
-        ui: &mut egui::Ui,
-        all_routes: &[[u8; 32]; 7],
-        labels: &[[String; 32]; 7],
-    ) {
+    fn draw_targets(&mut self, ui: &mut egui::Ui, orion_state: &OrionState) {
         self.target_hover_cell = None;
 
         for row in 0..self.target_counts.len() {
             for column in 0..self.target_counts[row] {
-                let routes = all_routes[row];
+                let routes = &orion_state.routes[row];
                 let route = routes[column];
 
                 let color = if self.target_select_cell == Some([column as u8, row as u8]) {
                     ControlPanelRoutingColors::SELECT
                 } else {
-                    self.color_for_route(route)
+                    orion_state.color_for_route(route)
                 };
 
-                let label = &self.label_for_route(route, &labels);
+                let label = &orion_state.label_for_route(route);
 
                 let rect =
                     Self::draw_rect_with_label(ui, column as u8, row as u8, false, color, label);
@@ -586,7 +554,7 @@ impl ControlPanelRouting {
                             &routes,
                             Some(column),
                             row,
-                            ControlPanelRoutingCodes::MUTE,
+                            RoutingCodes::MUTE,
                         );
 
                         ui.close();
@@ -597,7 +565,7 @@ impl ControlPanelRouting {
                             &routes,
                             None,
                             row,
-                            ControlPanelRoutingCodes::MUTE,
+                            RoutingCodes::MUTE,
                         );
 
                         ui.close();
@@ -608,7 +576,7 @@ impl ControlPanelRouting {
                             &routes,
                             Some(column),
                             row,
-                            ControlPanelRoutingCodes::OSC_1,
+                            RoutingCodes::OSC_1,
                         );
 
                         ui.close();
@@ -619,7 +587,7 @@ impl ControlPanelRouting {
                             &routes,
                             Some(column),
                             row,
-                            ControlPanelRoutingCodes::OSC_2,
+                            RoutingCodes::OSC_2,
                         );
 
                         ui.close();
@@ -776,8 +744,7 @@ impl ControlPanelRouting {
                         break;
                     }
 
-                    let route =
-                        source_column * ControlPanelRoutingCodes::COLUMN + self.source_select_row;
+                    let route = source_column * RoutingCodes::COLUMN + self.source_select_row;
 
                     new_routes[target_column as usize + column_index] = route;
                 }
@@ -794,21 +761,22 @@ impl ControlPanelRouting {
         self.source_select_columns.clear();
     }
 
-    fn draw_drag(&mut self, ui: &mut egui::Ui, labels: &[[String; 32]; 7]) {
+    fn draw_drag(&mut self, ui: &mut egui::Ui, orion_state: &OrionState) {
         if !self.source_mousedown || self.target_hover_cell.is_none() {
             return;
         }
 
         let [target_column, target_row] = self.target_hover_cell.unwrap();
-        let target_row_count = self.target_counts[target_row as usize];
+        let target_row_count = orion_state.target_counts[target_row as usize];
 
         for (column_index, &source_column) in self.source_select_columns.iter().enumerate() {
             if target_column as usize + column_index >= target_row_count {
                 return;
             }
 
-            let label = &labels[self.source_select_row as usize][source_column as usize];
-            let color = self.color_for_route(self.source_select_row);
+            let label =
+                &orion_state.labels[self.source_select_row as usize][source_column as usize];
+            let color = orion_state.color_for_route(self.source_select_row);
 
             Self::draw_rect_with_label(
                 ui,
@@ -823,70 +791,17 @@ impl ControlPanelRouting {
 
     fn source_cell_for_route(&self, route: u8) -> Option<[u8; 2]> {
         match route {
-            ControlPanelRoutingCodes::OSC_1
-            | ControlPanelRoutingCodes::OSC_2
-            | ControlPanelRoutingCodes::MUTE => None,
+            RoutingCodes::OSC_1 | RoutingCodes::OSC_2 | RoutingCodes::MUTE => None,
 
             _ => {
-                let row = route % ControlPanelRoutingCodes::COLUMN;
-                let column = route / ControlPanelRoutingCodes::COLUMN;
+                let row = route % RoutingCodes::COLUMN;
+                let column = route / RoutingCodes::COLUMN;
 
-                if row == ControlPanelRoutingCodes::USB && column as usize >= self.source_counts[1]
-                {
+                if row == RoutingCodes::USB && column as usize >= self.source_counts[1] {
                     return None;
                 }
 
                 Some([column, row])
-            }
-        }
-    }
-
-    fn label_for_route(&self, route: u8, labels: &[[String; 32]; 7]) -> String {
-        match route {
-            ControlPanelRoutingCodes::OSC_1 => ControlPanelRoutingLabels::OSC_1.to_string(),
-            ControlPanelRoutingCodes::OSC_2 => ControlPanelRoutingLabels::OSC_2.to_string(),
-            ControlPanelRoutingCodes::MUTE => ControlPanelRoutingLabels::MUTE.to_string(),
-
-            _ => {
-                let row = route % ControlPanelRoutingCodes::COLUMN;
-                let column = route / ControlPanelRoutingCodes::COLUMN;
-
-                if row == ControlPanelRoutingCodes::USB && column as usize >= self.source_counts[1]
-                {
-                    return ControlPanelRoutingLabels::MUTE.to_string();
-                }
-
-                labels[row as usize][column as usize].clone()
-            }
-        }
-    }
-
-    fn color_for_route(&self, route: u8) -> egui::Color32 {
-        match route {
-            ControlPanelRoutingCodes::OSC_1 => ControlPanelRoutingColors::OSC_1,
-            ControlPanelRoutingCodes::OSC_2 => ControlPanelRoutingColors::OSC_2,
-            ControlPanelRoutingCodes::MUTE => ControlPanelRoutingColors::MUTE,
-
-            _ => {
-                let row = route % ControlPanelRoutingCodes::COLUMN;
-                let column = route / ControlPanelRoutingCodes::COLUMN;
-
-                if row == ControlPanelRoutingCodes::USB && column as usize >= self.source_counts[1]
-                {
-                    return ControlPanelRoutingColors::MUTE;
-                }
-
-                match row {
-                    ControlPanelRoutingCodes::ADC_DAC => ControlPanelRoutingColors::ADC_DAC,
-                    ControlPanelRoutingCodes::USB => ControlPanelRoutingColors::USB,
-                    ControlPanelRoutingCodes::MADI_1 => ControlPanelRoutingColors::MADI,
-                    ControlPanelRoutingCodes::MADI_2 => ControlPanelRoutingColors::MADI,
-                    ControlPanelRoutingCodes::ADAT => ControlPanelRoutingColors::ADAT,
-                    ControlPanelRoutingCodes::SPDIF => ControlPanelRoutingColors::SPDIF,
-                    ControlPanelRoutingCodes::MIX_LR => ControlPanelRoutingColors::MIX_LR,
-
-                    _ => egui::Color32::BLACK,
-                }
             }
         }
     }
