@@ -145,7 +145,7 @@ impl OrionState {
                 let row = route % RoutingCodes::COLUMN;
                 let column = route / RoutingCodes::COLUMN;
 
-                if row == RoutingCodes::USB && column as usize >= self.source_counts[1] {
+                if column as usize >= self.source_counts[row as usize] {
                     return RoutingLabels::MUTE.to_string();
                 }
 
@@ -164,7 +164,7 @@ impl OrionState {
                 let row = route % RoutingCodes::COLUMN;
                 let column = route / RoutingCodes::COLUMN;
 
-                if row == RoutingCodes::USB && column as usize >= self.source_counts[1] {
+                if column as usize >= self.source_counts[row as usize] {
                     return RoutingLabelColors::MUTE;
                 }
 
