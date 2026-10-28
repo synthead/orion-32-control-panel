@@ -39,7 +39,7 @@ pub(crate) struct ControlPanelDevices {
 }
 
 impl ControlPanelDevices {
-    const INIT_PACKETS: [&str; 6] = [
+    const QUERYING_MESSAGES: [&str; 6] = [
         "serial number",
         "firmware version",
         "routes",
@@ -179,7 +179,7 @@ impl ControlPanelDevices {
         } else {
             let index = (u8::BITS - 1 - inits_completed.leading_zeros()) as usize;
 
-            format!("Querying {}...", Self::INIT_PACKETS[index])
+            format!("Querying {}...", Self::QUERYING_MESSAGES[index])
         };
 
         ui.painter().text(
