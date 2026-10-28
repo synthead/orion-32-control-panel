@@ -69,9 +69,6 @@ pub(crate) struct ControlPanelRouting {
     undo_buffer: Vec<(u8, [u8; 32], [u8; 32])>,
     undo_cursor: usize,
 
-    source_counts: [usize; 7],
-    target_counts: [usize; 7],
-
     label_edit_cell: Option<[u8; 2]>,
     source_select_range_row: Option<u8>,
     source_select_range_column: u8,
@@ -119,9 +116,6 @@ impl ControlPanelRouting {
             undo_buffer: Vec::new(),
             undo_cursor: 0,
 
-            source_counts: [0; 7],
-            target_counts: [0; 7],
-
             label_edit_cell: None,
 
             source_select_range_row: None,
@@ -143,8 +137,6 @@ impl ControlPanelRouting {
         let mut orion_state = self.orion_state.lock().unwrap().clone();
 
         orion_state.calculate_channel_counts();
-        self.source_counts = orion_state.source_counts;
-        self.target_counts = orion_state.target_counts;
 
         Self::draw_base_graphics(ui);
         self.draw_undo(ui);
@@ -159,7 +151,7 @@ impl ControlPanelRouting {
         self.draw_signals(ui, orion_state.signals);
 
         self.clear_target_selection_when_outside(ui);
-        self.update_targets_on_mouseup(ui, &orion_state.routes);
+        self.update_targets_on_mouseup(ui, &orion_state);
     }
 
     pub(crate) fn create_config_dir(&self) {
@@ -426,10 +418,11 @@ impl ControlPanelRouting {
                 let mut row_next = row as usize;
 
                 if column_next < 0 {
-                    row_next = (row_next + self.source_counts.len() - 1) % self.source_counts.len();
-                    column_next = self.source_counts[row_next] as i16 - 1;
-                } else if column_next == self.source_counts[row_next] as i16 {
-                    row_next = (row_next + 1) % self.source_counts.len();
+                    row_next = (row_next + orion_state.source_counts.len() - 1)
+                        % orion_state.source_counts.len();
+                    column_next = orion_state.source_counts[row_next] as i16 - 1;
+                } else if column_next == orion_state.source_counts[row_next] as i16 {
+                    row_next = (row_next + 1) % orion_state.source_counts.len();
                     column_next = 0;
                 }
 
@@ -446,8 +439,8 @@ impl ControlPanelRouting {
     }
 
     fn draw_sources(&mut self, ui: &mut egui::Ui, orion_state: &OrionState) {
-        for row in 0..self.source_counts.len() as u8 {
-            for column in 0..self.source_counts[row as usize] as u8 {
+        for row in 0..orion_state.source_counts.len() as u8 {
+            for column in 0..orion_state.source_counts[row as usize] as u8 {
                 if Some([column, row]) != self.label_edit_cell {
                     self.draw_source(ui, column, row, &orion_state);
                 }
@@ -516,8 +509,8 @@ impl ControlPanelRouting {
     fn draw_targets(&mut self, ui: &mut egui::Ui, orion_state: &OrionState) {
         self.target_hover_cell = None;
 
-        for row in 0..self.target_counts.len() {
-            for column in 0..self.target_counts[row] {
+        for row in 0..orion_state.target_counts.len() {
+            for column in 0..orion_state.target_counts[row] {
                 let routes = &orion_state.routes[row];
                 let route = routes[column];
 
@@ -539,7 +532,7 @@ impl ControlPanelRouting {
                     self.target_hover_cell = Some([column as u8, row as u8]);
 
                     if ControlPanelHelpers::mouse_down_on(&response) {
-                        self.update_target_selections(column as u8, row as u8, route);
+                        self.update_target_selections(column as u8, row as u8, route, orion_state);
                     }
                 }
 
@@ -550,6 +543,7 @@ impl ControlPanelRouting {
                             Some(column),
                             row,
                             Self::route_for_special(RoutingColumns::MUTE),
+                            orion_state,
                         );
 
                         ui.close();
@@ -561,6 +555,7 @@ impl ControlPanelRouting {
                             None,
                             row,
                             Self::route_for_special(RoutingColumns::MUTE),
+                            orion_state,
                         );
 
                         ui.close();
@@ -572,6 +567,7 @@ impl ControlPanelRouting {
                             Some(column),
                             row,
                             Self::route_for_special(RoutingColumns::OSC_1),
+                            orion_state,
                         );
 
                         ui.close();
@@ -583,6 +579,7 @@ impl ControlPanelRouting {
                             Some(column),
                             row,
                             Self::route_for_special(RoutingColumns::OSC_2),
+                            orion_state,
                         );
 
                         ui.close();
@@ -598,13 +595,14 @@ impl ControlPanelRouting {
         column: Option<usize>,
         row: usize,
         route: u8,
+        orion_state: &OrionState,
     ) {
         let mut new_routes = *old_routes;
 
         if let Some(column) = column {
             new_routes[column] = route;
         } else {
-            for column in 0..self.target_counts[row] {
+            for column in 0..orion_state.target_counts[row] {
                 new_routes[column] = route;
             }
         }
@@ -612,13 +610,19 @@ impl ControlPanelRouting {
         self.queue_routes_with_undo(row as u8, &old_routes, &new_routes);
     }
 
-    fn update_target_selections(&mut self, column: u8, row: u8, route: u8) {
+    fn update_target_selections(
+        &mut self,
+        column: u8,
+        row: u8,
+        route: u8,
+        orion_state: &OrionState,
+    ) {
         self.target_select_cell = Some([column, row]);
 
         self.source_select_toggle_columns.clear();
         self.source_select_columns.clear();
 
-        if let Some([source_column, source_row]) = self.source_cell_for_route(route) {
+        if let Some([source_column, source_row]) = self.source_cell_for_route(route, orion_state) {
             self.source_select_row = source_row;
             self.source_select_columns.insert(source_column);
         }
@@ -725,13 +729,13 @@ impl ControlPanelRouting {
         }
     }
 
-    fn update_targets_on_mouseup(&mut self, ui: &mut egui::Ui, routes: &[[u8; 32]; 7]) {
+    fn update_targets_on_mouseup(&mut self, ui: &mut egui::Ui, orion_state: &OrionState) {
         if self.source_mousedown && ui.input(|i| i.pointer.primary_released()) {
             if let Some([target_column, target_row]) = self.target_hover_cell {
-                let old_routes = routes[target_row as usize];
+                let old_routes = orion_state.routes[target_row as usize];
                 let mut new_routes = old_routes;
 
-                let target_row_count = self.target_counts[target_row as usize];
+                let target_row_count = orion_state.target_counts[target_row as usize];
 
                 for (column_index, &source_column) in self.source_select_columns.iter().enumerate()
                 {
@@ -784,7 +788,7 @@ impl ControlPanelRouting {
         }
     }
 
-    fn source_cell_for_route(&self, route: u8) -> Option<[u8; 2]> {
+    fn source_cell_for_route(&self, route: u8, orion_state: &OrionState) -> Option<[u8; 2]> {
         let row = route % RoutingColumns::STEP;
         let column = route / RoutingColumns::STEP;
 
@@ -792,7 +796,7 @@ impl ControlPanelRouting {
             return None;
         }
 
-        if row == RoutingRows::USB && column as usize >= self.source_counts[1] {
+        if row == RoutingRows::USB && column as usize >= orion_state.source_counts[1] {
             return None;
         }
 
