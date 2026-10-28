@@ -20,13 +20,18 @@ impl ControlPanelDevicesDimensions {
     const BUTTON_X: u16 = 504;
     const CONNECT_BUTTON_Y: u16 = 504;
     const ADMINISTRATION_BUTTON_Y: u16 = 554;
+
+    const STATUS_TEXT_X: f32 = 590.0;
+    const STATUS_TEXT_Y: f32 = 607.0;
+    const STATUS_TEXT_SIZE: f32 = 15.0;
 }
 
-struct ControlPanelDevicesCoiors;
+struct ControlPanelDevicesColors;
 
-impl ControlPanelDevicesCoiors {
-    const BORDER: egui::Color32 = egui::Color32::from_rgb(0x82, 0x87, 0x90);
-    const TEXT: egui::Color32 = egui::Color32::WHITE;
+impl ControlPanelDevicesColors {
+    const DEVIES_BORDER: egui::Color32 = egui::Color32::from_rgb(0x82, 0x87, 0x90);
+    const DEVICES_TEXT: egui::Color32 = egui::Color32::WHITE;
+    const STATUS_TEXT: egui::Color32 = egui::Color32::RED;
 }
 
 pub(crate) struct ControlPanelDevices {
@@ -54,6 +59,7 @@ impl ControlPanelDevices {
         self.draw_window_buttons(ui);
 
         self.draw_devices_list(ui, &orion_state.serial, orion_state.inits_completed);
+        self.draw_text(ui, orion_state.inits_completed);
     }
 
     fn draw_base_graphics(ui: &mut egui::Ui) {
@@ -149,7 +155,7 @@ impl ControlPanelDevices {
                         ),
                     ),
                     0.0,
-                    egui::Stroke::new(1.0, ControlPanelDevicesCoiors::BORDER),
+                    egui::Stroke::new(1.0, ControlPanelDevicesColors::DEVIES_BORDER),
                     egui::StrokeKind::Inside,
                 );
 
@@ -158,12 +164,33 @@ impl ControlPanelDevices {
                         ui.add(
                             egui::Label::new(
                                 egui::RichText::new(serial_text)
-                                    .color(ControlPanelDevicesCoiors::TEXT),
+                                    .color(ControlPanelDevicesColors::DEVICES_TEXT),
                             )
                             .selectable(false),
                         );
                     }
                 });
             });
+    }
+
+    fn draw_text(&mut self, ui: &mut egui::Ui, inits_completed: u8) {
+        let text = if inits_completed == 0 {
+            "Not connected.".to_string()
+        } else {
+            let index = (u8::BITS - 1 - inits_completed.leading_zeros()) as usize;
+
+            format!("Querying {}...", Self::INIT_PACKETS[index])
+        };
+
+        ui.painter().text(
+            egui::pos2(
+                ControlPanelDevicesDimensions::STATUS_TEXT_X,
+                ControlPanelDevicesDimensions::STATUS_TEXT_Y,
+            ),
+            egui::Align2::CENTER_TOP,
+            text,
+            egui::FontId::proportional(ControlPanelDevicesDimensions::STATUS_TEXT_SIZE),
+            ControlPanelDevicesColors::STATUS_TEXT,
+        );
     }
 }
