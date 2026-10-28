@@ -12,9 +12,9 @@ impl RoutingLabelColors {
     pub(crate) const MUTE: egui::Color32 = egui::Color32::from_rgb(0x7b, 0x7b, 0x7b);
 }
 
-pub(crate) struct RoutingCodes;
+pub(crate) struct RoutingRows;
 
-impl RoutingCodes {
+impl RoutingRows {
     pub(crate) const ADC_DAC: u8 = 0x00;
     pub(crate) const USB: u8 = 0x01;
     pub(crate) const MADI_1: u8 = 0x02;
@@ -22,10 +22,16 @@ impl RoutingCodes {
     pub(crate) const ADAT: u8 = 0x04;
     pub(crate) const SPDIF: u8 = 0x05;
     pub(crate) const MIX_LR: u8 = 0x06;
-    pub(crate) const OSC_1: u8 = 0x07;
-    pub(crate) const OSC_2: u8 = 0x0f;
-    pub(crate) const MUTE: u8 = 0x17;
-    pub(crate) const COLUMN: u8 = 0x08;
+    pub(crate) const SPECIAL: u8 = 0x07;
+}
+
+pub(crate) struct RoutingColumns;
+
+impl RoutingColumns {
+    pub(crate) const OSC_1: u8 = 0x00;
+    pub(crate) const OSC_2: u8 = 0x01;
+    pub(crate) const MUTE: u8 = 0x02;
+    pub(crate) const STEP: u8 = 0x08;
 }
 
 pub(crate) struct RoutingLabels;

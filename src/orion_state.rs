@@ -1,4 +1,4 @@
-use crate::routing_constants::{RoutingCodes, RoutingLabelColors, RoutingLabels};
+use crate::routing_constants::{RoutingColumns, RoutingLabelColors, RoutingLabels, RoutingRows};
 
 pub(crate) struct OrionStateInitSteps;
 
@@ -135,51 +135,70 @@ impl OrionState {
         ];
     }
 
-    pub(crate) fn label_for_route(&self, route: u8) -> String {
-        match route {
-            RoutingCodes::OSC_1 => RoutingLabels::OSC_1.to_string(),
-            RoutingCodes::OSC_2 => RoutingLabels::OSC_2.to_string(),
-            RoutingCodes::MUTE => RoutingLabels::MUTE.to_string(),
+    pub(crate) fn column_row_for_route(&self, route: u8, truncate: bool) -> Option<[u8; 2]> {
+        let column = route / RoutingColumns::STEP;
+        let row = route % RoutingColumns::STEP;
 
-            _ => {
-                let row = route % RoutingCodes::COLUMN;
-                let column = route / RoutingCodes::COLUMN;
-
-                if column as usize >= self.source_counts[row as usize] {
-                    return RoutingLabels::MUTE.to_string();
-                }
-
-                self.labels[row as usize][column as usize].clone()
-            }
+        if truncate
+            && row != RoutingRows::SPECIAL
+            && column as usize >= self.source_counts[row as usize]
+        {
+            return None;
         }
+
+        Some([column, row])
     }
 
-    pub(crate) fn color_for_route(&self, route: u8) -> egui::Color32 {
-        match route {
-            RoutingCodes::OSC_1 => RoutingLabelColors::OSC_1,
-            RoutingCodes::OSC_2 => RoutingLabelColors::OSC_2,
-            RoutingCodes::MUTE => RoutingLabelColors::MUTE,
-
-            _ => {
-                let row = route % RoutingCodes::COLUMN;
-                let column = route / RoutingCodes::COLUMN;
-
-                if column as usize >= self.source_counts[row as usize] {
-                    return RoutingLabelColors::MUTE;
-                }
-
-                match row {
-                    RoutingCodes::ADC_DAC => RoutingLabelColors::ADC_DAC,
-                    RoutingCodes::USB => RoutingLabelColors::USB,
-                    RoutingCodes::MADI_1 => RoutingLabelColors::MADI,
-                    RoutingCodes::MADI_2 => RoutingLabelColors::MADI,
-                    RoutingCodes::ADAT => RoutingLabelColors::ADAT,
-                    RoutingCodes::SPDIF => RoutingLabelColors::SPDIF,
-                    RoutingCodes::MIX_LR => RoutingLabelColors::MIX_LR,
-
-                    _ => egui::Color32::BLACK,
-                }
+    pub(crate) fn label_for_route(&self, route: u8, truncate: bool) -> String {
+        if let Some([column, row]) = self.column_row_for_route(route, truncate) {
+            if row == RoutingRows::SPECIAL {
+                return match column {
+                    0 => RoutingLabels::OSC_1.to_string(),
+                    1 => RoutingLabels::OSC_2.to_string(),
+                    _ => RoutingLabels::MUTE.to_string(),
+                };
             }
+
+            return self.labels[row as usize][column as usize].clone();
         }
+
+        RoutingLabels::MUTE.to_string()
+    }
+
+    pub(crate) fn color_for_route(&self, route: u8, truncate: bool) -> egui::Color32 {
+        if let Some([column, row]) = self.column_row_for_route(route, truncate) {
+            if row == RoutingRows::SPECIAL {
+                return match column {
+                    0 => RoutingLabelColors::OSC_1,
+                    1 => RoutingLabelColors::OSC_2,
+                    _ => RoutingLabelColors::MUTE,
+                };
+            }
+
+            return match row {
+                RoutingRows::ADC_DAC => RoutingLabelColors::ADC_DAC,
+                RoutingRows::USB => RoutingLabelColors::USB,
+                RoutingRows::MADI_1 => RoutingLabelColors::MADI,
+                RoutingRows::MADI_2 => RoutingLabelColors::MADI,
+                RoutingRows::ADAT => RoutingLabelColors::ADAT,
+                RoutingRows::SPDIF => RoutingLabelColors::SPDIF,
+                RoutingRows::MIX_LR => RoutingLabelColors::MIX_LR,
+
+                _ => egui::Color32::BLACK,
+            };
+        }
+
+        RoutingLabelColors::MUTE
+    }
+
+    pub(crate) fn hex_color_for_route(&self, route: u8, truncate: bool) -> String {
+        let egui_color = self.color_for_route(route, truncate);
+
+        format!(
+            "#{:02x}{:02x}{:02x}",
+            egui_color.r(),
+            egui_color.g(),
+            egui_color.b()
+        )
     }
 }

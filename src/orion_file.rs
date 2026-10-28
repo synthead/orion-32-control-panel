@@ -3,36 +3,8 @@ use std::collections::BTreeMap;
 use std::fs::File;
 use std::path::PathBuf;
 
-struct OrionFileRouteCodes;
-
-impl OrionFileRouteCodes {
-    const ADC_DAC: u8 = 0x00;
-    const USB: u8 = 0x01;
-    const MADI_1: u8 = 0x02;
-    const MADI_2: u8 = 0x03;
-    const ADAT: u8 = 0x04;
-    const SPDIF: u8 = 0x05;
-    const MIX_LR: u8 = 0x06;
-    const OSC_1: u8 = 0x07;
-    const OSC_2: u8 = 0x0f;
-    const MUTE: u8 = 0x17;
-    const COLUMN: u8 = 0x08;
-}
-
-struct OrionFileRouteColors;
-
-impl OrionFileRouteColors {
-    const ADC_DAC: &str = "#20a4f7";
-    const USB: &str = "#0073ff";
-    const MADI: &str = "#ffb800";
-    const ADAT: &str = "#ff0037";
-    const SPDIF: &str = "#d92494";
-    const MIX_LR: &str = "#72ab20";
-    const OSC_1: &str = "#3890a7";
-    const OSC_2: &str = "#9038a7";
-    const MUTE: &str = "#7b7b7b";
-    const TEXT: &str = "#ffffff";
-}
+use crate::orion_state::OrionState;
+use crate::routing_constants::RoutingColumns;
 
 pub struct OrionFile {
     file: PathBuf,
@@ -40,20 +12,16 @@ pub struct OrionFile {
 
 impl OrionFile {
     const FILE_FORMAT_ERROR_MESSAGE: &str = "Orion 32 Routing File is malformed.";
+    const TEXT_COLOR: &str = "#ffffff";
 
     pub(crate) fn new(file: PathBuf) -> Self {
         Self { file }
     }
 
-    pub(crate) fn encode(
-        &self,
-        all_labels: &[[String; 32]; 7],
-        all_routes: &[[u8; 32]; 7],
-        source_counts: &[usize; 7],
-        target_counts: &[usize; 7],
-    ) {
+    pub(crate) fn encode(&self, orion_state: &OrionState) {
         let input = Value::List(
-            all_labels
+            orion_state
+                .labels
                 .iter()
                 .enumerate()
                 .map(|(row, labels)| {
@@ -62,12 +30,13 @@ impl OrionFile {
                             .iter()
                             .enumerate()
                             .map(|(column, label)| {
-                                let bg_color_str = Self::color_for_route(row as u8, source_counts);
+                                let bg_color_string =
+                                    orion_state.hex_color_for_route(row as u8, false);
 
                                 let value = Value::String(label.clone());
-                                let enabled = Value::Bool(column < source_counts[row]);
-                                let color = Value::String(OrionFileRouteColors::TEXT.to_string());
-                                let bg_color = Value::String(bg_color_str.to_string());
+                                let enabled = Value::Bool(column < orion_state.source_counts[row]);
+                                let color = Value::String(Self::TEXT_COLOR.to_string());
+                                let bg_color = Value::String(bg_color_string);
 
                                 Self::make_dict([
                                     ("value", value),
@@ -85,7 +54,8 @@ impl OrionFile {
         );
 
         let output = Value::List(
-            all_routes
+            orion_state
+                .routes
                 .iter()
                 .enumerate()
                 .map(|(target_row, routes)| {
@@ -94,18 +64,21 @@ impl OrionFile {
                             .iter()
                             .enumerate()
                             .map(|(target_column, route)| {
-                                let source_column = *route / OrionFileRouteCodes::COLUMN;
-                                let source_row = *route % OrionFileRouteCodes::COLUMN;
-                                let bg_color_str = Self::color_for_route(*route, source_counts);
+                                let source_column = *route / RoutingColumns::STEP;
+                                let source_row = *route % RoutingColumns::STEP;
+                                println!("{:02X} {:02X}", source_row, source_column);
+                                let bg_color_string =
+                                    orion_state.hex_color_for_route(*route, false);
 
                                 let value =
-                                    Value::String(all_labels[target_row][target_column].clone());
+                                    Value::String(orion_state.label_for_route(*route, false));
                                 let source_row = Value::I64(source_row as i64);
-                                let enabled =
-                                    Value::Bool(target_column < target_counts[target_row]);
+                                let enabled = Value::Bool(
+                                    target_column < orion_state.target_counts[target_row],
+                                );
                                 let source_column = Value::I64(source_column as i64);
-                                let color = Value::String(OrionFileRouteColors::TEXT.to_string());
-                                let bg_color = Value::String(bg_color_str.to_string());
+                                let color = Value::String(Self::TEXT_COLOR.to_string());
+                                let bg_color = Value::String(bg_color_string);
 
                                 Self::make_dict([
                                     ("value", value),
@@ -163,42 +136,11 @@ impl OrionFile {
                 let src_col = Self::i64_value(Self::field(item, "src_col"));
                 let src_row = Self::i64_value(Self::field(item, "src_row"));
 
-                (src_col * OrionFileRouteCodes::COLUMN as i64 + src_row) as u8
+                (src_col * RoutingColumns::STEP as i64 + src_row) as u8
             })
         });
 
         (labels, routes)
-    }
-
-    fn color_for_route(route: u8, source_counts: &[usize; 7]) -> &'static str {
-        match route {
-            OrionFileRouteCodes::OSC_1 => OrionFileRouteColors::OSC_1,
-            OrionFileRouteCodes::OSC_2 => OrionFileRouteColors::OSC_2,
-            OrionFileRouteCodes::MUTE => OrionFileRouteColors::MUTE,
-
-            _ => {
-                let source_row = route % OrionFileRouteCodes::COLUMN;
-                let source_column = route / OrionFileRouteCodes::COLUMN;
-
-                if source_row == OrionFileRouteCodes::USB
-                    && source_column as usize >= source_counts[1]
-                {
-                    return OrionFileRouteColors::MUTE;
-                }
-
-                match source_row {
-                    OrionFileRouteCodes::ADC_DAC => OrionFileRouteColors::ADC_DAC,
-                    OrionFileRouteCodes::USB => OrionFileRouteColors::USB,
-                    OrionFileRouteCodes::MADI_1 => OrionFileRouteColors::MADI,
-                    OrionFileRouteCodes::MADI_2 => OrionFileRouteColors::MADI,
-                    OrionFileRouteCodes::ADAT => OrionFileRouteColors::ADAT,
-                    OrionFileRouteCodes::SPDIF => OrionFileRouteColors::SPDIF,
-                    OrionFileRouteCodes::MIX_LR => OrionFileRouteColors::MIX_LR,
-
-                    _ => OrionFileRouteColors::MUTE,
-                }
-            }
-        }
     }
 
     fn field<'a>(dict: &'a BTreeMap<HashableValue, Value>, key: &str) -> &'a Value {

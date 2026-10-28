@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use std::sync::Arc;
 use std::sync::Mutex;
 
-use crate::routing_constants::RoutingCodes;
+use crate::routing_constants::{RoutingColumns, RoutingRows};
 
 use crate::orion_file::OrionFile;
 use crate::orion_hid::OrionHid;
@@ -305,12 +305,7 @@ impl ControlPanelRouting {
                 let orion_file = OrionFile::new(file);
                 let orion_state = self.orion_state.lock().unwrap().clone();
 
-                orion_file.encode(
-                    &orion_state.labels,
-                    &orion_state.routes,
-                    &self.source_counts,
-                    &self.target_counts,
-                );
+                orion_file.encode(&orion_state);
             }
         }
 
@@ -352,7 +347,7 @@ impl ControlPanelRouting {
         {
             ControlPanelRoutingColors::SELECT
         } else {
-            orion_state.color_for_route(row)
+            orion_state.color_for_route(row, true)
         };
 
         let rect = egui::Rect::from_min_size(
@@ -397,7 +392,7 @@ impl ControlPanelRouting {
     ) {
         let label = &orion_state.labels[row as usize][column as usize].clone();
         let (pos_x, pos_y) = Self::cell_pos(column, row, true);
-        let color = orion_state.color_for_route(row);
+        let color = orion_state.color_for_route(row, true);
 
         let rect = egui::Rect::from_min_size(
             egui::pos2(pos_x - 14.0, pos_y - 2.0),
@@ -529,10 +524,10 @@ impl ControlPanelRouting {
                 let color = if self.target_select_cell == Some([column as u8, row as u8]) {
                     ControlPanelRoutingColors::SELECT
                 } else {
-                    orion_state.color_for_route(route)
+                    orion_state.color_for_route(route, true)
                 };
 
-                let label = &orion_state.label_for_route(route);
+                let label = &orion_state.label_for_route(route, true);
 
                 let rect =
                     Self::draw_rect_with_label(ui, column as u8, row as u8, false, color, label);
@@ -554,7 +549,7 @@ impl ControlPanelRouting {
                             &routes,
                             Some(column),
                             row,
-                            RoutingCodes::MUTE,
+                            Self::route_for_special(RoutingColumns::MUTE),
                         );
 
                         ui.close();
@@ -565,7 +560,7 @@ impl ControlPanelRouting {
                             &routes,
                             None,
                             row,
-                            RoutingCodes::MUTE,
+                            Self::route_for_special(RoutingColumns::MUTE),
                         );
 
                         ui.close();
@@ -576,7 +571,7 @@ impl ControlPanelRouting {
                             &routes,
                             Some(column),
                             row,
-                            RoutingCodes::OSC_1,
+                            Self::route_for_special(RoutingColumns::OSC_1),
                         );
 
                         ui.close();
@@ -587,7 +582,7 @@ impl ControlPanelRouting {
                             &routes,
                             Some(column),
                             row,
-                            RoutingCodes::OSC_2,
+                            Self::route_for_special(RoutingColumns::OSC_2),
                         );
 
                         ui.close();
@@ -744,7 +739,7 @@ impl ControlPanelRouting {
                         break;
                     }
 
-                    let route = source_column * RoutingCodes::COLUMN + self.source_select_row;
+                    let route = source_column * RoutingColumns::STEP + self.source_select_row;
 
                     new_routes[target_column as usize + column_index] = route;
                 }
@@ -776,7 +771,7 @@ impl ControlPanelRouting {
 
             let label =
                 &orion_state.labels[self.source_select_row as usize][source_column as usize];
-            let color = orion_state.color_for_route(self.source_select_row);
+            let color = orion_state.color_for_route(self.source_select_row, true);
 
             Self::draw_rect_with_label(
                 ui,
@@ -790,20 +785,18 @@ impl ControlPanelRouting {
     }
 
     fn source_cell_for_route(&self, route: u8) -> Option<[u8; 2]> {
-        match route {
-            RoutingCodes::OSC_1 | RoutingCodes::OSC_2 | RoutingCodes::MUTE => None,
+        let row = route % RoutingColumns::STEP;
+        let column = route / RoutingColumns::STEP;
 
-            _ => {
-                let row = route % RoutingCodes::COLUMN;
-                let column = route / RoutingCodes::COLUMN;
-
-                if row == RoutingCodes::USB && column as usize >= self.source_counts[1] {
-                    return None;
-                }
-
-                Some([column, row])
-            }
+        if row == RoutingRows::SPECIAL {
+            return None;
         }
+
+        if row == RoutingRows::USB && column as usize >= self.source_counts[1] {
+            return None;
+        }
+
+        Some([column, row])
     }
 
     fn cell_pos(column: u8, row: u8, is_source: bool) -> (f32, f32) {
@@ -849,6 +842,10 @@ impl ControlPanelRouting {
         );
 
         rect
+    }
+
+    fn route_for_special(special_column: u8) -> u8 {
+        RoutingRows::SPECIAL | (special_column * RoutingColumns::STEP)
     }
 
     fn queue_routes_with_undo(&mut self, row: u8, old_routes: &[u8; 32], new_routes: &[u8; 32]) {

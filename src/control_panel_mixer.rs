@@ -143,8 +143,8 @@ impl ControlPanelMixer {
     fn draw_labels(ui: &mut egui::Ui, orion_state: &OrionState) {
         for channel in 0..32 {
             let route = orion_state.routes[6][channel];
-            let label = orion_state.label_for_route(route);
-            let color = orion_state.color_for_route(route);
+            let label = orion_state.label_for_route(route, true);
+            let color = orion_state.color_for_route(route, true);
 
             let pos_x = ControlPanelMixerDimensions::LABEL_X
                 + channel as f32 * ControlPanelMixerDimensions::STEP_X;
