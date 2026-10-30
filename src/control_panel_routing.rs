@@ -440,6 +440,10 @@ impl ControlPanelRouting {
                 self.label_edit_cell = None;
             }
         }
+
+        if self.label_edit_cell.is_some() && ui.input(|i| i.key_pressed(egui::Key::Escape)) {
+            self.label_edit_cell = None;
+        }
     }
 
     fn draw_sources(&mut self, ui: &mut egui::Ui, orion_state: &OrionState) {
