@@ -849,7 +849,7 @@ impl ControlPanelRouting {
 
         ui.painter().rect_filled(rect, 0.0, color);
 
-        ui.painter().text(
+        ui.painter().with_clip_rect(rect).text(
             egui::pos2(pos_x + 15.0, pos_y),
             egui::Align2::CENTER_TOP,
             label,
