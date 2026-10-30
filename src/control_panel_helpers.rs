@@ -77,6 +77,9 @@ impl ControlPanelHelpers {
                             .size(10.5)
                             .color(Self::COMBOBOX_TEXT_COLOR),
                     )
+                    .popup_style(egui::style::StyleModifier::new(|style| {
+                        style.visuals.window_fill = Self::COMBOBOX_BG_COLOR;
+                    }))
                     .show_ui(ui, |ui| {
                         for (i, selection) in selections.iter().enumerate() {
                             let response = ui.selectable_value(
