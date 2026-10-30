@@ -130,7 +130,7 @@ impl ControlPanelDevices {
     }
 
     fn draw_devices_list(&mut self, ui: &mut egui::Ui, serial: &[u8; 13], inits_completed: u8) {
-        let serial_text = String::from_utf8_lossy(serial);
+        let serial_text = format!("{} (on this computer)", String::from_utf8_lossy(serial));
 
         egui::Area::new(egui::Id::new("devices_list"))
             .fixed_pos(egui::pos2(
