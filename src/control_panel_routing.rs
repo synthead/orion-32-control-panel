@@ -71,6 +71,8 @@ pub(crate) struct ControlPanelRouting {
     undo_buffer: Vec<(u8, [u8; 32], [u8; 32])>,
     undo_cursor: usize,
 
+    last_labels_routes: Option<([[String; 32]; 7], [[u8; 32]; 7])>,
+
     label_edit_cell: Option<[u8; 2]>,
     source_select_range_row: Option<u8>,
     source_select_range_column: u8,
@@ -118,6 +120,8 @@ impl ControlPanelRouting {
             undo_buffer: Vec::new(),
             undo_cursor: 0,
 
+            last_labels_routes: None,
+
             label_edit_cell: None,
 
             source_select_range_row: None,
@@ -141,7 +145,7 @@ impl ControlPanelRouting {
         orion_state.calculate_channel_counts();
 
         Self::draw_base_graphics(ui);
-        self.draw_undo(ui, &orion_state);
+        self.draw_undo(ui);
         self.draw_save(ui, &orion_state);
 
         self.draw_sources(ui, &orion_state);
@@ -154,6 +158,8 @@ impl ControlPanelRouting {
 
         self.clear_target_selection_when_outside(ui);
         self.update_targets_on_mouseup(ui, &orion_state);
+
+        self.update_persistence(&orion_state);
     }
 
     pub(crate) fn create_config_dir(&self) {
@@ -189,7 +195,7 @@ impl ControlPanelRouting {
         );
     }
 
-    fn draw_undo(&mut self, ui: &mut egui::Ui, orion_state: &OrionState) {
+    fn draw_undo(&mut self, ui: &mut egui::Ui) {
         let undo_response = render_asset!(
             ui,
             ControlPanelRoutingDimensions::NAV_X,
@@ -235,11 +241,11 @@ impl ControlPanelRouting {
         }
 
         if undo_response.clicked() {
-            self.queue_routes_undo(orion_state);
+            self.queue_routes_undo();
         }
 
         if redo_response.clicked() {
-            self.queue_routes_redo(orion_state);
+            self.queue_routes_redo();
         }
     }
 
@@ -328,7 +334,6 @@ impl ControlPanelRouting {
                 }
 
                 self.clear_undo();
-                self.write_persistence(orion_state);
             }
         }
     }
@@ -414,8 +419,6 @@ impl ControlPanelRouting {
             let mut orion_state = self.orion_state.lock().unwrap();
 
             orion_state.labels[row as usize][column as usize] = route_text;
-
-            self.write_persistence(&orion_state);
 
             if let Some(tab) = tab {
                 let mut column_next = column as i16 + tab as i16;
@@ -649,7 +652,7 @@ impl ControlPanelRouting {
             }
         }
 
-        self.queue_routes_with_undo(row as u8, &old_routes, &new_routes, orion_state);
+        self.queue_routes_with_undo(row as u8, &old_routes, &new_routes);
     }
 
     fn update_target_selections(
@@ -790,7 +793,7 @@ impl ControlPanelRouting {
                     new_routes[target_column as usize + column_index] = route;
                 }
 
-                self.queue_routes_with_undo(target_row, &old_routes, &new_routes, orion_state);
+                self.queue_routes_with_undo(target_row, &old_routes, &new_routes);
             }
 
             self.source_mousedown = false;
@@ -894,24 +897,16 @@ impl ControlPanelRouting {
         RoutingRows::SPECIAL | (special_column * RoutingColumns::STEP)
     }
 
-    fn queue_routes_with_undo(
-        &mut self,
-        row: u8,
-        old_routes: &[u8; 32],
-        new_routes: &[u8; 32],
-        orion_state: &OrionState,
-    ) {
+    fn queue_routes_with_undo(&mut self, row: u8, old_routes: &[u8; 32], new_routes: &[u8; 32]) {
         self.undo_buffer.truncate(self.undo_cursor);
         self.undo_buffer.push((row, *old_routes, *new_routes));
 
         self.undo_cursor = self.undo_buffer.len();
 
         self.orion_hid.lock().unwrap().queue_routes(row, new_routes);
-
-        self.write_persistence(orion_state);
     }
 
-    fn queue_routes_undo(&mut self, orion_state: &OrionState) {
+    fn queue_routes_undo(&mut self) {
         if self.undo_cursor == 0 {
             return;
         }
@@ -924,11 +919,9 @@ impl ControlPanelRouting {
             .lock()
             .unwrap()
             .queue_routes(row, &old_routes);
-
-        self.write_persistence(orion_state);
     }
 
-    fn queue_routes_redo(&mut self, orion_state: &OrionState) {
+    fn queue_routes_redo(&mut self) {
         if self.undo_cursor >= self.undo_buffer.len() {
             return;
         }
@@ -941,13 +934,29 @@ impl ControlPanelRouting {
             .queue_routes(row, &new_routes);
 
         self.undo_cursor += 1;
-
-        self.write_persistence(orion_state);
     }
 
     fn clear_undo(&mut self) {
         self.undo_buffer = Vec::new();
         self.undo_cursor = 0;
+    }
+
+    fn update_persistence(&mut self, orion_state: &OrionState) {
+        let current_labels_routes = Some((orion_state.labels.clone(), orion_state.routes));
+
+        if self.last_labels_routes.is_none() {
+            self.last_labels_routes = current_labels_routes;
+
+            return;
+        }
+
+        let current_labels_routes = Some((orion_state.labels.clone(), orion_state.routes));
+
+        if self.last_labels_routes != current_labels_routes {
+            self.last_labels_routes = current_labels_routes;
+
+            self.write_persistence(orion_state);
+        }
     }
 
     pub(crate) fn read_persistence(&self) {
