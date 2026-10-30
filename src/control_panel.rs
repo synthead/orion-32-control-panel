@@ -241,13 +241,26 @@ impl ControlPanel {
     }
 
     pub(crate) fn run() -> eframe::Result {
+        let icon_image = image::load_from_memory(include_bytes!("../assets/icons/icon.png"))
+            .unwrap()
+            .into_rgba8();
+
+        let (width, height) = icon_image.dimensions();
+
+        let icon = egui::IconData {
+            rgba: icon_image.into_raw(),
+            width,
+            height,
+        };
+
         let options = eframe::NativeOptions {
             viewport: egui::ViewportBuilder::default()
                 .with_inner_size([
                     ControlPanelDimensions::VIEWPORT_WIDTH,
                     ControlPanelDimensions::VIEWPORT_HEIGHT,
                 ])
-                .with_decorations(false),
+                .with_decorations(false)
+                .with_icon(std::sync::Arc::new(icon)),
             ..Default::default()
         };
 
