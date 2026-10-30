@@ -436,6 +436,10 @@ impl ControlPanelRouting {
                     .lock()
                     .unwrap()
                     .set_editing_id(&format!("route_{column_next}_{row_next}"));
+
+                self.source_select_row = row_next as u8;
+                self.source_select_columns.clear();
+                self.source_select_columns.insert(column_next as u8);
             } else {
                 self.label_edit_cell = None;
             }
