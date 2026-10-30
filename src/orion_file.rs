@@ -66,7 +66,6 @@ impl OrionFile {
                             .map(|(target_column, route)| {
                                 let source_column = *route / RoutingColumns::STEP;
                                 let source_row = *route % RoutingColumns::STEP;
-                                println!("{:02X} {:02X}", source_row, source_column);
                                 let bg_color_string =
                                     orion_state.hex_color_for_route(*route, false);
 
