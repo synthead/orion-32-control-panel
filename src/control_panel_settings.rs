@@ -30,13 +30,13 @@ impl ControlPanelSettingsDimensions {
 
     const TRIM_LINE_OUT_X: u16 = 497;
     const TRIM_ADC_X: u16 = 634;
-    const TRIM_Y: u16 = 253;
+    const TRIM_Y: u16 = 254;
     const TRIM_WIDTH: u8 = 68;
 
     const OSCILLATOR_FREQUENCY_1_X: u16 = 431;
     const OSCILLATOR_LEVEL_X: u16 = 568;
     const OSCILLATOR_FREQUENCY_2_X: u16 = 707;
-    const OSCILLATOR_Y: u16 = 339;
+    const OSCILLATOR_Y: u16 = 340;
     const OSCILLATOR_WIDTH: u8 = 68;
 
     const BRIGHTNESS_SLIDER_X: u16 = 306;
@@ -54,7 +54,7 @@ impl ControlPanelSettingsDimensions {
     const BRIGHTNESS_TEXT_HITBOX_HEIGHT: f32 = 18.0;
 
     const USB_CHANNELS_X: u16 = 562;
-    const USB_CHANNELS_Y: u16 = 423;
+    const USB_CHANNELS_Y: u16 = 424;
     const USB_CHANNELS_WIDTH: u8 = 52;
 
     const MADI_SMUX_IN_X: u16 = 684;
@@ -68,7 +68,7 @@ impl ControlPanelSettingsDimensions {
     const ASIO_CONTROL_BUFFER_SIZE_WIDTH: u8 = 68;
     const ASIO_CONTROL_STREAMING_MODE_X: u16 = 676;
     const ASIO_CONTROL_STREAMING_MODE_WIDTH: u8 = 75;
-    const ASIO_CONTROL_Y: u16 = 507;
+    const ASIO_CONTROL_Y: u16 = 508;
 }
 
 pub(crate) struct ControlPanelSettings {

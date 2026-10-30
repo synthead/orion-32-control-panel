@@ -59,6 +59,7 @@ impl ControlPanelHelpers {
                 ui.visuals_mut().widgets.hovered.weak_bg_fill = Self::COMBOBOX_BG_COLOR;
                 ui.visuals_mut().widgets.active.weak_bg_fill = Self::COMBOBOX_BG_COLOR;
                 ui.visuals_mut().widgets.open.weak_bg_fill = Self::COMBOBOX_BG_COLOR;
+                ui.spacing_mut().interact_size.y -= 2.0;
 
                 let mut selected_mut = selected;
 
