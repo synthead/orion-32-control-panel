@@ -38,6 +38,7 @@ pub(crate) struct ControlPanelHelpers;
 
 impl ControlPanelHelpers {
     const COMBOBOX_TEXT_COLOR: egui::Color32 = egui::Color32::from_rgb(0x95, 0x95, 0x95);
+    const COMBOBOX_ARROW_COLOR: egui::Color32 = egui::Color32::from_rgb(0x85, 0xc8, 0x26);
     const COMBOBOX_BG_COLOR: egui::Color32 = egui::Color32::BLACK;
 
     pub(crate) fn draw_combobox(
@@ -59,6 +60,12 @@ impl ControlPanelHelpers {
                 ui.visuals_mut().widgets.hovered.weak_bg_fill = Self::COMBOBOX_BG_COLOR;
                 ui.visuals_mut().widgets.active.weak_bg_fill = Self::COMBOBOX_BG_COLOR;
                 ui.visuals_mut().widgets.open.weak_bg_fill = Self::COMBOBOX_BG_COLOR;
+
+                ui.visuals_mut().widgets.inactive.fg_stroke.color = Self::COMBOBOX_ARROW_COLOR;
+                ui.visuals_mut().widgets.hovered.fg_stroke.color = Self::COMBOBOX_ARROW_COLOR;
+                ui.visuals_mut().widgets.active.fg_stroke.color = Self::COMBOBOX_ARROW_COLOR;
+                ui.visuals_mut().widgets.open.fg_stroke.color = Self::COMBOBOX_ARROW_COLOR;
+
                 ui.spacing_mut().interact_size.y -= 2.0;
 
                 let mut selected_mut = selected;
