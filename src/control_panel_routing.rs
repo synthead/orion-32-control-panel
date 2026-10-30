@@ -17,8 +17,6 @@ use crate::text_editor::TextEditor;
 
 use crate::render_asset;
 
-type RoutingFileData = ([[String; 32]; 7], [[u8; 32]; 7]);
-
 struct ControlPanelRoutingColors;
 
 impl ControlPanelRoutingColors {
@@ -62,6 +60,8 @@ impl ControlPanelRoutingDimensions {
     const HOWTO_X: u16 = 1094;
     const HOWTO_Y: u16 = 652;
 }
+
+type RoutingFileData = ([[String; 32]; 7], [[u8; 32]; 7]);
 
 pub(crate) struct ControlPanelRouting {
     orion_state: Arc<Mutex<OrionState>>,
