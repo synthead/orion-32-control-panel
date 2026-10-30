@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use std::sync::Arc;
 use std::sync::Mutex;
 
-use crate::routing_constants::{RoutingColumns, RoutingRows};
+use crate::constants::{RoutingColumns, RoutingRows, WidgetColors, WidgetDimensions};
 
 use crate::orion_file::OrionFile;
 use crate::orion_persistence::OrionPersistence;

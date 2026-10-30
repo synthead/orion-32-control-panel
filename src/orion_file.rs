@@ -4,7 +4,7 @@ use std::fs::File;
 use std::path::PathBuf;
 
 use crate::orion_state::OrionState;
-use crate::routing_constants::RoutingColumns;
+use crate::constants::RoutingColumns;
 
 pub struct OrionFile {
     file: PathBuf,

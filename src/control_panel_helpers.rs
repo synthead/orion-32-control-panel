@@ -34,7 +34,7 @@ macro_rules! render_asset {
     };
 }
 
-use crate::routing_constants::{WidgetColors, WidgetDimensions};
+use crate::constants::{WidgetColors, WidgetDimensions};
 
 pub(crate) struct ControlPanelHelpers;
 

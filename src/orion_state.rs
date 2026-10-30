@@ -1,4 +1,4 @@
-use crate::routing_constants::{RoutingColumns, RoutingLabelColors, RoutingLabels, RoutingRows};
+use crate::constants::{RoutingColumns, RoutingLabelColors, RoutingLabels, RoutingRows};
 
 pub(crate) struct OrionStateInitSteps;
 

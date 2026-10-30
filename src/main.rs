@@ -1,7 +1,7 @@
 // Hide console window on Windows.
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-mod routing_constants;
+mod constants;
 
 mod control_panel;
 mod control_panel_about;
