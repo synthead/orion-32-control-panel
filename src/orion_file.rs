@@ -3,8 +3,8 @@ use std::collections::BTreeMap;
 use std::fs::File;
 use std::path::PathBuf;
 
-use crate::orion_state::OrionState;
 use crate::constants::RoutingColumns;
+use crate::orion_state::OrionState;
 
 pub struct OrionFile {
     file: PathBuf,

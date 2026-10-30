@@ -2,8 +2,8 @@ use serde_json::{self, Map, Value};
 use std::fs::File;
 use std::path::PathBuf;
 
-use crate::orion_state::OrionState;
 use crate::constants::RoutingColumns;
+use crate::orion_state::OrionState;
 
 pub struct OrionPersistence {
     file: PathBuf,
