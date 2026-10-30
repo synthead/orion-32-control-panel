@@ -1,5 +1,6 @@
 use std::collections::BTreeSet;
 use std::collections::HashSet;
+use std::sync::mpsc;
 use std::sync::Arc;
 use std::sync::Mutex;
 
@@ -15,6 +16,8 @@ use crate::control_panel_helpers::ControlPanelHelpers;
 use crate::text_editor::TextEditor;
 
 use crate::render_asset;
+
+type RoutingFileData = ([[String; 32]; 7], [[u8; 32]; 7]);
 
 struct ControlPanelRoutingColors;
 
@@ -68,6 +71,9 @@ pub(crate) struct ControlPanelRouting {
 
     config_dir: Option<std::path::PathBuf>,
 
+    file_dialog_tx: mpsc::Sender<Option<RoutingFileData>>,
+    file_dialog_rx: mpsc::Receiver<Option<RoutingFileData>>,
+
     undo_buffer: Vec<(u8, [u8; 32], [u8; 32])>,
     undo_cursor: usize,
 
@@ -109,11 +115,16 @@ impl ControlPanelRouting {
         let config_dir = directories::BaseDirs::new()
             .map(|dirs| dirs.config_dir().join(ControlPanelRouting::CONFIG_DIR));
 
+        let (file_dialog_tx, file_dialog_rx) = mpsc::channel();
+
         Self {
             orion_state,
             orion_hid,
 
             config_dir,
+
+            file_dialog_tx,
+            file_dialog_rx,
 
             text_editor,
 
@@ -301,11 +312,15 @@ impl ControlPanelRouting {
                 dialog = dialog.set_directory(config_dir);
             }
 
-            if let Some(file) = dialog.save_file() {
-                let orion_file = OrionFile::new(file);
+            let orion_state = orion_state.clone();
 
-                orion_file.encode(orion_state);
-            }
+            std::thread::spawn(move || {
+                if let Some(file) = dialog.save_file() {
+                    let orion_file = OrionFile::new(file);
+
+                    orion_file.encode(&orion_state);
+                }
+            });
         }
 
         if load_response.clicked() {
@@ -315,10 +330,23 @@ impl ControlPanelRouting {
                 dialog = dialog.set_directory(config_dir);
             }
 
-            if let Some(file) = dialog.pick_file() {
-                let orion_file = OrionFile::new(file);
-                let (labels, routes) = orion_file.decode();
+            let tx = self.file_dialog_tx.clone();
+            let ctx = ui.ctx().clone();
 
+            std::thread::spawn(move || {
+                let result = dialog.pick_file().map(|file| {
+                    let orion_file = OrionFile::new(file);
+                    orion_file.decode()
+                });
+
+                let _ = tx.send(result);
+
+                ctx.request_repaint();
+            });
+        }
+
+        while let Ok(result) = self.file_dialog_rx.try_recv() {
+            if let Some((labels, routes)) = result {
                 {
                     let mut orion_state = self.orion_state.lock().unwrap();
 
