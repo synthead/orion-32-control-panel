@@ -36,7 +36,8 @@ impl TextEditor {
                 );
 
                 let pos = rect.center() - galley.size() / 2.0;
-                ui.painter().galley(pos, galley, color);
+
+                ui.painter().with_clip_rect(rect).galley(pos, galley, color);
 
                 return None;
             }
