@@ -66,6 +66,12 @@ impl ControlPanelHelpers {
                 ui.visuals_mut().widgets.active.fg_stroke.color = Self::COMBOBOX_ARROW_COLOR;
                 ui.visuals_mut().widgets.open.fg_stroke.color = Self::COMBOBOX_ARROW_COLOR;
 
+                let inactive_stroke = ui.visuals().widgets.inactive.bg_stroke;
+
+                ui.visuals_mut().widgets.hovered.bg_stroke = inactive_stroke;
+                ui.visuals_mut().widgets.active.bg_stroke = inactive_stroke;
+                ui.visuals_mut().widgets.open.bg_stroke = inactive_stroke;
+
                 ui.spacing_mut().interact_size.y -= 2.0;
 
                 let mut selected_mut = selected;
