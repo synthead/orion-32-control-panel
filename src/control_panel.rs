@@ -272,6 +272,8 @@ impl ControlPanel {
             Self::WINDOW_TITLE,
             options,
             Box::new(move |cc| {
+                cc.egui_ctx.set_theme(egui::Theme::Dark);
+
                 cc.egui_ctx.style_mut_of(cc.egui_ctx.theme(), |style| {
                     style.interaction.interact_radius = 0.0;
                 });
