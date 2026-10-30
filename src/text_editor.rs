@@ -82,7 +82,7 @@ impl TextEditor {
         }
 
         let outside_click = ui.input(|i| {
-            i.pointer.any_click()
+            i.pointer.button_pressed(egui::PointerButton::Primary)
                 && i.pointer
                     .interact_pos()
                     .is_some_and(|pos| !rect.contains(pos))
