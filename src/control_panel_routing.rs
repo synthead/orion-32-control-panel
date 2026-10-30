@@ -548,55 +548,85 @@ impl ControlPanelRouting {
                     }
                 }
 
-                egui::Popup::context_menu(&response).show(|ui| {
-                    if ui.button("Mute").clicked() {
-                        self.update_targets_from_context_menu(
-                            &routes,
-                            Some(column),
-                            row,
-                            Self::route_for_special(RoutingColumns::MUTE),
-                            orion_state,
-                        );
+                egui::Popup::context_menu(&response)
+                    .frame(egui::Frame::popup(ui.style()).fill(WidgetColors::BG_COLOR))
+                    .show(|ui| {
+                        if ui
+                            .button(
+                                egui::RichText::new("Mute")
+                                    .size(WidgetDimensions::TEXT_SIZE)
+                                    .color(WidgetColors::TEXT_COLOR),
+                            )
+                            .clicked()
+                        {
+                            self.update_targets_from_context_menu(
+                                &routes,
+                                Some(column),
+                                row,
+                                Self::route_for_special(RoutingColumns::MUTE),
+                                orion_state,
+                            );
 
-                        ui.close();
-                    }
+                            ui.close();
+                        }
 
-                    if ui.button("Mute Row").clicked() {
-                        self.update_targets_from_context_menu(
-                            &routes,
-                            None,
-                            row,
-                            Self::route_for_special(RoutingColumns::MUTE),
-                            orion_state,
-                        );
+                        if ui
+                            .button(
+                                egui::RichText::new("Mute Row")
+                                    .size(WidgetDimensions::TEXT_SIZE)
+                                    .color(WidgetColors::TEXT_COLOR),
+                            )
+                            .clicked()
+                        {
+                            self.update_targets_from_context_menu(
+                                &routes,
+                                None,
+                                row,
+                                Self::route_for_special(RoutingColumns::MUTE),
+                                orion_state,
+                            );
 
-                        ui.close();
-                    }
+                            ui.close();
+                        }
 
-                    if ui.button("Oscillator1").clicked() {
-                        self.update_targets_from_context_menu(
-                            &routes,
-                            Some(column),
-                            row,
-                            Self::route_for_special(RoutingColumns::OSC_1),
-                            orion_state,
-                        );
+                        if ui
+                            .button(
+                                egui::RichText::new("Oscillator1")
+                                    .size(WidgetDimensions::TEXT_SIZE)
+                                    .color(WidgetColors::TEXT_COLOR),
+                            )
+                            .clicked()
+                        {
+                            self.update_targets_from_context_menu(
+                                &routes,
+                                Some(column),
+                                row,
+                                Self::route_for_special(RoutingColumns::OSC_1),
+                                orion_state,
+                            );
 
-                        ui.close();
-                    }
+                            ui.close();
+                        }
 
-                    if ui.button("Oscillator2").clicked() {
-                        self.update_targets_from_context_menu(
-                            &routes,
-                            Some(column),
-                            row,
-                            Self::route_for_special(RoutingColumns::OSC_2),
-                            orion_state,
-                        );
+                        if ui
+                            .button(
+                                egui::RichText::new("Oscillator2")
+                                    .size(WidgetDimensions::TEXT_SIZE)
+                                    .color(WidgetColors::TEXT_COLOR),
+                            )
+                            .clicked()
+                        {
+                            self.update_targets_from_context_menu(
+                                &routes,
+                                Some(column),
+                                row,
+                                Self::route_for_special(RoutingColumns::OSC_2),
+                                orion_state,
+                            );
 
-                        ui.close();
-                    }
-                });
+                            ui.close();
+                        }
+                    });
             }
         }
     }
