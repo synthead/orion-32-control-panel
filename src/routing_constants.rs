@@ -1,3 +1,17 @@
+pub(crate) struct WidgetColors;
+
+impl WidgetColors {
+    pub(crate) const TEXT_COLOR: egui::Color32 = egui::Color32::from_rgb(0x95, 0x95, 0x95);
+    pub(crate) const BG_COLOR: egui::Color32 = egui::Color32::BLACK;
+    pub(crate) const ARROW_COLOR: egui::Color32 = egui::Color32::from_rgb(0x85, 0xc8, 0x26);
+}
+
+pub(crate) struct WidgetDimensions;
+
+impl WidgetDimensions {
+    pub(crate) const TEXT_SIZE: f32 = 10.5;
+}
+
 pub(crate) struct RoutingLabelColors;
 
 impl RoutingLabelColors {
