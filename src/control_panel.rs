@@ -253,7 +253,7 @@ impl ControlPanel {
 
         let control_panel = Self::new();
 
-        control_panel.create_config_dir();
+        control_panel.init_config();
 
         eframe::run_native(
             Self::WINDOW_TITLE,
@@ -282,8 +282,9 @@ impl ControlPanel {
         )
     }
 
-    pub(crate) fn create_config_dir(&self) {
+    pub(crate) fn init_config(&self) {
         self.routing.create_config_dir();
+        self.routing.read_persistence();
     }
 
     fn ui_content(&mut self, ui: &mut egui::Ui) {

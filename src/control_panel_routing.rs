@@ -6,6 +6,8 @@ use std::sync::Mutex;
 use crate::routing_constants::{RoutingColumns, RoutingRows};
 
 use crate::orion_file::OrionFile;
+use crate::orion_persistence::OrionPersistence;
+
 use crate::orion_hid::OrionHid;
 use crate::orion_state::OrionState;
 
@@ -139,8 +141,8 @@ impl ControlPanelRouting {
         orion_state.calculate_channel_counts();
 
         Self::draw_base_graphics(ui);
-        self.draw_undo(ui);
-        self.draw_save(ui);
+        self.draw_undo(ui, &orion_state);
+        self.draw_save(ui, &orion_state);
 
         self.draw_sources(ui, &orion_state);
         self.draw_targets(ui, &orion_state);
@@ -187,7 +189,7 @@ impl ControlPanelRouting {
         );
     }
 
-    fn draw_undo(&mut self, ui: &mut egui::Ui) {
+    fn draw_undo(&mut self, ui: &mut egui::Ui, orion_state: &OrionState) {
         let undo_response = render_asset!(
             ui,
             ControlPanelRoutingDimensions::NAV_X,
@@ -233,15 +235,15 @@ impl ControlPanelRouting {
         }
 
         if undo_response.clicked() {
-            self.queue_routes_undo();
+            self.queue_routes_undo(orion_state);
         }
 
         if redo_response.clicked() {
-            self.queue_routes_redo();
+            self.queue_routes_redo(orion_state);
         }
     }
 
-    fn draw_save(&mut self, ui: &mut egui::Ui) {
+    fn draw_save(&mut self, ui: &mut egui::Ui, orion_state: &OrionState) {
         let save_response = render_asset!(
             ui,
             ControlPanelRoutingDimensions::NAV_X,
@@ -295,9 +297,8 @@ impl ControlPanelRouting {
 
             if let Some(file) = dialog.save_file() {
                 let orion_file = OrionFile::new(file);
-                let orion_state = self.orion_state.lock().unwrap().clone();
 
-                orion_file.encode(&orion_state);
+                orion_file.encode(orion_state);
             }
         }
 
@@ -327,6 +328,7 @@ impl ControlPanelRouting {
                 }
 
                 self.clear_undo();
+                self.write_persistence(orion_state);
             }
         }
     }
@@ -412,6 +414,8 @@ impl ControlPanelRouting {
             let mut orion_state = self.orion_state.lock().unwrap();
 
             orion_state.labels[row as usize][column as usize] = route_text;
+
+            self.write_persistence(&orion_state);
 
             if let Some(tab) = tab {
                 let mut column_next = column as i16 + tab as i16;
@@ -607,7 +611,7 @@ impl ControlPanelRouting {
             }
         }
 
-        self.queue_routes_with_undo(row as u8, &old_routes, &new_routes);
+        self.queue_routes_with_undo(row as u8, &old_routes, &new_routes, orion_state);
     }
 
     fn update_target_selections(
@@ -748,7 +752,7 @@ impl ControlPanelRouting {
                     new_routes[target_column as usize + column_index] = route;
                 }
 
-                self.queue_routes_with_undo(target_row, &old_routes, &new_routes);
+                self.queue_routes_with_undo(target_row, &old_routes, &new_routes, orion_state);
             }
 
             self.source_mousedown = false;
@@ -852,16 +856,24 @@ impl ControlPanelRouting {
         RoutingRows::SPECIAL | (special_column * RoutingColumns::STEP)
     }
 
-    fn queue_routes_with_undo(&mut self, row: u8, old_routes: &[u8; 32], new_routes: &[u8; 32]) {
+    fn queue_routes_with_undo(
+        &mut self,
+        row: u8,
+        old_routes: &[u8; 32],
+        new_routes: &[u8; 32],
+        orion_state: &OrionState,
+    ) {
         self.undo_buffer.truncate(self.undo_cursor);
         self.undo_buffer.push((row, *old_routes, *new_routes));
 
         self.undo_cursor = self.undo_buffer.len();
 
         self.orion_hid.lock().unwrap().queue_routes(row, new_routes);
+
+        self.write_persistence(orion_state);
     }
 
-    fn queue_routes_undo(&mut self) {
+    fn queue_routes_undo(&mut self, orion_state: &OrionState) {
         if self.undo_cursor == 0 {
             return;
         }
@@ -874,9 +886,11 @@ impl ControlPanelRouting {
             .lock()
             .unwrap()
             .queue_routes(row, &old_routes);
+
+        self.write_persistence(orion_state);
     }
 
-    fn queue_routes_redo(&mut self) {
+    fn queue_routes_redo(&mut self, orion_state: &OrionState) {
         if self.undo_cursor >= self.undo_buffer.len() {
             return;
         }
@@ -889,10 +903,40 @@ impl ControlPanelRouting {
             .queue_routes(row, &new_routes);
 
         self.undo_cursor += 1;
+
+        self.write_persistence(orion_state);
     }
 
     fn clear_undo(&mut self) {
         self.undo_buffer = Vec::new();
         self.undo_cursor = 0;
+    }
+
+    pub(crate) fn read_persistence(&self) {
+        if self.config_dir.is_none() {
+            return;
+        }
+
+        let file = self.config_dir.as_ref().unwrap().join("persistence.json");
+
+        if !file.exists() {
+            return;
+        }
+
+        let orion_persistance = OrionPersistence::new(file);
+        let mut orion_state = self.orion_state.lock().unwrap();
+
+        (orion_state.labels, orion_state.routes) = orion_persistance.decode();
+    }
+
+    fn write_persistence(&self, orion_state: &OrionState) {
+        if self.config_dir.is_none() {
+            return;
+        }
+
+        let file = self.config_dir.as_ref().unwrap().join("persistence.json");
+        let orion_persistance = OrionPersistence::new(file);
+
+        orion_persistance.encode(orion_state);
     }
 }
