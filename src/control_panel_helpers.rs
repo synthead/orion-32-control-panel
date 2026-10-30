@@ -75,6 +75,7 @@ impl ControlPanelHelpers {
                 ui.visuals_mut().widgets.open.bg_stroke = inactive_stroke;
 
                 ui.spacing_mut().interact_size.y -= 2.0;
+                ui.spacing_mut().combo_height = 1000.0;
 
                 let mut selected_mut = selected;
 
