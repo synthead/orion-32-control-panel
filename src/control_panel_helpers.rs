@@ -37,6 +37,8 @@ macro_rules! render_asset {
 pub(crate) struct ControlPanelHelpers;
 
 impl ControlPanelHelpers {
+    const COMBOBOX_TEXT_SIZE: f32 = 10.5;
+
     const COMBOBOX_TEXT_COLOR: egui::Color32 = egui::Color32::from_rgb(0x95, 0x95, 0x95);
     const COMBOBOX_ARROW_COLOR: egui::Color32 = egui::Color32::from_rgb(0x85, 0xc8, 0x26);
     const COMBOBOX_BG_COLOR: egui::Color32 = egui::Color32::BLACK;
@@ -80,7 +82,7 @@ impl ControlPanelHelpers {
                     .width(width as f32)
                     .selected_text(
                         egui::RichText::new(selections[selected as usize])
-                            .size(10.5)
+                            .size(Self::COMBOBOX_TEXT_SIZE)
                             .color(Self::COMBOBOX_TEXT_COLOR),
                     )
                     .popup_style(egui::style::StyleModifier::new(|style| {
@@ -91,7 +93,9 @@ impl ControlPanelHelpers {
                             let response = ui.selectable_value(
                                 &mut selected_mut,
                                 i as u8,
-                                egui::RichText::new(*selection).color(Self::COMBOBOX_TEXT_COLOR),
+                                egui::RichText::new(*selection)
+                                    .size(Self::COMBOBOX_TEXT_SIZE)
+                                    .color(Self::COMBOBOX_TEXT_COLOR),
                             );
 
                             if response.changed() {
