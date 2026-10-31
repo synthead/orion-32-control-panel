@@ -12,8 +12,10 @@ impl ControlPanelAboutDimensions {
     const ABOUT_Y: f32 = 265.0;
 
     const TEXT_X: f32 = 593.0;
-    const TEXT_Y: f32 = 290.0;
-    const TEXT_Y_STEP: f32 = 33.0;
+    const TEXT_CONTROL_PANEL_VERISON_Y: f32 = 290.0;
+    const TEXT_HARDWARE_VERSION_Y: f32 = 322.0;
+    const TEXT_SERIAL_NUMBER_Y: f32 = 355.0;
+    const TEXT_FIRMWARE_VERSION_Y: f32 = 387.0;
 
     const TEXT_WIDTH: f32 = 141.0;
     const TEXT_HEIGHT: f32 = 22.0;
@@ -96,16 +98,32 @@ impl ControlPanelAbout {
         let firmware_version =
             (u16::from_be_bytes(orion_state.firmware_version) as f32 / 100.0).to_string();
 
-        self.draw_field(ui, control_panel_version, 0);
-        self.draw_field(ui, hardware_version, 1);
-        self.draw_field(ui, serial, 2);
-        self.draw_field(ui, firmware_version, 3);
+        self.draw_field(
+            ui,
+            control_panel_version,
+            ControlPanelAboutDimensions::TEXT_CONTROL_PANEL_VERISON_Y,
+        );
+
+        self.draw_field(
+            ui,
+            hardware_version,
+            ControlPanelAboutDimensions::TEXT_HARDWARE_VERSION_Y,
+        );
+
+        self.draw_field(
+            ui,
+            serial,
+            ControlPanelAboutDimensions::TEXT_SERIAL_NUMBER_Y,
+        );
+
+        self.draw_field(
+            ui,
+            firmware_version,
+            ControlPanelAboutDimensions::TEXT_FIRMWARE_VERSION_Y,
+        );
     }
 
-    fn draw_field(&mut self, ui: &mut egui::Ui, text: String, field: u8) {
-        let pos_y = ControlPanelAboutDimensions::TEXT_Y
-            + ControlPanelAboutDimensions::TEXT_Y_STEP * field as f32;
-
+    fn draw_field(&mut self, ui: &mut egui::Ui, text: String, pos_y: f32) {
         let rect = egui::Rect::from_min_size(
             egui::pos2(ControlPanelAboutDimensions::TEXT_X, pos_y),
             egui::vec2(
