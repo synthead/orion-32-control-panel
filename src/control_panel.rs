@@ -391,7 +391,7 @@ impl ControlPanel {
             ui,
             0,
             0,
-            "ControlPanel/default/background",
+            "ControlPanel/default/background-edited",
             1.0,
             0.0,
             Some(egui::Sense::click())
@@ -403,26 +403,6 @@ impl ControlPanel {
         {
             ui.ctx().send_viewport_cmd(egui::ViewportCommand::StartDrag);
         }
-
-        render_asset!(
-            ui,
-            79,
-            683,
-            "FeedLeftArrow/default/released",
-            1.0,
-            0.0,
-            None
-        );
-
-        render_asset!(
-            ui,
-            1093,
-            683,
-            "FeedRightArrow/default/released",
-            1.0,
-            0.0,
-            None
-        );
     }
 
     fn draw_window_buttons(&mut self, ui: &mut egui::Ui) {
