@@ -40,8 +40,8 @@ impl ControlPanelRoutingDimensions {
     const SIZE_X: f32 = 29.0;
     const SIZE_Y: f32 = 14.0;
 
-    const TEXT_X: f32 = 128.0;
-    const TEXT_Y: f32 = 409.0;
+    const TEXT_X: f32 = 138.0;
+    const TEXT_Y: f32 = 412.0;
     const TEXT_SIZE: f32 = 10.5;
 
     const PRESENSE_X: u16 = 1095;
