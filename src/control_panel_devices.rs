@@ -112,7 +112,7 @@ impl ControlPanelDevices {
             Some(egui::Sense::click())
         );
 
-        if close_response.is_pointer_button_down_on() != close_response.hovered() {
+        if close_response.is_pointer_button_down_on() != close_response.contains_pointer() {
             render_asset!(
                 ui,
                 ControlPanelDevicesDimensions::WINDOW_BUTTON_CLOSE_X,
