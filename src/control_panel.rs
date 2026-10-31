@@ -353,35 +353,43 @@ impl ControlPanel {
                 };
 
                 if self.settings.enabled || self.about.enabled {
-                    let overlay_rect = egui::Rect::from_min_size(
-                        egui::pos2(0.0, 0.0),
-                        egui::vec2(
-                            ControlPanelDimensions::VIEWPORT_WIDTH,
-                            ControlPanelDimensions::VIEWPORT_HEIGHT,
-                        ),
-                    );
+                    egui::Area::new(egui::Id::new("modal_overlay"))
+                        .order(egui::Order::Foreground)
+                        .fixed_pos(egui::pos2(0.0, 0.0))
+                        .constrain(false)
+                        .show(ui.ctx(), |ui| {
+                            let overlay_rect = egui::Rect::from_min_size(
+                                egui::pos2(0.0, 0.0),
+                                egui::vec2(
+                                    ControlPanelDimensions::VIEWPORT_WIDTH,
+                                    ControlPanelDimensions::VIEWPORT_HEIGHT,
+                                ),
+                            );
 
-                    ui.painter().rect_filled(
-                        overlay_rect,
-                        0.0,
-                        egui::Color32::from_black_alpha(
-                            ControlPanelDimensions::OVERLAY_TRANSPARENCY,
-                        ),
-                    );
+                            ui.painter().rect_filled(
+                                overlay_rect,
+                                0.0,
+                                egui::Color32::from_black_alpha(
+                                    ControlPanelDimensions::OVERLAY_TRANSPARENCY,
+                                ),
+                            );
 
-                    let response = ui.allocate_rect(overlay_rect, egui::Sense::click());
+                            let response = ui.allocate_rect(overlay_rect, egui::Sense::click());
 
-                    if response.is_pointer_button_down_on()
-                        && ui.input(|i| i.pointer.button_pressed(egui::PointerButton::Primary))
-                    {
-                        ui.ctx().send_viewport_cmd(egui::ViewportCommand::StartDrag);
-                    }
+                            if response.is_pointer_button_down_on()
+                                && ui.input(|i| {
+                                    i.pointer.button_pressed(egui::PointerButton::Primary)
+                                })
+                            {
+                                ui.ctx().send_viewport_cmd(egui::ViewportCommand::StartDrag);
+                            }
 
-                    if self.settings.enabled {
-                        self.settings.draw(ui);
-                    } else if self.about.enabled {
-                        self.about.draw(ui);
-                    }
+                            if self.settings.enabled {
+                                self.settings.draw(ui);
+                            } else if self.about.enabled {
+                                self.about.draw(ui);
+                            }
+                        });
                 }
             });
     }
@@ -417,7 +425,7 @@ impl ControlPanel {
         );
 
         if self.settings.enabled
-            || settings_response.is_pointer_button_down_on() != settings_response.hovered()
+            || settings_response.is_pointer_button_down_on() != settings_response.contains_pointer()
         {
             render_asset!(
                 ui,
@@ -441,7 +449,7 @@ impl ControlPanel {
         );
 
         if self.about.enabled
-            || about_response.is_pointer_button_down_on() != about_response.hovered()
+            || about_response.is_pointer_button_down_on() != about_response.contains_pointer()
         {
             render_asset!(
                 ui,
@@ -464,7 +472,7 @@ impl ControlPanel {
             Some(egui::Sense::click())
         );
 
-        if minimize_response.is_pointer_button_down_on() != minimize_response.hovered() {
+        if minimize_response.is_pointer_button_down_on() != minimize_response.contains_pointer() {
             render_asset!(
                 ui,
                 ControlPanelDimensions::WINDOW_BUTTON_MINIMIZE_X,
@@ -486,7 +494,7 @@ impl ControlPanel {
             Some(egui::Sense::click())
         );
 
-        if close_response.is_pointer_button_down_on() != close_response.hovered() {
+        if close_response.is_pointer_button_down_on() != close_response.contains_pointer() {
             render_asset!(
                 ui,
                 ControlPanelDimensions::WINDOW_BUTTON_CLOSE_X,
@@ -529,7 +537,8 @@ impl ControlPanel {
             Some(egui::Sense::click())
         );
 
-        if (standby_enabled || response.is_pointer_button_down_on()) != response.hovered() {
+        if (standby_enabled || response.is_pointer_button_down_on()) != response.contains_pointer()
+        {
             render_asset!(
                 ui,
                 ControlPanelDimensions::STANDBY_X,
@@ -652,7 +661,7 @@ impl ControlPanel {
                 egui::Sense::click(),
             );
 
-            let color = if preset == preset_standby & 0x07 || response.hovered() {
+            let color = if preset == preset_standby & 0x07 || response.contains_pointer() {
                 ControlPanelColors::PRESET_SEL
             } else {
                 ControlPanelColors::PRESET

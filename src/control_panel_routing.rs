@@ -204,7 +204,7 @@ impl ControlPanelRouting {
             Some(egui::Sense::click())
         );
 
-        if undo_response.is_pointer_button_down_on() != undo_response.hovered() {
+        if undo_response.is_pointer_button_down_on() != undo_response.contains_pointer() {
             render_asset!(
                 ui,
                 ControlPanelRoutingDimensions::NAV_X,
@@ -226,7 +226,7 @@ impl ControlPanelRouting {
             Some(egui::Sense::click())
         );
 
-        if redo_response.is_pointer_button_down_on() != redo_response.hovered() {
+        if redo_response.is_pointer_button_down_on() != redo_response.contains_pointer() {
             render_asset!(
                 ui,
                 ControlPanelRoutingDimensions::NAV_X,
@@ -258,7 +258,7 @@ impl ControlPanelRouting {
             Some(egui::Sense::click())
         );
 
-        if save_response.is_pointer_button_down_on() != save_response.hovered() {
+        if save_response.is_pointer_button_down_on() != save_response.contains_pointer() {
             render_asset!(
                 ui,
                 ControlPanelRoutingDimensions::NAV_X,
@@ -280,7 +280,7 @@ impl ControlPanelRouting {
             Some(egui::Sense::click())
         );
 
-        if load_response.is_pointer_button_down_on() != load_response.hovered() {
+        if load_response.is_pointer_button_down_on() != load_response.contains_pointer() {
             render_asset!(
                 ui,
                 ControlPanelRoutingDimensions::NAV_X,
