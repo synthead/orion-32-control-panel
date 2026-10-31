@@ -217,7 +217,7 @@ impl ControlPanel {
             Arc::clone(&drag_value),
         );
 
-        let about = ControlPanelAbout::new(Arc::clone(&orion_state), Arc::clone(&orion_hid));
+        let about = ControlPanelAbout::new(Arc::clone(&orion_state));
 
         Self {
             orion_state,

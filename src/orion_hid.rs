@@ -118,10 +118,6 @@ impl OrionHid {
         self.queue_packet(0x70, 0x12, 0x00, 0x00, &[0x0d, spdif_src]);
     }
 
-    pub(crate) fn queue_firmware_update(&mut self) {
-        self.queue_packet(0x06, 0x11, 0x00, 0x00, &[0xc0]);
-    }
-
     fn queue_packet(&mut self, byte_0: u8, byte_4: u8, byte_8: u8, byte_12: u8, payload: &[u8]) {
         let packet = Self::create_packet(byte_0, byte_4, byte_8, byte_12, payload);
 
