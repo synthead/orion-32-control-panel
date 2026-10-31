@@ -16,59 +16,53 @@ struct ControlPanelSettingsDimensions;
 
 impl ControlPanelSettingsDimensions {
     const SETTINGS_X: f32 = 286.0;
-    const SETTINGS_Y: f32 = 168.0;
+    const SETTINGS_Y: f32 = 179.0;
 
     const SETTINGS_LABEL_X: u16 = 816;
-    const SETTINGS_LABEL_Y: u16 = 176;
+    const SETTINGS_LABEL_Y: u16 = 187;
 
     const WINDOW_BUTTON_CLOSE_X: u16 = 885;
-    const WINDOW_BUTTON_CLOSE_Y: u16 = 174;
+    const WINDOW_BUTTON_CLOSE_Y: u16 = 185;
 
     const OSCILLATOR_MUTE_1_X: u16 = 347;
     const OSCILLATOR_MUTE_2_X: u16 = 836;
-    const OSCILLATOR_MUTE_Y: u16 = 341;
+    const OSCILLATOR_MUTE_Y: u16 = 352;
 
     const TRIM_LINE_OUT_X: u16 = 497;
     const TRIM_ADC_X: u16 = 634;
-    const TRIM_Y: u16 = 254;
+    const TRIM_Y: u16 = 265;
     const TRIM_WIDTH: u8 = 68;
 
     const OSCILLATOR_FREQUENCY_1_X: u16 = 431;
     const OSCILLATOR_LEVEL_X: u16 = 568;
     const OSCILLATOR_FREQUENCY_2_X: u16 = 707;
-    const OSCILLATOR_Y: u16 = 340;
+    const OSCILLATOR_Y: u16 = 351;
     const OSCILLATOR_WIDTH: u8 = 68;
 
     const BRIGHTNESS_SLIDER_X: u16 = 306;
-    const BRIGHTNESS_SLIDER_Y: u16 = 422;
+    const BRIGHTNESS_SLIDER_Y: u16 = 433;
     const BRIGHTNESS_SLIDER_TRAVEL: u16 = 69;
 
     const BRIGHTNESS_SLIDER_HITBOX_X: f32 = 306.0;
-    const BRIGHTNESS_SLIDER_HITBOX_Y: f32 = 422.0;
+    const BRIGHTNESS_SLIDER_HITBOX_Y: f32 = 433.0;
     const BRIGHTNESS_SLIDER_HITBOX_WIDTH: f32 = 112.0;
     const BRIGHTNESS_SLIDER_HITBOX_HEIGHT: f32 = 21.0;
 
     const BRIGHTNESS_TEXT_HITBOX_X: f32 = 429.0;
-    const BRIGHTNESS_TEXT_HITBOX_Y: f32 = 423.0;
+    const BRIGHTNESS_TEXT_HITBOX_Y: f32 = 434.0;
     const BRIGHTNESS_TEXT_HITBOX_WIDTH: f32 = 52.0;
     const BRIGHTNESS_TEXT_HITBOX_HEIGHT: f32 = 18.0;
 
     const USB_CHANNELS_X: u16 = 562;
-    const USB_CHANNELS_Y: u16 = 424;
+    const USB_CHANNELS_Y: u16 = 435;
     const USB_CHANNELS_WIDTH: u8 = 52;
 
     const MADI_SMUX_IN_X: u16 = 684;
     const MADI_SMUX_OUT_X: u16 = 781;
-    const MADI_SMUX_Y: u16 = 425;
+    const MADI_SMUX_Y: u16 = 436;
 
     const SPDIF_SRC_X: u16 = 858;
-    const SPDIF_SRC_Y: u16 = 425;
-
-    const ASIO_CONTROL_BUFFER_SIZE_X: u16 = 446;
-    const ASIO_CONTROL_BUFFER_SIZE_WIDTH: u8 = 68;
-    const ASIO_CONTROL_STREAMING_MODE_X: u16 = 676;
-    const ASIO_CONTROL_STREAMING_MODE_WIDTH: u8 = 75;
-    const ASIO_CONTROL_Y: u16 = 508;
+    const SPDIF_SRC_Y: u16 = 436;
 }
 
 pub(crate) struct ControlPanelSettings {
@@ -129,7 +123,6 @@ impl ControlPanelSettings {
         self.draw_brightness(ui, orion_state.brightness);
         self.draw_madi_smux(ui, orion_state.madi_smux);
         self.draw_usb_channels_spdif_src(ui, orion_state.usb_channels_spdif_src);
-        self.draw_asio_control(ui);
     }
 
     fn draw_base_graphics(&mut self, ui: &mut egui::Ui) {
@@ -137,7 +130,7 @@ impl ControlPanelSettings {
             ui,
             ControlPanelSettingsDimensions::SETTINGS_X,
             ControlPanelSettingsDimensions::SETTINGS_Y,
-            "SettingsPanel/default/background",
+            "SettingsPanel/default/background-edited",
             1.0,
             0.0,
             None
@@ -502,30 +495,6 @@ impl ControlPanelSettings {
                 .unwrap()
                 .queue_spdif_src(usb_channels_spdif_src ^ 0x01);
         }
-    }
-
-    fn draw_asio_control(&mut self, ui: &mut egui::Ui) {
-        ui.add_enabled_ui(false, |ui| {
-            ControlPanelHelpers::draw_combobox(
-                ui,
-                ControlPanelSettingsDimensions::ASIO_CONTROL_BUFFER_SIZE_X,
-                ControlPanelSettingsDimensions::ASIO_CONTROL_Y,
-                ControlPanelSettingsDimensions::ASIO_CONTROL_BUFFER_SIZE_WIDTH,
-                0,
-                &["Auto"],
-                |_| {},
-            );
-
-            ControlPanelHelpers::draw_combobox(
-                ui,
-                ControlPanelSettingsDimensions::ASIO_CONTROL_STREAMING_MODE_X,
-                ControlPanelSettingsDimensions::ASIO_CONTROL_Y,
-                ControlPanelSettingsDimensions::ASIO_CONTROL_STREAMING_MODE_WIDTH,
-                0,
-                &["Min Latency"],
-                |_| {},
-            );
-        });
     }
 
     fn brightness_for_text(text: &String) -> Option<u8> {
