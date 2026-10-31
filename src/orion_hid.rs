@@ -106,6 +106,10 @@ impl OrionHid {
         self.queue_packet(0x70, 0x13, 0x00, 0x00, &[0x44, brightness]);
     }
 
+    pub(crate) fn queue_usb_channels(&mut self, usb_channels: u8) {
+        self.queue_packet(0x70, 0x12, 0x00, 0x00, &[0x0e, usb_channels]);
+    }
+
     pub(crate) fn queue_madi_smux(&mut self, madi_smux: u8) {
         self.queue_packet(0x70, 0x12, 0x00, 0x00, &[0x0b, madi_smux]);
     }
