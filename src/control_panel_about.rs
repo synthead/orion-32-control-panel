@@ -1,6 +1,7 @@
 use std::sync::Arc;
 use std::sync::Mutex;
 
+use crate::orion_hid::OrionHid;
 use crate::orion_state::OrionState;
 
 use crate::render_asset;
@@ -28,14 +29,19 @@ impl ControlPanelAboutDimensions {
 
 pub(crate) struct ControlPanelAbout {
     orion_state: Arc<Mutex<OrionState>>,
+    orion_hid: Arc<Mutex<OrionHid>>,
 
     pub(crate) enabled: bool,
 }
 
 impl ControlPanelAbout {
-    pub(crate) fn new(orion_state: Arc<Mutex<OrionState>>) -> Self {
+    pub(crate) fn new(
+        orion_state: Arc<Mutex<OrionState>>,
+        orion_hid: Arc<Mutex<OrionHid>>,
+    ) -> Self {
         Self {
             orion_state,
+            orion_hid,
 
             enabled: false,
         }
@@ -74,15 +80,19 @@ impl ControlPanelAbout {
             None
         );
 
-        render_asset!(
+        let firmware_response = render_asset!(
             ui,
             ControlPanelAboutDimensions::FIRMWARE_UPDATE_BUTTON_X,
             ControlPanelAboutDimensions::BUTTON_Y,
             "FirmwareUpdateButton/default/released",
             1.0,
             0.0,
-            None
+            Some(egui::Sense::click())
         );
+
+        if firmware_response.clicked() {
+            self.orion_hid.lock().unwrap().queue_firmware_update();
+        }
     }
 
     fn draw_window_buttons(&mut self, ui: &mut egui::Ui) {
