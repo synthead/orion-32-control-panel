@@ -462,17 +462,17 @@ impl ControlPanelSettings {
     }
 
     fn draw_usb_channels_spdif_src(&mut self, ui: &mut egui::Ui, usb_channels_spdif_src: u8) {
-        ui.add_enabled_ui(false, |ui| {
-            ControlPanelHelpers::draw_combobox(
-                ui,
-                ControlPanelSettingsDimensions::USB_CHANNELS_X,
-                ControlPanelSettingsDimensions::USB_CHANNELS_Y,
-                ControlPanelSettingsDimensions::USB_CHANNELS_WIDTH,
-                (usb_channels_spdif_src & 0x02) >> 1,
-                &Self::USB_CHANNELS_SELECTIONS,
-                |_| {},
-            );
-        });
+        ControlPanelHelpers::draw_combobox(
+            ui,
+            ControlPanelSettingsDimensions::USB_CHANNELS_X,
+            ControlPanelSettingsDimensions::USB_CHANNELS_Y,
+            ControlPanelSettingsDimensions::USB_CHANNELS_WIDTH,
+            (usb_channels_spdif_src & 0x02) >> 1,
+            &Self::USB_CHANNELS_SELECTIONS,
+            |selected| {
+                self.orion_hid.lock().unwrap().queue_usb_channels(selected);
+            },
+        );
 
         let spdif_src_response = if usb_channels_spdif_src & 0x01 != 0 {
             render_asset!(
