@@ -56,9 +56,6 @@ impl ControlPanelRoutingDimensions {
     const NAV_REDO_Y: u16 = 436;
     const NAV_SAVE_Y: u16 = 462;
     const NAV_LOAD_Y: u16 = 488;
-
-    const HOWTO_X: u16 = 1094;
-    const HOWTO_Y: u16 = 652;
 }
 
 type RoutingFileData = ([[String; 32]; 7], [[u8; 32]; 7]);
@@ -190,16 +187,6 @@ impl ControlPanelRouting {
             ControlPanelRoutingDimensions::BACKGROUND_X,
             ControlPanelRoutingDimensions::BACKGROUND_Y,
             "Routing/default/background",
-            1.0,
-            0.0,
-            None
-        );
-
-        render_asset!(
-            ui,
-            ControlPanelRoutingDimensions::HOWTO_X,
-            ControlPanelRoutingDimensions::HOWTO_Y,
-            "HowtoButton/default/released",
             1.0,
             0.0,
             None
