@@ -17,12 +17,8 @@ impl ControlPanelDevicesDimensions {
     const DEVICES_LIST_WIDTH: f32 = 560.0;
     const DEVICES_LIST_HEIGHT: f32 = 188.0;
 
-    const BUTTON_X: u16 = 504;
-    const CONNECT_BUTTON_Y: u16 = 504;
-    const ADMINISTRATION_BUTTON_Y: u16 = 554;
-
     const STATUS_TEXT_X: f32 = 590.0;
-    const STATUS_TEXT_Y: f32 = 607.0;
+    const STATUS_TEXT_Y: f32 = 525.0;
     const STATUS_TEXT_SIZE: f32 = 15.0;
 }
 
@@ -67,7 +63,7 @@ impl ControlPanelDevices {
             ui,
             0,
             0,
-            "AvailableDevicesSlide/default/background",
+            "AvailableDevicesSlide/default/background-edited",
             1.0,
             0.0,
             Some(egui::Sense::click())
@@ -79,26 +75,6 @@ impl ControlPanelDevices {
         {
             ui.ctx().send_viewport_cmd(egui::ViewportCommand::StartDrag);
         }
-
-        render_asset!(
-            ui,
-            ControlPanelDevicesDimensions::BUTTON_X,
-            ControlPanelDevicesDimensions::CONNECT_BUTTON_Y,
-            "ConnectButton/default/released",
-            1.0,
-            0.0,
-            None
-        );
-
-        render_asset!(
-            ui,
-            ControlPanelDevicesDimensions::BUTTON_X,
-            ControlPanelDevicesDimensions::ADMINISTRATION_BUTTON_Y,
-            "AdministrationLargeButton/default/released",
-            1.0,
-            0.0,
-            None
-        );
     }
 
     fn draw_window_buttons(&mut self, ui: &mut egui::Ui) {
