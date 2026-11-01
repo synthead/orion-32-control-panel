@@ -36,7 +36,7 @@ Note: On Windows, a modal will appear about how Windows has "protected" you from
 - Starts instantly, and queries the interface way, _way_ faster.
 - Respects your privacy.  The original control panel phones home with your serial number every time it starts.  Yuck.
 - Actually _works_.  The original launcher malfunctions with a message to check your internet connection.  The control panel data is no longer hosted, and requires manual intervention to acquire this data to be functional.
-- Does not hassle you with interctive administrator permissions to start a Windows service every time it starts.
+- Does not hassle you with interactive administrator permissions to start a Windows service every time it starts.
 - Connects directly to your interface.  The original control panel connects to a network server that must always be running.
 - Long-standing routing and AD phase bugs have been fixed.  The original control panel still has bugs where active routes are sometimes erroneously presented as muted, and AD phases are sometimes erroneously displayed as the wrong state.
 - Knobs and sliders update smoothly.  The original control panel only updated occasionally when moving, which made audibly chunky changes.
