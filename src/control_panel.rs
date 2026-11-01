@@ -93,6 +93,9 @@ impl ControlPanelDimensions {
     const CLOCK_Y: u16 = 92;
     const CLOCK_WIDTH: u8 = 72;
 
+    const LOCK_LIGHT_X: u16 = 581;
+    const LOCK_LIGHT_Y: u16 = 152;
+
     const TAB_BUTTON_ROUTING_X: u16 = 82;
     const TAB_BUTTON_MIXER_X: u16 = 178;
     const TAB_BUTTON_AD_PHASE_X: u16 = 257;
@@ -336,7 +339,7 @@ impl ControlPanel {
                     &orion_state.right_vu_values,
                 );
 
-                self.draw_clock_comboboxes(ui, &orion_state);
+                self.draw_clock(ui, &orion_state);
 
                 self.draw_vu_meter_comboboxes(
                     ui,
@@ -747,7 +750,7 @@ impl ControlPanel {
         );
     }
 
-    fn draw_clock_comboboxes(&self, ui: &mut egui::Ui, orion_state: &OrionState) {
+    fn draw_clock(&self, ui: &mut egui::Ui, orion_state: &OrionState) {
         let mut clock_source_selections = Self::CLOCK_SOURCE_SELECTIONS;
 
         if orion_state.signals & 0x04 != 0 {
@@ -777,6 +780,18 @@ impl ControlPanel {
                 self.orion_hid.lock().unwrap().queue_sample_rate(selected);
             },
         );
+
+        if orion_state.signals & 0x02 != 0 {
+            render_asset!(
+                ui,
+                ControlPanelDimensions::LOCK_LIGHT_X,
+                ControlPanelDimensions::LOCK_LIGHT_Y,
+                "LockLed/default/background",
+                1.0,
+                0.0,
+                None
+            );
+        }
     }
 
     fn draw_line_out(&mut self, ui: &mut egui::Ui, mut line_out: u8) {
