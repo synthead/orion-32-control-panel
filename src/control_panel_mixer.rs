@@ -49,9 +49,10 @@ impl ControlPanelMixerDimensions {
     const SLIDER_HITBOX_WIDTH: f32 = 22.0;
     const SLIDER_HITBOX_HEIGHT: f32 = 222.0;
 
-    const SOLO_MUTE_X: u16 = 7;
+    const SOLO_MUTE_LINK_X: u16 = 7;
     const SOLO_Y: u16 = 608;
     const MUTE_Y: u16 = 626;
+    const LINK_Y: u16 = 644;
 
     const TEXT_HITBOX_X: f32 = 9.0;
     const TEXT_HITBOX_Y_PAN: f32 = 266.0;
@@ -81,9 +82,14 @@ pub(crate) struct ControlPanelMixer {
 
     text_editor: Arc<Mutex<TextEditor>>,
     drag_value: Arc<Mutex<DragValue>>,
+
+    linked_channels: [bool; 16],
 }
 
 impl ControlPanelMixer {
+    const SOLO_BIT: u8 = 0x80;
+    const MUTE_BIT: u8 = 0x40;
+
     pub(crate) fn new(
         orion_state: Arc<Mutex<OrionState>>,
         orion_hid: Arc<Mutex<OrionHid>>,
@@ -96,6 +102,8 @@ impl ControlPanelMixer {
 
             text_editor,
             drag_value,
+
+            linked_channels: [false; 16],
         }
     }
 
@@ -122,22 +130,6 @@ impl ControlPanelMixer {
 
     fn draw_base_graphics(ui: &mut egui::Ui) {
         render_asset!(ui, 0, 226, "Mixer/default/background", 1.0, 0.0, None);
-
-        for channel in 0..32 {
-            let pos_x = 7 + channel * 35;
-
-            if channel % 2 == 0 {
-                render_asset!(
-                    ui,
-                    pos_x,
-                    644,
-                    "LinkButton/default/released",
-                    1.0,
-                    0.0,
-                    None
-                );
-            }
-        }
     }
 
     fn draw_labels(ui: &mut egui::Ui, orion_state: &OrionState) {
@@ -170,11 +162,31 @@ impl ControlPanelMixer {
     }
 
     fn draw_channels(&mut self, ui: &mut egui::Ui, levels: &[u8; 33], pans_solos_mutes: &[u8; 33]) {
-        let any_solo = pans_solos_mutes.iter().any(|value| value & 0x80 != 0);
+        let any_solo = pans_solos_mutes
+            .iter()
+            .any(|value| value & Self::SOLO_BIT != 0);
         let mut edit_permitted = true;
 
         for channel in 1..33 {
-            let base_pos_x = (channel - 1) as f32 * ControlPanelMixerDimensions::STEP_X;
+            let channel_index = channel - 1;
+            let left_channel = channel_index | 1;
+            let right_channel = left_channel + 1;
+
+            let linked_index = channel_index / 2;
+            let linked_state = self.linked_channels[linked_index];
+
+            let linked_channel = if channel == left_channel {
+                right_channel
+            } else {
+                left_channel
+            };
+
+            let pair_has_solo = pans_solos_mutes[left_channel] & Self::SOLO_BIT != 0
+                || pans_solos_mutes[right_channel] & Self::SOLO_BIT != 0;
+
+            let resolved_channel = if linked_state { left_channel } else { channel };
+
+            let base_pos_x = channel_index as f32 * ControlPanelMixerDimensions::STEP_X;
             let slider_pos_x = base_pos_x as u16 + ControlPanelMixerDimensions::SLIDER_X;
 
             let slider_hitbox_rect = egui::Rect::from_min_size(
@@ -193,7 +205,7 @@ impl ControlPanelMixer {
             let (level, level_should_write) = self.drag_value.lock().unwrap().value_with_drag(
                 ui,
                 slider_hitbox_rect,
-                levels[channel],
+                levels[resolved_channel],
                 0x00,
                 0x5f,
                 ControlPanelMixerDimensions::SLIDER_TRAVEL,
@@ -202,11 +214,17 @@ impl ControlPanelMixer {
             );
 
             if level_should_write {
-                self.orion_hid.lock().unwrap().queue_mixer_channel(
-                    channel as u8,
-                    level,
-                    pan_solo_mute,
-                );
+                let mut orion_hid = self.orion_hid.lock().unwrap();
+
+                orion_hid.queue_mixer_channel(channel as u8, level, pans_solos_mutes[channel]);
+
+                if linked_state {
+                    orion_hid.queue_mixer_channel(
+                        linked_channel as u8,
+                        level,
+                        pans_solos_mutes[linked_channel],
+                    );
+                }
             }
 
             let slider_pos_y = ControlPanelMixerDimensions::SLIDER_Y
@@ -247,11 +265,21 @@ impl ControlPanelMixer {
             if edit_permitted {
                 if let Some((level_text, tab)) = level_edit_result {
                     if let Some(parsed_level) = Self::level_for_text(&level_text) {
-                        self.orion_hid.lock().unwrap().queue_mixer_channel(
+                        let mut orion_hid = self.orion_hid.lock().unwrap();
+
+                        orion_hid.queue_mixer_channel(
                             channel as u8,
                             parsed_level,
-                            pan_solo_mute,
+                            pans_solos_mutes[channel],
                         );
+
+                        if linked_state {
+                            orion_hid.queue_mixer_channel(
+                                linked_channel as u8,
+                                parsed_level,
+                                pans_solos_mutes[linked_channel],
+                            );
+                        }
                     }
 
                     if let Some(tab) = tab {
@@ -278,8 +306,8 @@ impl ControlPanelMixer {
                 ),
             );
 
-            let solo = pan_solo_mute & 0x80;
-            let mute = pan_solo_mute & 0x40;
+            let solo = pan_solo_mute & Self::SOLO_BIT;
+            let mute = pan_solo_mute & Self::MUTE_BIT;
 
             let (pan, pan_should_write) = self.drag_value.lock().unwrap().value_with_drag(
                 ui,
@@ -295,7 +323,7 @@ impl ControlPanelMixer {
             if pan_should_write {
                 self.orion_hid.lock().unwrap().queue_mixer_channel(
                     channel as u8,
-                    level,
+                    levels[channel],
                     pan | solo | mute,
                 );
             }
@@ -325,7 +353,7 @@ impl ControlPanelMixer {
                     if let Some(parsed_pan) = Self::pan_for_text(&text) {
                         self.orion_hid.lock().unwrap().queue_mixer_channel(
                             channel as u8,
-                            level,
+                            levels[channel],
                             parsed_pan | solo | mute,
                         );
                     }
@@ -356,14 +384,15 @@ impl ControlPanelMixer {
                 None
             );
 
-            let solo_mute_x = base_pos_x as u16 + ControlPanelMixerDimensions::SOLO_MUTE_X;
+            let solo_mute_link_x =
+                base_pos_x as u16 + ControlPanelMixerDimensions::SOLO_MUTE_LINK_X;
             let solo_bool = solo != 0;
             let mute_bool = mute != 0;
 
             let solo_response = if solo_bool {
                 render_asset!(
                     ui,
-                    solo_mute_x,
+                    solo_mute_link_x,
                     ControlPanelMixerDimensions::SOLO_Y,
                     "SoloButton/default/pressed",
                     1.0,
@@ -373,7 +402,7 @@ impl ControlPanelMixer {
             } else {
                 render_asset!(
                     ui,
-                    solo_mute_x,
+                    solo_mute_link_x,
                     ControlPanelMixerDimensions::SOLO_Y,
                     "SoloButton/default/released",
                     1.0,
@@ -385,7 +414,7 @@ impl ControlPanelMixer {
             let mute_response = if !solo_bool && (any_solo || mute_bool) {
                 render_asset!(
                     ui,
-                    solo_mute_x,
+                    solo_mute_link_x,
                     ControlPanelMixerDimensions::MUTE_Y,
                     "MuteButton/default/pressed",
                     1.0,
@@ -395,7 +424,7 @@ impl ControlPanelMixer {
             } else {
                 render_asset!(
                     ui,
-                    solo_mute_x,
+                    solo_mute_link_x,
                     ControlPanelMixerDimensions::MUTE_Y,
                     "MuteButton/default/released",
                     1.0,
@@ -405,19 +434,85 @@ impl ControlPanelMixer {
             };
 
             if ControlPanelHelpers::mouse_down_on(&solo_response) {
-                self.orion_hid.lock().unwrap().queue_mixer_channel(
-                    channel as u8,
-                    level,
-                    pan_solo_mute ^ 0x80,
-                );
+                let new_solo = if solo_bool { 0 } else { Self::SOLO_BIT };
+                let channel_solo_mute = (pan_solo_mute & !Self::SOLO_BIT) | new_solo;
+
+                let mut orion_hid = self.orion_hid.lock().unwrap();
+
+                orion_hid.queue_mixer_channel(channel as u8, levels[channel], channel_solo_mute);
+
+                if linked_state {
+                    let linked_pan_solo_mute = pans_solos_mutes[linked_channel];
+                    let linked_solo_mute = (linked_pan_solo_mute & !Self::SOLO_BIT) | new_solo;
+                    let linked_level = levels[linked_channel];
+
+                    orion_hid.queue_mixer_channel(
+                        linked_channel as u8,
+                        linked_level,
+                        linked_solo_mute,
+                    );
+                }
             }
 
             if ControlPanelHelpers::mouse_down_on(&mute_response) && !any_solo {
-                self.orion_hid.lock().unwrap().queue_mixer_channel(
-                    channel as u8,
-                    level,
-                    pan_solo_mute ^ 0x40,
-                );
+                let new_mute = if mute_bool { 0 } else { Self::MUTE_BIT };
+                let channel_solo_mute = (pan_solo_mute & !Self::MUTE_BIT) | new_mute;
+
+                let mut orion_hid = self.orion_hid.lock().unwrap();
+
+                orion_hid.queue_mixer_channel(channel as u8, levels[channel], channel_solo_mute);
+
+                if linked_state {
+                    let linked_pan_solo_mute = pans_solos_mutes[linked_channel];
+                    let linked_solo_mute = (linked_pan_solo_mute & !Self::MUTE_BIT) | new_mute;
+                    let linked_level = levels[linked_channel];
+
+                    orion_hid.queue_mixer_channel(
+                        linked_channel as u8,
+                        linked_level,
+                        linked_solo_mute,
+                    );
+                }
+            }
+
+            if channel % 2 == 1 {
+                let linked_response = if linked_state {
+                    render_asset!(
+                        ui,
+                        solo_mute_link_x,
+                        ControlPanelMixerDimensions::LINK_Y,
+                        "LinkButton/default/pressed",
+                        1.0,
+                        0.0,
+                        Some(egui::Sense::click())
+                    )
+                } else {
+                    render_asset!(
+                        ui,
+                        solo_mute_link_x,
+                        ControlPanelMixerDimensions::LINK_Y,
+                        "LinkButton/default/released",
+                        1.0,
+                        0.0,
+                        Some(egui::Sense::click())
+                    )
+                };
+
+                if ControlPanelHelpers::mouse_down_on(&linked_response) && !pair_has_solo {
+                    if !linked_state {
+                        let right_pan_solo_mute = (pans_solos_mutes[right_channel]
+                            & !Self::MUTE_BIT)
+                            | (pans_solos_mutes[left_channel] & Self::MUTE_BIT);
+
+                        self.orion_hid.lock().unwrap().queue_mixer_channel(
+                            right_channel as u8,
+                            levels[left_channel],
+                            right_pan_solo_mute,
+                        );
+                    }
+
+                    self.linked_channels[linked_index] = !linked_state;
+                }
             }
         }
     }
@@ -494,7 +589,7 @@ impl ControlPanelMixer {
             }
         }
 
-        let mute_response = if mute & 0x40 != 0 {
+        let mute_response = if mute & Self::MUTE_BIT != 0 {
             render_asset!(
                 ui,
                 ControlPanelMixerDimensions::MASTER_MUTE_X,
@@ -520,7 +615,7 @@ impl ControlPanelMixer {
             self.orion_hid
                 .lock()
                 .unwrap()
-                .queue_mixer_channel(0, level, mute ^ 0x40);
+                .queue_mixer_channel(0, level, mute ^ Self::MUTE_BIT);
         }
     }
 
