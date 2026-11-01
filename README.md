@@ -58,7 +58,7 @@ Note: On Windows, a modal will appear about how Windows has "protected" you from
 - AD phases.
 - All settings.
 - All data in the about window.
-- USB hotplugging is correctly handled.
+- USB hot plugging is correctly handled.
 - OS-appropriate configuration directory.
 
 ## Not implemented
