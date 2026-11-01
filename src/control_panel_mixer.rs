@@ -82,6 +82,8 @@ pub(crate) struct ControlPanelMixer {
 
     text_editor: Arc<Mutex<TextEditor>>,
     drag_value: Arc<Mutex<DragValue>>,
+
+    linked_channels: [bool; 16],
 }
 
 impl ControlPanelMixer {
@@ -97,6 +99,8 @@ impl ControlPanelMixer {
 
             text_editor,
             drag_value,
+
+            linked_channels: [false; 16],
         }
     }
 
@@ -407,15 +411,34 @@ impl ControlPanelMixer {
             }
 
             if channel % 2 == 1 {
-                render_asset!(
-                    ui,
-                    solo_mute_link_x,
-                    ControlPanelMixerDimensions::LINK_Y,
-                    "LinkButton/default/released",
-                    1.0,
-                    0.0,
-                    None
-                );
+                let linked_index = (channel - 1) / 2;
+                let linked_state = self.linked_channels[linked_index];
+
+                let linked_response = if linked_state {
+                    render_asset!(
+                        ui,
+                        solo_mute_link_x,
+                        ControlPanelMixerDimensions::LINK_Y,
+                        "LinkButton/default/pressed",
+                        1.0,
+                        0.0,
+                        Some(egui::Sense::click())
+                    )
+                } else {
+                    render_asset!(
+                        ui,
+                        solo_mute_link_x,
+                        ControlPanelMixerDimensions::LINK_Y,
+                        "LinkButton/default/released",
+                        1.0,
+                        0.0,
+                        Some(egui::Sense::click())
+                    )
+                };
+
+                if ControlPanelHelpers::mouse_down_on(&linked_response) {
+                    self.linked_channels[linked_index] = !linked_state;
+                }
             }
         }
     }
