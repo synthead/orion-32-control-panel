@@ -9,6 +9,7 @@ permissions:
 
 jobs:
   build:
+    name: Build ${{ matrix.label }} binary
     strategy:
       fail-fast: false
       matrix:
@@ -75,6 +76,7 @@ jobs:
           path: ${{ env.ASSET }}
 
   release:
+    name: Upload binaries
     needs: build
     runs-on: ubuntu-latest
     steps:
