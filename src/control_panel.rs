@@ -725,6 +725,7 @@ impl ControlPanel {
             ControlPanelDimensions::VU_SOURCE_Y,
             ControlPanelDimensions::VU_SOURCE_WIDTH,
             left_vu_source,
+            None,
             &Self::VU_SOURCE_SELECTIONS,
             |selected| {
                 self.orion_hid
@@ -740,6 +741,7 @@ impl ControlPanel {
             ControlPanelDimensions::VU_SOURCE_Y,
             ControlPanelDimensions::VU_SOURCE_WIDTH,
             right_vu_source,
+            None,
             &Self::VU_SOURCE_SELECTIONS,
             |selected| {
                 self.orion_hid
@@ -763,6 +765,7 @@ impl ControlPanel {
             ControlPanelDimensions::CLOCK_Y,
             ControlPanelDimensions::CLOCK_WIDTH,
             orion_state.clock_source,
+            None,
             &clock_source_selections,
             |selected| {
                 self.orion_hid.lock().unwrap().queue_clock_source(selected);
@@ -775,6 +778,7 @@ impl ControlPanel {
             ControlPanelDimensions::CLOCK_Y,
             ControlPanelDimensions::CLOCK_WIDTH,
             orion_state.sample_rate,
+            None,
             &Self::SAMPLE_RATE_SELECTIONS,
             |selected| {
                 self.orion_hid.lock().unwrap().queue_sample_rate(selected);
@@ -877,6 +881,7 @@ impl ControlPanel {
             ControlPanelDimensions::SERIAL_Y,
             ControlPanelDimensions::SERIAL_WIDTH,
             0,
+            None,
             &[&serial_text],
             |_selected| {
                 // TODO: Implement multi-interface control, and switch it here.
