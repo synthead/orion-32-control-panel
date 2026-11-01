@@ -27,7 +27,7 @@ Here are some screenshots of this control panel at work!
 
 Head to [the latest release](https://github.com/synthead/orion-32-control-panel/releases/latest) and download the binary for your operating system, then run it.  The control panel is a single, self-contained binary built by Rust, so no installation is necessary.
 
-Note: On Windows, a modal will appear about how Windows has "protected" you from running the control panel without saying why, which makes it appear to be a suspicious program.  In reality, the binary is unsigned by a Microsoft-issued CA, and signing it costs money.  If you downloaded it from a release on this repository, you can simply ignore this warning once, and it shouldn't bother you again.
+Note: On Windows, a modal will appear about how Windows has "protected" you from running the control panel without saying why, which makes it appear to be a suspicious program.  In reality, the binary is unsigned, and signing it with a Microsoft-issued CA to make the warning go away costs money.  If you downloaded it from a release on this repository, you can simply ignore this warning once, and it shouldn't bother you again.
 
 ## Improvements
 
