@@ -653,7 +653,7 @@ impl ControlPanelMixer {
     fn text_for_level(level: u8) -> String {
         if level == 0x5f {
             return "-inf".to_string();
-        };
+        }
 
         (-(level as i8)).to_string()
     }
