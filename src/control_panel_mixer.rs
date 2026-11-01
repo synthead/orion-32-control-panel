@@ -605,7 +605,7 @@ impl ControlPanelMixer {
         let edit_result = self.text_editor.lock().unwrap().draw(
             ui,
             text_rect,
-            &format!("level_0"),
+            "level_0",
             &Self::text_for_level(level),
             ControlPanelMixerDimensions::FONT_SIZE_VALUE,
             ControlPanelMixerColors::VALUE_TEXT,
