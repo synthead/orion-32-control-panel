@@ -32,6 +32,7 @@ pub(crate) struct OrionState {
     pub(crate) sample_rate: u8,
     pub(crate) line_out: u8,
     pub(crate) signals: u8,
+    pub(crate) frequency: [u8; 3],
     pub(crate) preset_standby: u8,
 
     pub(crate) trims: u8,
@@ -74,6 +75,7 @@ impl Default for OrionState {
             sample_rate: 0,
             line_out: 0,
             signals: 0,
+            frequency: [0; 3],
             preset_standby: u8::MAX,
 
             trims: 0,
