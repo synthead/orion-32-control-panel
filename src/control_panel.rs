@@ -163,10 +163,11 @@ impl ControlPanel {
         "MIX 1 CH",
     ];
 
-    // TODO: Support "Oven" turning into "10M" when 10M clock is connected.
     const CLOCK_SOURCE_SELECTIONS: [&str; 9] = [
         "Oven", "W.C.", "ADAT", "ADAT 2x", "ADAT 4x", "MADI", "MADI 2x", "MADI 4x", "S/PDIF",
     ];
+
+    const CLOCK_SOURCE_SELECTION_ATOMIC: &str = "Atomic";
 
     const SAMPLE_RATE_SELECTIONS: [&str; 7] = [
         "32.0 kHz",
@@ -335,7 +336,7 @@ impl ControlPanel {
                     &orion_state.right_vu_values,
                 );
 
-                self.draw_clock_comboboxes(ui, orion_state.clock_source, orion_state.sample_rate);
+                self.draw_clock_comboboxes(ui, &orion_state);
 
                 self.draw_vu_meter_comboboxes(
                     ui,
@@ -746,14 +747,20 @@ impl ControlPanel {
         );
     }
 
-    fn draw_clock_comboboxes(&self, ui: &mut egui::Ui, clock_source: u8, sample_rate: u8) {
+    fn draw_clock_comboboxes(&self, ui: &mut egui::Ui, orion_state: &OrionState) {
+        let mut clock_source_selections = Self::CLOCK_SOURCE_SELECTIONS;
+
+        if orion_state.signals & 0x04 != 0 {
+            clock_source_selections[0] = Self::CLOCK_SOURCE_SELECTION_ATOMIC;
+        }
+
         ControlPanelHelpers::draw_combobox(
             ui,
             ControlPanelDimensions::CLOCK_CLOCK_SOURCE_X,
             ControlPanelDimensions::CLOCK_Y,
             ControlPanelDimensions::CLOCK_WIDTH,
-            clock_source,
-            &Self::CLOCK_SOURCE_SELECTIONS,
+            orion_state.clock_source,
+            &clock_source_selections,
             |selected| {
                 self.orion_hid.lock().unwrap().queue_clock_source(selected);
             },
@@ -764,7 +771,7 @@ impl ControlPanel {
             ControlPanelDimensions::CLOCK_SAMPLE_RATE_X,
             ControlPanelDimensions::CLOCK_Y,
             ControlPanelDimensions::CLOCK_WIDTH,
-            sample_rate,
+            orion_state.sample_rate,
             &Self::SAMPLE_RATE_SELECTIONS,
             |selected| {
                 self.orion_hid.lock().unwrap().queue_sample_rate(selected);
