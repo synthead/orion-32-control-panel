@@ -725,6 +725,7 @@ impl ControlPanel {
             ControlPanelDimensions::VU_SOURCE_Y,
             ControlPanelDimensions::VU_SOURCE_WIDTH,
             left_vu_source,
+            None,
             &Self::VU_SOURCE_SELECTIONS,
             |selected| {
                 self.orion_hid
@@ -740,6 +741,7 @@ impl ControlPanel {
             ControlPanelDimensions::VU_SOURCE_Y,
             ControlPanelDimensions::VU_SOURCE_WIDTH,
             right_vu_source,
+            None,
             &Self::VU_SOURCE_SELECTIONS,
             |selected| {
                 self.orion_hid
@@ -763,25 +765,43 @@ impl ControlPanel {
             ControlPanelDimensions::CLOCK_Y,
             ControlPanelDimensions::CLOCK_WIDTH,
             orion_state.clock_source,
+            None,
             &clock_source_selections,
             |selected| {
                 self.orion_hid.lock().unwrap().queue_clock_source(selected);
             },
         );
 
-        ControlPanelHelpers::draw_combobox(
-            ui,
-            ControlPanelDimensions::CLOCK_SAMPLE_RATE_X,
-            ControlPanelDimensions::CLOCK_Y,
-            ControlPanelDimensions::CLOCK_WIDTH,
-            orion_state.sample_rate,
-            &Self::SAMPLE_RATE_SELECTIONS,
-            |selected| {
-                self.orion_hid.lock().unwrap().queue_sample_rate(selected);
-            },
-        );
+        let clock_present = orion_state.signals & 0x02 != 0;
+        let clock_oven = orion_state.clock_source == 0;
 
-        if orion_state.signals & 0x02 != 0 {
+        let freq_text = if clock_oven {
+            None
+        } else if clock_present {
+            let f = orion_state.frequency;
+            let hz = u32::from_be_bytes([0, f[0], f[1], f[2]]);
+            let tenths = hz / 100;
+            Some(format!("{}.{} kHz", tenths / 10, tenths % 10))
+        } else {
+            Some("None".to_string())
+        };
+
+        ui.add_enabled_ui(clock_oven, |ui| {
+            ControlPanelHelpers::draw_combobox(
+                ui,
+                ControlPanelDimensions::CLOCK_SAMPLE_RATE_X,
+                ControlPanelDimensions::CLOCK_Y,
+                ControlPanelDimensions::CLOCK_WIDTH,
+                orion_state.sample_rate,
+                freq_text.as_deref(),
+                &Self::SAMPLE_RATE_SELECTIONS,
+                |selected| {
+                    self.orion_hid.lock().unwrap().queue_sample_rate(selected);
+                },
+            );
+        });
+
+        if clock_present {
             render_asset!(
                 ui,
                 ControlPanelDimensions::LOCK_LIGHT_X,
@@ -877,6 +897,7 @@ impl ControlPanel {
             ControlPanelDimensions::SERIAL_Y,
             ControlPanelDimensions::SERIAL_WIDTH,
             0,
+            None,
             &[&serial_text],
             |_selected| {
                 // TODO: Implement multi-interface control, and switch it here.

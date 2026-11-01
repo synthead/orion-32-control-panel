@@ -47,6 +47,7 @@ impl ControlPanelHelpers {
         y: u16,
         width: u8,
         selected: u8,
+        selected_text: Option<&str>,
         selections: &[&str],
         mut changed_callback: impl FnMut(u8),
     ) {
@@ -80,7 +81,7 @@ impl ControlPanelHelpers {
                 egui::ComboBox::from_id_salt((x, y))
                     .width(width as f32)
                     .selected_text(
-                        egui::RichText::new(selections[selected as usize])
+                        egui::RichText::new(selected_text.unwrap_or(selections[selected as usize]))
                             .size(WidgetDimensions::TEXT_SIZE)
                             .color(WidgetColors::TEXT_COLOR),
                     )

@@ -182,6 +182,7 @@ impl ControlPanelSettings {
             ControlPanelSettingsDimensions::TRIM_Y,
             ControlPanelSettingsDimensions::TRIM_WIDTH,
             (trims & 0x38) >> 3,
+            None,
             &Self::LINE_OUT_ADC_TRIM_SELECTIONS,
             |selected| {
                 self.orion_hid
@@ -197,6 +198,7 @@ impl ControlPanelSettings {
             ControlPanelSettingsDimensions::TRIM_Y,
             ControlPanelSettingsDimensions::TRIM_WIDTH,
             trims & 0x07,
+            None,
             &Self::LINE_OUT_ADC_TRIM_SELECTIONS,
             |selected| {
                 self.orion_hid.lock().unwrap().queue_trim(selected * 0x04);
@@ -240,6 +242,7 @@ impl ControlPanelSettings {
             ControlPanelSettingsDimensions::OSCILLATOR_Y,
             ControlPanelSettingsDimensions::OSCILLATOR_WIDTH,
             (oscillators & 0x01 != 0) as u8,
+            None,
             &Self::OSC_FREQUENCY_SELECTIONS,
             |selected| {
                 let oscillators_new = (oscillators & !0x01) | (selected * 0x01);
@@ -257,6 +260,7 @@ impl ControlPanelSettings {
             ControlPanelSettingsDimensions::OSCILLATOR_Y,
             ControlPanelSettingsDimensions::OSCILLATOR_WIDTH,
             (oscillators & 0x30) >> 4,
+            None,
             &Self::OSC_LEVEL_SELECTIONS,
             |selected| {
                 let oscillators_new = (oscillators & !0x30) | (selected << 4);
@@ -274,6 +278,7 @@ impl ControlPanelSettings {
             ControlPanelSettingsDimensions::OSCILLATOR_Y,
             ControlPanelSettingsDimensions::OSCILLATOR_WIDTH,
             (oscillators & 0x04 != 0) as u8,
+            None,
             &Self::OSC_FREQUENCY_SELECTIONS,
             |selected| {
                 let oscillators_new = (oscillators & !0x04) | (selected * 0x04);
@@ -461,6 +466,7 @@ impl ControlPanelSettings {
             ControlPanelSettingsDimensions::USB_CHANNELS_Y,
             ControlPanelSettingsDimensions::USB_CHANNELS_WIDTH,
             (usb_channels_spdif_src & 0x02) >> 1,
+            None,
             &Self::USB_CHANNELS_SELECTIONS,
             |selected| {
                 self.orion_hid.lock().unwrap().queue_usb_channels(selected);
