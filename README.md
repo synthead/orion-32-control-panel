@@ -40,7 +40,7 @@ Note: On Windows, a modal will appear about how Windows has "protected" you from
 - Connects directly to your interface.  The original control panel connects to a network server that must always be running.
 - Long-standing routing and AD phase bugs have been fixed.  The original control panel still has bugs where active routes are sometimes erroneously presented as muted, and AD phases are sometimes erroneously displayed as the wrong state.
 - Knobs and sliders update smoothly.  The original control panel only updated occasionally when moving, which made audibly chunky changes.
-- Interface can still be programmed while in standby.  The power button simply disables the display and mutes the audio, and does not turn the interface off.  The original control panel pretends that it was off by disabling the interface, where this version still lets you configure it.
+- Interface can still be programmed while in standby.  The power button simply disables the display and mutes the audio, and does not turn the interface off.  The original control panel pretends that it is off by disabling the control panel, where this version permits programming in standby.
 
 ## What works
 
