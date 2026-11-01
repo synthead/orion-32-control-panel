@@ -49,9 +49,10 @@ impl ControlPanelMixerDimensions {
     const SLIDER_HITBOX_WIDTH: f32 = 22.0;
     const SLIDER_HITBOX_HEIGHT: f32 = 222.0;
 
-    const SOLO_MUTE_X: u16 = 7;
+    const SOLO_MUTE_LINK_X: u16 = 7;
     const SOLO_Y: u16 = 608;
     const MUTE_Y: u16 = 626;
+    const LINK_Y: u16 = 644;
 
     const TEXT_HITBOX_X: f32 = 9.0;
     const TEXT_HITBOX_Y_PAN: f32 = 266.0;
@@ -122,22 +123,6 @@ impl ControlPanelMixer {
 
     fn draw_base_graphics(ui: &mut egui::Ui) {
         render_asset!(ui, 0, 226, "Mixer/default/background", 1.0, 0.0, None);
-
-        for channel in 0..32 {
-            let pos_x = 7 + channel * 35;
-
-            if channel % 2 == 0 {
-                render_asset!(
-                    ui,
-                    pos_x,
-                    644,
-                    "LinkButton/default/released",
-                    1.0,
-                    0.0,
-                    None
-                );
-            }
-        }
     }
 
     fn draw_labels(ui: &mut egui::Ui, orion_state: &OrionState) {
@@ -356,14 +341,15 @@ impl ControlPanelMixer {
                 None
             );
 
-            let solo_mute_x = base_pos_x as u16 + ControlPanelMixerDimensions::SOLO_MUTE_X;
+            let solo_mute_link_x =
+                base_pos_x as u16 + ControlPanelMixerDimensions::SOLO_MUTE_LINK_X;
             let solo_bool = solo != 0;
             let mute_bool = mute != 0;
 
             let solo_response = if solo_bool {
                 render_asset!(
                     ui,
-                    solo_mute_x,
+                    solo_mute_link_x,
                     ControlPanelMixerDimensions::SOLO_Y,
                     "SoloButton/default/pressed",
                     1.0,
@@ -373,7 +359,7 @@ impl ControlPanelMixer {
             } else {
                 render_asset!(
                     ui,
-                    solo_mute_x,
+                    solo_mute_link_x,
                     ControlPanelMixerDimensions::SOLO_Y,
                     "SoloButton/default/released",
                     1.0,
@@ -385,7 +371,7 @@ impl ControlPanelMixer {
             let mute_response = if !solo_bool && (any_solo || mute_bool) {
                 render_asset!(
                     ui,
-                    solo_mute_x,
+                    solo_mute_link_x,
                     ControlPanelMixerDimensions::MUTE_Y,
                     "MuteButton/default/pressed",
                     1.0,
@@ -395,7 +381,7 @@ impl ControlPanelMixer {
             } else {
                 render_asset!(
                     ui,
-                    solo_mute_x,
+                    solo_mute_link_x,
                     ControlPanelMixerDimensions::MUTE_Y,
                     "MuteButton/default/released",
                     1.0,
@@ -417,6 +403,18 @@ impl ControlPanelMixer {
                     channel as u8,
                     level,
                     pan_solo_mute ^ 0x40,
+                );
+            }
+
+            if channel % 2 == 1 {
+                render_asset!(
+                    ui,
+                    solo_mute_link_x,
+                    ControlPanelMixerDimensions::LINK_Y,
+                    "LinkButton/default/released",
+                    1.0,
+                    0.0,
+                    None
                 );
             }
         }
