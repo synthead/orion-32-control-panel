@@ -143,6 +143,7 @@ impl OrionHidPoller {
 
         orion_state.line_out = hid_data[28];
         orion_state.signals = hid_data[17];
+        orion_state.frequency = hid_data[21..24].try_into().unwrap();
 
         orion_state.preset_standby = hid_data[16];
 
