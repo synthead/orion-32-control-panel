@@ -165,7 +165,9 @@ impl ControlPanelMixer {
         let any_solo = pans_solos_mutes
             .iter()
             .any(|value| value & Self::SOLO_BIT != 0);
+
         let mut edit_permitted = true;
+        let mut linked_levels: [Option<(u8, bool)>; 16] = [None; 16];
 
         for channel in 1..33 {
             let channel_index = channel - 1;
@@ -184,8 +186,6 @@ impl ControlPanelMixer {
             let pair_has_solo = pans_solos_mutes[left_channel] & Self::SOLO_BIT != 0
                 || pans_solos_mutes[right_channel] & Self::SOLO_BIT != 0;
 
-            let resolved_channel = if linked_state { left_channel } else { channel };
-
             let base_pos_x = channel_index as f32 * ControlPanelMixerDimensions::STEP_X;
             let slider_pos_x = base_pos_x as u16 + ControlPanelMixerDimensions::SLIDER_X;
 
@@ -202,18 +202,51 @@ impl ControlPanelMixer {
 
             let pan_solo_mute = pans_solos_mutes[channel];
 
-            let (level, level_should_write) = self.drag_value.lock().unwrap().value_with_drag(
-                ui,
-                slider_hitbox_rect,
-                levels[resolved_channel],
-                0x00,
-                0x5f,
-                ControlPanelMixerDimensions::SLIDER_TRAVEL,
-                -1.0,
-                false,
-            );
+            let (level, level_should_write) = if linked_state {
+                if channel == left_channel {
+                    let linked_hitbox_rect = egui::Rect::from_min_size(
+                        egui::pos2(
+                            base_pos_x + ControlPanelMixerDimensions::SLIDER_HITBOX_X,
+                            ControlPanelMixerDimensions::SLIDER_HITBOX_Y,
+                        ),
+                        egui::vec2(
+                            ControlPanelMixerDimensions::STEP_X
+                                + ControlPanelMixerDimensions::SLIDER_HITBOX_WIDTH,
+                            ControlPanelMixerDimensions::SLIDER_HITBOX_HEIGHT,
+                        ),
+                    );
 
-            if level_should_write {
+                    let result = self.drag_value.lock().unwrap().value_with_drag(
+                        ui,
+                        linked_hitbox_rect,
+                        levels[left_channel],
+                        0x00,
+                        0x5f,
+                        ControlPanelMixerDimensions::SLIDER_TRAVEL,
+                        -1.0,
+                        false,
+                    );
+
+                    linked_levels[linked_index] = Some(result);
+
+                    result
+                } else {
+                    linked_levels[linked_index].unwrap_or((levels[left_channel], false))
+                }
+            } else {
+                self.drag_value.lock().unwrap().value_with_drag(
+                    ui,
+                    slider_hitbox_rect,
+                    levels[channel],
+                    0x00,
+                    0x5f,
+                    ControlPanelMixerDimensions::SLIDER_TRAVEL,
+                    -1.0,
+                    false,
+                )
+            };
+
+            if level_should_write && (!linked_state || channel == left_channel) {
                 let mut orion_hid = self.orion_hid.lock().unwrap();
 
                 orion_hid.queue_mixer_channel(channel as u8, level, pans_solos_mutes[channel]);
@@ -444,11 +477,10 @@ impl ControlPanelMixer {
                 if linked_state {
                     let linked_pan_solo_mute = pans_solos_mutes[linked_channel];
                     let linked_solo_mute = (linked_pan_solo_mute & !Self::SOLO_BIT) | new_solo;
-                    let linked_level = levels[linked_channel];
 
                     orion_hid.queue_mixer_channel(
                         linked_channel as u8,
-                        linked_level,
+                        levels[linked_channel],
                         linked_solo_mute,
                     );
                 }
@@ -465,11 +497,10 @@ impl ControlPanelMixer {
                 if linked_state {
                     let linked_pan_solo_mute = pans_solos_mutes[linked_channel];
                     let linked_solo_mute = (linked_pan_solo_mute & !Self::MUTE_BIT) | new_mute;
-                    let linked_level = levels[linked_channel];
 
                     orion_hid.queue_mixer_channel(
                         linked_channel as u8,
-                        linked_level,
+                        levels[linked_channel],
                         linked_solo_mute,
                     );
                 }
