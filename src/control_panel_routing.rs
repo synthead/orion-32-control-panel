@@ -760,25 +760,49 @@ impl ControlPanelRouting {
             );
         }
 
-        render_asset!(
-            ui,
-            ControlPanelRoutingDimensions::PRESENSE_X,
-            ControlPanelRoutingDimensions::PRESENSE_ADAT_IN_Y,
-            "PresenceLed/default/released",
-            1.0,
-            0.0,
-            None
-        );
+        if signals & OrionStateSignals::ADAT_1 != 0 {
+            render_asset!(
+                ui,
+                ControlPanelRoutingDimensions::PRESENSE_X,
+                ControlPanelRoutingDimensions::PRESENSE_ADAT_IN_Y,
+                "PresenceLed/default/pressed",
+                1.0,
+                0.0,
+                None
+            );
+        } else {
+            render_asset!(
+                ui,
+                ControlPanelRoutingDimensions::PRESENSE_X,
+                ControlPanelRoutingDimensions::PRESENSE_ADAT_IN_Y,
+                "PresenceLed/default/released",
+                1.0,
+                0.0,
+                None
+            );
+        }
 
-        render_asset!(
-            ui,
-            ControlPanelRoutingDimensions::PRESENSE_ADAT_IN_2_X,
-            ControlPanelRoutingDimensions::PRESENSE_ADAT_IN_Y,
-            "PresenceLed/default/released",
-            1.0,
-            0.0,
-            None
-        );
+        if signals & OrionStateSignals::ADAT_2 != 0 {
+            render_asset!(
+                ui,
+                ControlPanelRoutingDimensions::PRESENSE_ADAT_IN_2_X,
+                ControlPanelRoutingDimensions::PRESENSE_ADAT_IN_Y,
+                "PresenceLed/default/pressed",
+                1.0,
+                0.0,
+                None
+            );
+        } else {
+            render_asset!(
+                ui,
+                ControlPanelRoutingDimensions::PRESENSE_ADAT_IN_2_X,
+                ControlPanelRoutingDimensions::PRESENSE_ADAT_IN_Y,
+                "PresenceLed/default/released",
+                1.0,
+                0.0,
+                None
+            );
+        }
 
         if signals & OrionStateSignals::SPDIF != 0 {
             render_asset!(
