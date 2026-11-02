@@ -10,7 +10,7 @@ use crate::orion_file::OrionFile;
 use crate::orion_persistence::OrionPersistence;
 
 use crate::orion_hid::OrionHid;
-use crate::orion_state::OrionState;
+use crate::orion_state::{OrionState, OrionStateSignals};
 
 use crate::control_panel_helpers::ControlPanelHelpers;
 use crate::text_editor::TextEditor;
@@ -716,8 +716,7 @@ impl ControlPanelRouting {
     }
 
     fn draw_signals(&self, ui: &mut egui::Ui, signals: u8) {
-        // TODO: Figure out the rest of these signals.
-        if signals == 0x09 {
+        if signals & OrionStateSignals::USB != 0 {
             render_asset!(
                 ui,
                 ControlPanelRoutingDimensions::PRESENSE_X,
