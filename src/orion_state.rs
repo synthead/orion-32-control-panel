@@ -3,12 +3,12 @@ use crate::constants::{RoutingColumns, RoutingLabelColors, RoutingLabels, Routin
 pub(crate) struct OrionStateInitSteps;
 
 impl OrionStateInitSteps {
-    pub(crate) const SERIAL_NUMBER: u8 = 0b000001;
-    pub(crate) const FIRMWARE_VERSION: u8 = 0b000010;
-    pub(crate) const ROUTES: u8 = 0b000100;
-    pub(crate) const MIXER_LEVELS: u8 = 0b001000;
-    pub(crate) const MIXER_PANS_SOLOS_MUTES: u8 = 0b010000;
-    pub(crate) const AD_PHASES: u8 = 0b100000;
+    pub(crate) const SERIAL_NUMBER: u8 = 0x01;
+    pub(crate) const FIRMWARE_VERSION: u8 = 0x02;
+    pub(crate) const ROUTES: u8 = 0x04;
+    pub(crate) const MIXER_LEVELS: u8 = 0x08;
+    pub(crate) const MIXER_PANS_SOLOS_MUTES: u8 = 0x10;
+    pub(crate) const AD_PHASES: u8 = 0x20;
 }
 
 #[derive(Clone)]
