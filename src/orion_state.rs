@@ -11,6 +11,13 @@ impl OrionStateInitSteps {
     pub(crate) const AD_PHASES: u8 = 0x20;
 }
 
+pub(crate) struct OrionStateSignals;
+
+impl OrionStateSignals {
+    pub(crate) const USB: u8 = 0x08;
+    pub(crate) const MADI: u8 = 0x10;
+}
+
 #[derive(Clone)]
 pub(crate) struct OrionState {
     pub(crate) labels: [[String; 32]; 7],
