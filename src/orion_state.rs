@@ -14,6 +14,8 @@ impl OrionStateInitSteps {
 pub(crate) struct OrionStateSignals;
 
 impl OrionStateSignals {
+    pub(crate) const LOCK: u8 = 0x02;
+    pub(crate) const ATOMIC: u8 = 0x04;
     pub(crate) const USB: u8 = 0x08;
     pub(crate) const MADI: u8 = 0x10;
     pub(crate) const ADAT_1: u8 = 0x20;

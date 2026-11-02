@@ -5,8 +5,7 @@ use std::thread;
 
 use crate::orion_hid::OrionHid;
 use crate::orion_hid_poller::OrionHidPoller;
-use crate::orion_state::OrionState;
-use crate::orion_state::OrionStateInitSteps;
+use crate::orion_state::{OrionState, OrionStateInitSteps, OrionStateSignals};
 
 use crate::drag_value::DragValue;
 use crate::ignore_value::IgnoreValue;
@@ -753,47 +752,51 @@ impl ControlPanel {
     }
 
     fn draw_clock(&self, ui: &mut egui::Ui, orion_state: &OrionState) {
+        let signal_usb = orion_state.signals & OrionStateSignals::USB != 0;
+        let clock_lock = orion_state.signals & OrionStateSignals::LOCK != 0;
+        let clock_source_text = signal_usb.then_some("USB");
+
         let mut clock_source_selections = Self::CLOCK_SOURCE_SELECTIONS;
 
-        if orion_state.signals & 0x04 != 0 {
+        if orion_state.signals & OrionStateSignals::ATOMIC != 0 {
             clock_source_selections[0] = Self::CLOCK_SOURCE_SELECTION_ATOMIC;
         }
 
-        ControlPanelHelpers::draw_combobox(
-            ui,
-            ControlPanelDimensions::CLOCK_CLOCK_SOURCE_X,
-            ControlPanelDimensions::CLOCK_Y,
-            ControlPanelDimensions::CLOCK_WIDTH,
-            orion_state.clock_source,
-            None,
-            &clock_source_selections,
-            |selected| {
-                self.orion_hid.lock().unwrap().queue_clock_source(selected);
-            },
-        );
+        ui.add_enabled_ui(!signal_usb, |ui| {
+            ControlPanelHelpers::draw_combobox(
+                ui,
+                ControlPanelDimensions::CLOCK_CLOCK_SOURCE_X,
+                ControlPanelDimensions::CLOCK_Y,
+                ControlPanelDimensions::CLOCK_WIDTH,
+                orion_state.clock_source,
+                clock_source_text,
+                &clock_source_selections,
+                |selected| {
+                    self.orion_hid.lock().unwrap().queue_clock_source(selected);
+                },
+            );
+        });
 
-        let clock_present = orion_state.signals & 0x02 != 0;
         let clock_oven = orion_state.clock_source == 0;
 
-        let freq_text = if clock_oven {
-            None
-        } else if clock_present {
-            let f = orion_state.frequency;
-            let hz = u32::from_be_bytes([0, f[0], f[1], f[2]]);
-            let tenths = hz / 100;
-            Some(format!("{}.{} kHz", tenths / 10, tenths % 10))
+        let freq_text = if clock_oven || clock_lock || signal_usb {
+            let freq_bytes = orion_state.frequency;
+            let freq_hz = u32::from_be_bytes([0, freq_bytes[0], freq_bytes[1], freq_bytes[2]]);
+            let freq_hz_tenths = freq_hz / 100;
+
+            format!("{}.{} kHz", freq_hz_tenths / 10, freq_hz_tenths % 10)
         } else {
-            Some("None".to_string())
+            "None".to_string()
         };
 
-        ui.add_enabled_ui(clock_oven, |ui| {
+        ui.add_enabled_ui(clock_oven && !signal_usb, |ui| {
             ControlPanelHelpers::draw_combobox(
                 ui,
                 ControlPanelDimensions::CLOCK_SAMPLE_RATE_X,
                 ControlPanelDimensions::CLOCK_Y,
                 ControlPanelDimensions::CLOCK_WIDTH,
-                orion_state.sample_rate,
-                freq_text.as_deref(),
+                0,
+                Some(freq_text.as_str()),
                 &Self::SAMPLE_RATE_SELECTIONS,
                 |selected| {
                     self.orion_hid.lock().unwrap().queue_sample_rate(selected);
@@ -801,7 +804,7 @@ impl ControlPanel {
             );
         });
 
-        if clock_present {
+        if clock_lock {
             render_asset!(
                 ui,
                 ControlPanelDimensions::LOCK_LIGHT_X,
