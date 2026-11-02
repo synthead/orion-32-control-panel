@@ -780,15 +780,27 @@ impl ControlPanelRouting {
             None
         );
 
-        render_asset!(
-            ui,
-            ControlPanelRoutingDimensions::PRESENSE_X,
-            ControlPanelRoutingDimensions::PRESENSE_SPDIF_IN_Y,
-            "PresenceLed/default/released",
-            1.0,
-            0.0,
-            None
-        );
+        if signals & OrionStateSignals::SPDIF != 0 {
+            render_asset!(
+                ui,
+                ControlPanelRoutingDimensions::PRESENSE_X,
+                ControlPanelRoutingDimensions::PRESENSE_SPDIF_IN_Y,
+                "PresenceLed/default/pressed",
+                1.0,
+                0.0,
+                None
+            );
+        } else {
+            render_asset!(
+                ui,
+                ControlPanelRoutingDimensions::PRESENSE_X,
+                ControlPanelRoutingDimensions::PRESENSE_SPDIF_IN_Y,
+                "PresenceLed/default/released",
+                1.0,
+                0.0,
+                None
+            );
+        }
     }
 
     fn clear_target_selection_when_outside(&mut self, ui: &mut egui::Ui) {
