@@ -35,6 +35,7 @@ Note: On Windows, a modal will appear about how Windows has "protected" you from
 - Cross-platform!  There is finally a control panel for Linux!
 - Starts instantly, and queries the interface way, _way_ faster.
 - Respects your privacy.  The original control panel phones home with your serial number every time it starts.  Yuck.
+- Does not care if your device is activated.  The original control panel refuses to work with devices until they register for an account and fill out a mandatory form, which includes invasive questions, including who they bought it from and how much they paid for it.
 - Actually _works_.  The original launcher malfunctions with a message to check your internet connection.  The control panel data is no longer hosted, and requires manual intervention to acquire this data to be functional.
 - Does not hassle you with interactive administrator permissions to start a Windows service every time it starts.
 - Connects directly to your interface.  The original control panel connects to a network server that must always be running.
