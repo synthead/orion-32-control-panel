@@ -16,7 +16,9 @@ pub(crate) struct OrionStateSignals;
 impl OrionStateSignals {
     pub(crate) const USB: u8 = 0x08;
     pub(crate) const MADI: u8 = 0x10;
+    pub(crate) const ADAT_1: u8 = 0x20;
     pub(crate) const SPDIF: u8 = 0x40;
+    pub(crate) const ADAT_2: u8 = 0x80;
 }
 
 #[derive(Clone)]
