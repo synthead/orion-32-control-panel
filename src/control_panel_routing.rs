@@ -10,7 +10,7 @@ use crate::orion_file::OrionFile;
 use crate::orion_persistence::OrionPersistence;
 
 use crate::orion_hid::OrionHid;
-use crate::orion_state::OrionState;
+use crate::orion_state::{OrionState, OrionStateSignals};
 
 use crate::control_panel_helpers::ControlPanelHelpers;
 use crate::text_editor::TextEditor;
@@ -716,8 +716,7 @@ impl ControlPanelRouting {
     }
 
     fn draw_signals(&self, ui: &mut egui::Ui, signals: u8) {
-        // TODO: Figure out the rest of these signals.
-        if signals == 0x09 {
+        if signals & OrionStateSignals::USB != 0 {
             render_asset!(
                 ui,
                 ControlPanelRoutingDimensions::PRESENSE_X,
@@ -739,45 +738,93 @@ impl ControlPanelRouting {
             );
         }
 
-        render_asset!(
-            ui,
-            ControlPanelRoutingDimensions::PRESENSE_X,
-            ControlPanelRoutingDimensions::PRESENSE_MADI_IN_Y,
-            "PresenceLed/default/released",
-            1.0,
-            0.0,
-            None
-        );
+        if signals & OrionStateSignals::MADI != 0 {
+            render_asset!(
+                ui,
+                ControlPanelRoutingDimensions::PRESENSE_X,
+                ControlPanelRoutingDimensions::PRESENSE_MADI_IN_Y,
+                "PresenceLed/default/pressed",
+                1.0,
+                0.0,
+                None
+            );
+        } else {
+            render_asset!(
+                ui,
+                ControlPanelRoutingDimensions::PRESENSE_X,
+                ControlPanelRoutingDimensions::PRESENSE_MADI_IN_Y,
+                "PresenceLed/default/released",
+                1.0,
+                0.0,
+                None
+            );
+        }
 
-        render_asset!(
-            ui,
-            ControlPanelRoutingDimensions::PRESENSE_X,
-            ControlPanelRoutingDimensions::PRESENSE_ADAT_IN_Y,
-            "PresenceLed/default/released",
-            1.0,
-            0.0,
-            None
-        );
+        if signals & OrionStateSignals::ADAT_1 != 0 {
+            render_asset!(
+                ui,
+                ControlPanelRoutingDimensions::PRESENSE_X,
+                ControlPanelRoutingDimensions::PRESENSE_ADAT_IN_Y,
+                "PresenceLed/default/pressed",
+                1.0,
+                0.0,
+                None
+            );
+        } else {
+            render_asset!(
+                ui,
+                ControlPanelRoutingDimensions::PRESENSE_X,
+                ControlPanelRoutingDimensions::PRESENSE_ADAT_IN_Y,
+                "PresenceLed/default/released",
+                1.0,
+                0.0,
+                None
+            );
+        }
 
-        render_asset!(
-            ui,
-            ControlPanelRoutingDimensions::PRESENSE_ADAT_IN_2_X,
-            ControlPanelRoutingDimensions::PRESENSE_ADAT_IN_Y,
-            "PresenceLed/default/released",
-            1.0,
-            0.0,
-            None
-        );
+        if signals & OrionStateSignals::ADAT_2 != 0 {
+            render_asset!(
+                ui,
+                ControlPanelRoutingDimensions::PRESENSE_ADAT_IN_2_X,
+                ControlPanelRoutingDimensions::PRESENSE_ADAT_IN_Y,
+                "PresenceLed/default/pressed",
+                1.0,
+                0.0,
+                None
+            );
+        } else {
+            render_asset!(
+                ui,
+                ControlPanelRoutingDimensions::PRESENSE_ADAT_IN_2_X,
+                ControlPanelRoutingDimensions::PRESENSE_ADAT_IN_Y,
+                "PresenceLed/default/released",
+                1.0,
+                0.0,
+                None
+            );
+        }
 
-        render_asset!(
-            ui,
-            ControlPanelRoutingDimensions::PRESENSE_X,
-            ControlPanelRoutingDimensions::PRESENSE_SPDIF_IN_Y,
-            "PresenceLed/default/released",
-            1.0,
-            0.0,
-            None
-        );
+        if signals & OrionStateSignals::SPDIF != 0 {
+            render_asset!(
+                ui,
+                ControlPanelRoutingDimensions::PRESENSE_X,
+                ControlPanelRoutingDimensions::PRESENSE_SPDIF_IN_Y,
+                "PresenceLed/default/pressed",
+                1.0,
+                0.0,
+                None
+            );
+        } else {
+            render_asset!(
+                ui,
+                ControlPanelRoutingDimensions::PRESENSE_X,
+                ControlPanelRoutingDimensions::PRESENSE_SPDIF_IN_Y,
+                "PresenceLed/default/released",
+                1.0,
+                0.0,
+                None
+            );
+        }
     }
 
     fn clear_target_selection_when_outside(&mut self, ui: &mut egui::Ui) {
