@@ -3,6 +3,8 @@ use std::sync::Arc;
 use std::sync::Mutex;
 use std::thread;
 
+use crate::constants::{WidgetColors, WidgetDimensions};
+
 use crate::orion_hid::OrionHid;
 use crate::orion_hid_poller::OrionHidPoller;
 use crate::orion_state::{OrionState, OrionStateInitSteps, OrionStateSignals};
@@ -47,14 +49,6 @@ macro_rules! render_vu_meter {
             });
         }
     }};
-}
-
-struct ControlPanelColors;
-
-impl ControlPanelColors {
-    const LINE_OUT: egui::Color32 = egui::Color32::from_rgb(0x95, 0x95, 0x95);
-    const PRESET: egui::Color32 = egui::Color32::from_rgb(0x95, 0x95, 0x95);
-    const PRESET_SEL: egui::Color32 = egui::Color32::from_rgb(0x64, 0xe7, 0x1d);
 }
 
 struct ControlPanelDimensions;
@@ -120,9 +114,6 @@ impl ControlPanelDimensions {
     const PRESET_STEP: f32 = 65.0;
     const PRESET_WIDTH: f32 = 50.0;
     const PRESET_HEIGHT: f32 = 12.0;
-
-    const FONT_SIZE_LINE_OUT: f32 = 11.0;
-    const FONT_SIZE_PRESET: f32 = 9.5;
 }
 
 pub(crate) struct ControlPanel {
@@ -665,16 +656,16 @@ impl ControlPanel {
             );
 
             let color = if preset == preset_standby & 0x07 || response.contains_pointer() {
-                ControlPanelColors::PRESET_SEL
+                WidgetColors::TEXT_COLOR_PRESET
             } else {
-                ControlPanelColors::PRESET
+                WidgetColors::TEXT_COLOR
             };
 
             ui.painter().text(
                 rect.center(),
                 egui::Align2::CENTER_CENTER,
                 label,
-                egui::FontId::proportional(ControlPanelDimensions::FONT_SIZE_PRESET),
+                egui::FontId::proportional(WidgetDimensions::TEXT_SIZE),
                 color,
             );
 
@@ -726,6 +717,7 @@ impl ControlPanel {
             left_vu_source,
             None,
             &Self::VU_SOURCE_SELECTIONS,
+            true,
             |selected| {
                 self.orion_hid
                     .lock()
@@ -742,6 +734,7 @@ impl ControlPanel {
             right_vu_source,
             None,
             &Self::VU_SOURCE_SELECTIONS,
+            true,
             |selected| {
                 self.orion_hid
                     .lock()
@@ -762,20 +755,19 @@ impl ControlPanel {
             clock_source_selections[0] = Self::CLOCK_SOURCE_SELECTION_ATOMIC;
         }
 
-        ui.add_enabled_ui(!signal_usb, |ui| {
-            ControlPanelHelpers::draw_combobox(
-                ui,
-                ControlPanelDimensions::CLOCK_CLOCK_SOURCE_X,
-                ControlPanelDimensions::CLOCK_Y,
-                ControlPanelDimensions::CLOCK_WIDTH,
-                orion_state.clock_source,
-                clock_source_text,
-                &clock_source_selections,
-                |selected| {
-                    self.orion_hid.lock().unwrap().queue_clock_source(selected);
-                },
-            );
-        });
+        ControlPanelHelpers::draw_combobox(
+            ui,
+            ControlPanelDimensions::CLOCK_CLOCK_SOURCE_X,
+            ControlPanelDimensions::CLOCK_Y,
+            ControlPanelDimensions::CLOCK_WIDTH,
+            orion_state.clock_source,
+            clock_source_text,
+            &clock_source_selections,
+            !signal_usb,
+            |selected| {
+                self.orion_hid.lock().unwrap().queue_clock_source(selected);
+            },
+        );
 
         let clock_oven = orion_state.clock_source == 0;
 
@@ -789,20 +781,19 @@ impl ControlPanel {
             "None".to_string()
         };
 
-        ui.add_enabled_ui(clock_oven && !signal_usb, |ui| {
-            ControlPanelHelpers::draw_combobox(
-                ui,
-                ControlPanelDimensions::CLOCK_SAMPLE_RATE_X,
-                ControlPanelDimensions::CLOCK_Y,
-                ControlPanelDimensions::CLOCK_WIDTH,
-                0,
-                Some(freq_text.as_str()),
-                &Self::SAMPLE_RATE_SELECTIONS,
-                |selected| {
-                    self.orion_hid.lock().unwrap().queue_sample_rate(selected);
-                },
-            );
-        });
+        ControlPanelHelpers::draw_combobox(
+            ui,
+            ControlPanelDimensions::CLOCK_SAMPLE_RATE_X,
+            ControlPanelDimensions::CLOCK_Y,
+            ControlPanelDimensions::CLOCK_WIDTH,
+            0,
+            Some(freq_text.as_str()),
+            &Self::SAMPLE_RATE_SELECTIONS,
+            clock_oven && !signal_usb,
+            |selected| {
+                self.orion_hid.lock().unwrap().queue_sample_rate(selected);
+            },
+        );
 
         if clock_lock {
             render_asset!(
@@ -879,8 +870,8 @@ impl ControlPanel {
             line_out_text_hitbox_rect,
             "line_out",
             &line_out_text,
-            ControlPanelDimensions::FONT_SIZE_LINE_OUT,
-            ControlPanelColors::LINE_OUT,
+            WidgetDimensions::TEXT_SIZE,
+            WidgetColors::TEXT_COLOR,
         ) {
             if tab.is_none() {
                 if let Some(line_out_new) = Self::line_out_for_text(&text) {
@@ -902,6 +893,7 @@ impl ControlPanel {
             0,
             None,
             &[&serial_text],
+            true,
             |_selected| {
                 // TODO: Implement multi-interface control, and switch it here.
             },

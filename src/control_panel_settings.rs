@@ -1,6 +1,8 @@
 use std::sync::Arc;
 use std::sync::Mutex;
 
+use crate::constants::{WidgetColors, WidgetDimensions};
+
 use crate::orion_hid::OrionHid;
 use crate::orion_state::OrionState;
 
@@ -77,9 +79,6 @@ pub(crate) struct ControlPanelSettings {
 }
 
 impl ControlPanelSettings {
-    const FONT_COLOR: egui::Color32 = egui::Color32::from_rgb(0x95, 0x95, 0x95);
-    const FONT_SIZE: f32 = 10.5;
-
     const OSC_FREQUENCY_SELECTIONS: [&str; 2] = ["1 kHz", "440 Hz"];
 
     const OSC_LEVEL_SELECTIONS: [&str; 4] = ["0 dBFS", "-6 dbFS", "-12 dbFS", "-18 dbFS"];
@@ -184,6 +183,7 @@ impl ControlPanelSettings {
             (trims & 0x38) >> 3,
             None,
             &Self::LINE_OUT_ADC_TRIM_SELECTIONS,
+            true,
             |selected| {
                 self.orion_hid
                     .lock()
@@ -200,6 +200,7 @@ impl ControlPanelSettings {
             trims & 0x07,
             None,
             &Self::LINE_OUT_ADC_TRIM_SELECTIONS,
+            true,
             |selected| {
                 self.orion_hid.lock().unwrap().queue_trim(selected * 0x04);
             },
@@ -244,6 +245,7 @@ impl ControlPanelSettings {
             (oscillators & 0x01 != 0) as u8,
             None,
             &Self::OSC_FREQUENCY_SELECTIONS,
+            true,
             |selected| {
                 let oscillators_new = (oscillators & !0x01) | (selected * 0x01);
 
@@ -262,6 +264,7 @@ impl ControlPanelSettings {
             (oscillators & 0x30) >> 4,
             None,
             &Self::OSC_LEVEL_SELECTIONS,
+            true,
             |selected| {
                 let oscillators_new = (oscillators & !0x30) | (selected << 4);
 
@@ -280,6 +283,7 @@ impl ControlPanelSettings {
             (oscillators & 0x04 != 0) as u8,
             None,
             &Self::OSC_FREQUENCY_SELECTIONS,
+            true,
             |selected| {
                 let oscillators_new = (oscillators & !0x04) | (selected * 0x04);
 
@@ -381,8 +385,8 @@ impl ControlPanelSettings {
             brightness_text_hitbox_rect,
             "brightness",
             &brightness_text,
-            Self::FONT_SIZE,
-            Self::FONT_COLOR,
+            WidgetDimensions::TEXT_SIZE,
+            WidgetColors::TEXT_COLOR,
         ) {
             if tab.is_none() {
                 if let Some(brightness_new) = Self::brightness_for_text(&text) {
@@ -468,6 +472,7 @@ impl ControlPanelSettings {
             (usb_channels_spdif_src & 0x02) >> 1,
             None,
             &Self::USB_CHANNELS_SELECTIONS,
+            true,
             |selected| {
                 self.orion_hid.lock().unwrap().queue_usb_channels(selected);
             },

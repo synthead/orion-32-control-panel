@@ -4,7 +4,9 @@ use std::sync::mpsc;
 use std::sync::Arc;
 use std::sync::Mutex;
 
-use crate::constants::{RoutingColumns, RoutingRows, WidgetColors, WidgetDimensions};
+use crate::constants::{
+    RoutingColumns, RoutingLabelColors, RoutingRows, WidgetColors, WidgetDimensions,
+};
 
 use crate::orion_file::OrionFile;
 use crate::orion_persistence::OrionPersistence;
@@ -16,13 +18,6 @@ use crate::control_panel_helpers::ControlPanelHelpers;
 use crate::text_editor::TextEditor;
 
 use crate::render_asset;
-
-struct ControlPanelRoutingColors;
-
-impl ControlPanelRoutingColors {
-    const SELECT: egui::Color32 = egui::Color32::from_rgb(0x91, 0xb4, 0xdf);
-    const TEXT: egui::Color32 = egui::Color32::WHITE;
-}
 
 struct ControlPanelRoutingDimensions;
 
@@ -40,9 +35,14 @@ impl ControlPanelRoutingDimensions {
     const SIZE_X: f32 = 29.0;
     const SIZE_Y: f32 = 14.0;
 
+    const EDIT_SIZE_X: f32 = 58.0;
+    const EDIT_SIZE_Y: f32 = 18.0;
+
+    const EDIT_SIZE_OFFSET_X: f32 = -14.0;
+    const EDIT_SIZE_OFFSET_Y: f32 = -2.0;
+
     const TEXT_X: f32 = 138.0;
     const TEXT_Y: f32 = 412.0;
-    const TEXT_SIZE: f32 = 10.5;
 
     const PRESENSE_X: u16 = 1095;
     const PRESENSE_ADAT_IN_2_X: u16 = 1112;
@@ -56,6 +56,11 @@ impl ControlPanelRoutingDimensions {
     const NAV_REDO_Y: u16 = 436;
     const NAV_SAVE_Y: u16 = 462;
     const NAV_LOAD_Y: u16 = 488;
+
+    const TARGET_ROUTES_MIN_X: f32 = 127.0;
+    const TARGET_ROUTES_MIN_Y: f32 = 448.0;
+    const TARGET_ROUTES_MAX_X: f32 = 1086.0;
+    const TARGET_ROUTES_MAX_Y: f32 = 552.0;
 }
 
 type RoutingFileData = ([[String; 32]; 7], [[u8; 32]; 7]);
@@ -359,7 +364,7 @@ impl ControlPanelRouting {
 
         let color = if self.source_select_row == row && self.source_select_columns.contains(&column)
         {
-            ControlPanelRoutingColors::SELECT
+            RoutingLabelColors::SELECT
         } else {
             orion_state.color_for_route(row, true)
         };
@@ -392,8 +397,8 @@ impl ControlPanelRouting {
             rect,
             &id_with,
             &label,
-            ControlPanelRoutingDimensions::TEXT_SIZE,
-            ControlPanelRoutingColors::TEXT,
+            WidgetDimensions::TEXT_SIZE,
+            WidgetColors::TEXT_COLOR_LABEL,
         );
     }
 
@@ -409,8 +414,14 @@ impl ControlPanelRouting {
         let color = orion_state.color_for_route(row, true);
 
         let rect = egui::Rect::from_min_size(
-            egui::pos2(pos_x - 14.0, pos_y - 2.0),
-            egui::vec2(58.0, 18.0),
+            egui::pos2(
+                pos_x + ControlPanelRoutingDimensions::EDIT_SIZE_OFFSET_X,
+                pos_y + ControlPanelRoutingDimensions::EDIT_SIZE_OFFSET_Y,
+            ),
+            egui::vec2(
+                ControlPanelRoutingDimensions::EDIT_SIZE_X,
+                ControlPanelRoutingDimensions::EDIT_SIZE_Y,
+            ),
         );
 
         ui.painter().rect(
@@ -426,8 +437,8 @@ impl ControlPanelRouting {
             rect,
             &format!("route_{column}_{row}"),
             &label,
-            ControlPanelRoutingDimensions::TEXT_SIZE,
-            ControlPanelRoutingColors::TEXT,
+            WidgetDimensions::TEXT_SIZE,
+            WidgetColors::TEXT_COLOR_LABEL,
         );
 
         if let Some((route_text, tab)) = level_edit_result {
@@ -545,7 +556,7 @@ impl ControlPanelRouting {
                 let route = routes[column];
 
                 let color = if self.target_select_cell == Some([column as u8, row as u8]) {
-                    ControlPanelRoutingColors::SELECT
+                    RoutingLabelColors::SELECT
                 } else {
                     orion_state.color_for_route(route, true)
                 };
@@ -710,8 +721,8 @@ impl ControlPanelRouting {
             ),
             egui::Align2::LEFT_TOP,
             text,
-            egui::FontId::proportional(ControlPanelRoutingDimensions::TEXT_SIZE),
-            ControlPanelRoutingColors::TEXT,
+            egui::FontId::proportional(WidgetDimensions::TEXT_SIZE),
+            WidgetColors::TEXT_COLOR_LABEL,
         );
     }
 
@@ -828,7 +839,16 @@ impl ControlPanelRouting {
     }
 
     fn clear_target_selection_when_outside(&mut self, ui: &mut egui::Ui) {
-        let rect = egui::Rect::from_min_max(egui::pos2(127.0, 448.0), egui::pos2(1086.0, 552.0));
+        let rect = egui::Rect::from_min_max(
+            egui::pos2(
+                ControlPanelRoutingDimensions::TARGET_ROUTES_MIN_X,
+                ControlPanelRoutingDimensions::TARGET_ROUTES_MIN_Y,
+            ),
+            egui::pos2(
+                ControlPanelRoutingDimensions::TARGET_ROUTES_MAX_X,
+                ControlPanelRoutingDimensions::TARGET_ROUTES_MAX_Y,
+            ),
+        );
         let hover = ui.rect_contains_pointer(rect);
 
         if self.target_select_cell.is_some() && !hover {
@@ -945,11 +965,11 @@ impl ControlPanelRouting {
         ui.painter().rect_filled(rect, 0.0, color);
 
         ui.painter().with_clip_rect(rect).text(
-            egui::pos2(pos_x + 15.0, pos_y),
-            egui::Align2::CENTER_TOP,
+            rect.center(),
+            egui::Align2::CENTER_CENTER,
             label,
-            egui::FontId::proportional(ControlPanelRoutingDimensions::TEXT_SIZE),
-            ControlPanelRoutingColors::TEXT,
+            egui::FontId::proportional(WidgetDimensions::TEXT_SIZE),
+            WidgetColors::TEXT_COLOR_LABEL,
         );
 
         rect

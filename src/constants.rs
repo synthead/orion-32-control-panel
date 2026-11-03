@@ -1,7 +1,13 @@
 pub(crate) struct WidgetColors;
 
 impl WidgetColors {
-    pub(crate) const TEXT_COLOR: egui::Color32 = egui::Color32::from_rgb(0x95, 0x95, 0x95);
+    pub(crate) const TEXT_COLOR: egui::Color32 = egui::Color32::from_rgb(0xa0, 0xa0, 0xa0);
+    pub(crate) const TEXT_COLOR_DEVICE: egui::Color32 = egui::Color32::WHITE;
+    pub(crate) const TEXT_COLOR_DEVICE_STATUS: egui::Color32 = egui::Color32::RED;
+    pub(crate) const TEXT_COLOR_LABEL: egui::Color32 = egui::Color32::WHITE;
+    pub(crate) const TEXT_COLOR_PRESET: egui::Color32 = egui::Color32::from_rgb(0x64, 0xe7, 0x1d);
+    pub(crate) const TEXT_COLOR_ABOUT: egui::Color32 = egui::Color32::WHITE;
+    pub(crate) const TEXT_COLOR_DISABLED: egui::Color32 = egui::Color32::from_rgb(0xd0, 0xd0, 0xd0);
     pub(crate) const BG_COLOR: egui::Color32 = egui::Color32::BLACK;
     pub(crate) const ARROW_COLOR: egui::Color32 = egui::Color32::from_rgb(0x85, 0xc8, 0x26);
 }
@@ -10,6 +16,8 @@ pub(crate) struct WidgetDimensions;
 
 impl WidgetDimensions {
     pub(crate) const TEXT_SIZE: f32 = 10.5;
+    pub(crate) const TEXT_SIZE_MIXER_VALUE: f32 = 12.0;
+    pub(crate) const TEXT_SIZE_DEVICE_STATUS: f32 = 15.0;
 }
 
 pub(crate) struct RoutingLabelColors;
@@ -24,6 +32,7 @@ impl RoutingLabelColors {
     pub(crate) const OSC_1: egui::Color32 = egui::Color32::from_rgb(0x38, 0x90, 0xa7);
     pub(crate) const OSC_2: egui::Color32 = egui::Color32::from_rgb(0x90, 0x38, 0xa7);
     pub(crate) const MUTE: egui::Color32 = egui::Color32::from_rgb(0x7b, 0x7b, 0x7b);
+    pub(crate) const SELECT: egui::Color32 = egui::Color32::from_rgb(0x91, 0xb4, 0xdf);
 }
 
 pub(crate) struct RoutingRows;

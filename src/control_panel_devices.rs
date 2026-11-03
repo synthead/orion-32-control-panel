@@ -1,6 +1,8 @@
 use std::sync::Arc;
 use std::sync::Mutex;
 
+use crate::constants::{WidgetColors, WidgetDimensions};
+
 use crate::orion_state::OrionState;
 use crate::orion_state::OrionStateInitSteps;
 
@@ -19,15 +21,12 @@ impl ControlPanelDevicesDimensions {
 
     const STATUS_TEXT_X: f32 = 590.0;
     const STATUS_TEXT_Y: f32 = 525.0;
-    const STATUS_TEXT_SIZE: f32 = 15.0;
 }
 
 struct ControlPanelDevicesColors;
 
 impl ControlPanelDevicesColors {
-    const DEVIES_BORDER: egui::Color32 = egui::Color32::from_rgb(0x82, 0x87, 0x90);
-    const DEVICES_TEXT: egui::Color32 = egui::Color32::WHITE;
-    const STATUS_TEXT: egui::Color32 = egui::Color32::RED;
+    const DEVICES_BORDER: egui::Color32 = egui::Color32::from_rgb(0x82, 0x87, 0x90);
 }
 
 pub(crate) struct ControlPanelDevices {
@@ -131,7 +130,7 @@ impl ControlPanelDevices {
                         ),
                     ),
                     0.0,
-                    egui::Stroke::new(1.0, ControlPanelDevicesColors::DEVIES_BORDER),
+                    egui::Stroke::new(1.0, ControlPanelDevicesColors::DEVICES_BORDER),
                     egui::StrokeKind::Inside,
                 );
 
@@ -140,7 +139,7 @@ impl ControlPanelDevices {
                         ui.add(
                             egui::Label::new(
                                 egui::RichText::new(serial_text)
-                                    .color(ControlPanelDevicesColors::DEVICES_TEXT),
+                                    .color(WidgetColors::TEXT_COLOR_DEVICE),
                             )
                             .selectable(false),
                         );
@@ -165,8 +164,8 @@ impl ControlPanelDevices {
             ),
             egui::Align2::CENTER_TOP,
             text,
-            egui::FontId::proportional(ControlPanelDevicesDimensions::STATUS_TEXT_SIZE),
-            ControlPanelDevicesColors::STATUS_TEXT,
+            egui::FontId::proportional(WidgetDimensions::TEXT_SIZE_DEVICE_STATUS),
+            WidgetColors::TEXT_COLOR_DEVICE_STATUS,
         );
     }
 }

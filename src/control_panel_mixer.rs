@@ -1,6 +1,8 @@
 use std::sync::Arc;
 use std::sync::Mutex;
 
+use crate::constants::{WidgetColors, WidgetDimensions};
+
 use crate::orion_hid::OrionHid;
 use crate::orion_state::OrionState;
 
@@ -11,19 +13,10 @@ use crate::control_panel_helpers::ControlPanelHelpers;
 
 use crate::render_asset;
 
-struct ControlPanelMixerColors;
-
-impl ControlPanelMixerColors {
-    const LABEL_TEXT: egui::Color32 = egui::Color32::WHITE;
-    const VALUE_TEXT: egui::Color32 = egui::Color32::from_rgb(0x95, 0x95, 0x95);
-}
-
 struct ControlPanelMixerDimensions;
 
 impl ControlPanelMixerDimensions {
     const STEP_X: f32 = 35.0;
-    const FONT_SIZE_LABEL: f32 = 10.0;
-    const FONT_SIZE_VALUE: f32 = 12.0;
 
     const LABEL_X: f32 = 5.0;
     const LABEL_Y: f32 = 243.0;
@@ -152,11 +145,11 @@ impl ControlPanelMixer {
             ui.painter().rect_filled(rect, 0.0, color);
 
             ui.painter().text(
-                rect.center(),
+                rect.center() - egui::vec2(0.0, 1.0),
                 egui::Align2::CENTER_CENTER,
                 &label,
-                egui::FontId::proportional(ControlPanelMixerDimensions::FONT_SIZE_LABEL),
-                ControlPanelMixerColors::LABEL_TEXT,
+                egui::FontId::proportional(WidgetDimensions::TEXT_SIZE),
+                WidgetColors::TEXT_COLOR_LABEL,
             );
         }
     }
@@ -291,8 +284,8 @@ impl ControlPanelMixer {
                 level_text_rect,
                 &format!("level_{channel}"),
                 &level_text,
-                ControlPanelMixerDimensions::FONT_SIZE_VALUE,
-                ControlPanelMixerColors::VALUE_TEXT,
+                WidgetDimensions::TEXT_SIZE_MIXER_VALUE,
+                WidgetColors::TEXT_COLOR,
             );
 
             if edit_permitted {
@@ -377,8 +370,8 @@ impl ControlPanelMixer {
                 pan_text_rect,
                 &format!("pan_{channel}"),
                 &pan_float.to_string(),
-                ControlPanelMixerDimensions::FONT_SIZE_VALUE,
-                ControlPanelMixerColors::VALUE_TEXT,
+                WidgetDimensions::TEXT_SIZE_MIXER_VALUE,
+                WidgetColors::TEXT_COLOR,
             );
 
             if edit_permitted {
@@ -607,8 +600,8 @@ impl ControlPanelMixer {
             text_rect,
             "level_0",
             &Self::text_for_level(level),
-            ControlPanelMixerDimensions::FONT_SIZE_VALUE,
-            ControlPanelMixerColors::VALUE_TEXT,
+            WidgetDimensions::TEXT_SIZE_MIXER_VALUE,
+            WidgetColors::TEXT_COLOR,
         );
 
         if let Some((text, None)) = edit_result {
