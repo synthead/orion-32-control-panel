@@ -2,6 +2,8 @@ pub(crate) struct WidgetColors;
 
 impl WidgetColors {
     pub(crate) const TEXT_COLOR: egui::Color32 = egui::Color32::from_rgb(0xa0, 0xa0, 0xa0);
+    pub(crate) const TEXT_COLOR_DEVICE: egui::Color32 = egui::Color32::WHITE;
+    pub(crate) const TEXT_COLOR_DEVICE_STATUS: egui::Color32 = egui::Color32::RED;
     pub(crate) const TEXT_COLOR_LABEL: egui::Color32 = egui::Color32::WHITE;
     pub(crate) const TEXT_COLOR_PRESET: egui::Color32 = egui::Color32::from_rgb(0x64, 0xe7, 0x1d);
     pub(crate) const TEXT_COLOR_ABOUT: egui::Color32 = egui::Color32::WHITE;
@@ -15,6 +17,7 @@ pub(crate) struct WidgetDimensions;
 impl WidgetDimensions {
     pub(crate) const TEXT_SIZE: f32 = 10.5;
     pub(crate) const TEXT_SIZE_MIXER_VALUE: f32 = 12.0;
+    pub(crate) const TEXT_SIZE_DEVICE_STATUS: f32 = 15.0;
 }
 
 pub(crate) struct RoutingLabelColors;
