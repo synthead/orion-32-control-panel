@@ -51,12 +51,6 @@ macro_rules! render_vu_meter {
     }};
 }
 
-struct ControlPanelColors;
-
-impl ControlPanelColors {
-    const PRESET_SEL: egui::Color32 = egui::Color32::from_rgb(0x64, 0xe7, 0x1d);
-}
-
 struct ControlPanelDimensions;
 
 impl ControlPanelDimensions {
@@ -664,7 +658,7 @@ impl ControlPanel {
             );
 
             let color = if preset == preset_standby & 0x07 || response.contains_pointer() {
-                ControlPanelColors::PRESET_SEL
+                WidgetColors::TEXT_COLOR_PRESET
             } else {
                 WidgetColors::TEXT_COLOR
             };
