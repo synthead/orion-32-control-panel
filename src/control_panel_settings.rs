@@ -1,6 +1,8 @@
 use std::sync::Arc;
 use std::sync::Mutex;
 
+use crate::constants::{WidgetColors, WidgetDimensions};
+
 use crate::orion_hid::OrionHid;
 use crate::orion_state::OrionState;
 
@@ -386,8 +388,8 @@ impl ControlPanelSettings {
             brightness_text_hitbox_rect,
             "brightness",
             &brightness_text,
-            Self::FONT_SIZE,
-            Self::FONT_COLOR,
+            WidgetDimensions::TEXT_SIZE,
+            WidgetColors::TEXT_COLOR,
         ) {
             if tab.is_none() {
                 if let Some(brightness_new) = Self::brightness_for_text(&text) {
