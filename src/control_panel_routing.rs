@@ -965,8 +965,8 @@ impl ControlPanelRouting {
         ui.painter().rect_filled(rect, 0.0, color);
 
         ui.painter().with_clip_rect(rect).text(
-            egui::pos2(pos_x + 15.0, pos_y),
-            egui::Align2::CENTER_TOP,
+            rect.center(),
+            egui::Align2::CENTER_CENTER,
             label,
             egui::FontId::proportional(WidgetDimensions::TEXT_SIZE),
             WidgetColors::TEXT_COLOR_LABEL,
