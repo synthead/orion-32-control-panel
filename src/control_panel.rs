@@ -22,6 +22,9 @@ use crate::control_panel_routing::ControlPanelRouting;
 use crate::control_panel_about::ControlPanelAbout;
 use crate::control_panel_settings::ControlPanelSettings;
 
+use crate::preload_assets_blocking;
+use crate::preload_assets_nonblocking;
+
 use crate::render_asset;
 
 macro_rules! render_vu_meter {
@@ -258,21 +261,28 @@ impl ControlPanel {
             ..Default::default()
         };
 
-        let control_panel = Self::new();
+        let egui_ctx = egui::Context::default();
+        egui_extras::install_image_loaders(&egui_ctx);
 
+        while !preload_assets_blocking!(&egui_ctx) {
+            thread::sleep(std::time::Duration::from_millis(5));
+        }
+
+        preload_assets_nonblocking!(&egui_ctx);
+
+        let control_panel = Self::new();
         control_panel.init_config();
 
-        eframe::run_native(
+        eframe::run_native_ext(
             Self::WINDOW_TITLE,
             options,
+            Some(egui_ctx),
             Box::new(move |cc| {
                 cc.egui_ctx.set_theme(egui::Theme::Dark);
 
                 cc.egui_ctx.style_mut_of(cc.egui_ctx.theme(), |style| {
                     style.interaction.interact_radius = 0.0;
                 });
-
-                egui_extras::install_image_loaders(&cc.egui_ctx);
 
                 let orion_hid_poller = Arc::clone(&control_panel.orion_hid_poller);
                 let ctx = cc.egui_ctx.clone();

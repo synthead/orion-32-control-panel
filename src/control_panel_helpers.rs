@@ -1,4 +1,89 @@
 #[macro_export]
+macro_rules! preload_assets {
+    ($ctx:expr, $($subpath:literal),* $(,)?) => {{
+        let mut ready = true;
+
+        $(
+            ready &= !matches!(
+                egui::include_image!(concat!("../assets/images/", $subpath, ".png"))
+                    .load($ctx, Default::default(), Default::default()),
+                Ok(egui::load::TexturePoll::Pending { .. })
+            );
+        )*
+
+        ready
+    }};
+}
+
+#[macro_export]
+macro_rules! preload_assets_blocking {
+    ($ctx:expr) => {
+        $crate::preload_assets!(
+            $ctx,
+            "AboutButton/default/released",
+            "AvailableDevicesSlide/default/background-edited",
+            "CloseButton/default/released",
+            "ControlPanel/default/background-edited",
+            "LineOutVolumePot/default/layers/pointer",
+            "LoadRoutingButton/default/released",
+            "LockLed/default/background",
+            "MinimizeButton/default/released",
+            "MixerNavButton/default/released@2x",
+            "PhaseInvNavButton/default/released",
+            "PresenceLed/default/pressed",
+            "PresenceLed/default/released",
+            "RedoButton/default/released",
+            "Routing/default/background",
+            "RoutingNavButton/default/pressed@2x",
+            "SaveRoutingButton/default/released",
+            "SettingsButton/default/released",
+            "StandbyButton/default/pressed",
+            "StandbyButton/default/released",
+            "UndoButton/default/released",
+        )
+    };
+}
+
+#[macro_export]
+macro_rules! preload_assets_nonblocking {
+    ($ctx:expr) => {
+        $crate::preload_assets!(
+            $ctx,
+            "AboutBox/default/background-edited",
+            "AboutButton/default/pressed",
+            "BrightnessSlider/default/layers/handle",
+            "CloseButton/default/pressed",
+            "LinkButton/default/pressed",
+            "LinkButton/default/released",
+            "LoadRoutingButton/default/pressed",
+            "MasterMixerSlider/default/layers/handle",
+            "MinimizeButton/default/pressed",
+            "Mixer/default/background",
+            "MixerNavButton/default/pressed@2x",
+            "MixerPan/default/layers/pointer",
+            "MixerSlider/default/layers/handle",
+            "MuteButton/default/pressed",
+            "MuteButton/default/released",
+            "PhaseInvNavButton/default/pressed",
+            "PhaseInvertButton/default/pressed",
+            "PhaseInvertButton/default/released",
+            "PhaseInvertView/default/background",
+            "RedoButton/default/pressed",
+            "RoutingNavButton/default/released@2x",
+            "SaveRoutingButton/default/pressed",
+            "SettingsButton/default/pressed",
+            "SettingsLabel/default/background",
+            "SettingsPanel/default/background-edited",
+            "SettingsPanelButton/default/pressed",
+            "SettingsPanelButton/default/released",
+            "SoloButton/default/pressed",
+            "SoloButton/default/released",
+            "UndoButton/default/pressed",
+        )
+    };
+}
+
+#[macro_export]
 macro_rules! render_asset {
     ($ui:expr, $x:expr, $y:expr, $subpath:literal, $scale:expr, $rotation:expr, $sense:expr) => {
         $ui.scope_builder(
