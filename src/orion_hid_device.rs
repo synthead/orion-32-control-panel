@@ -5,13 +5,21 @@ use crate::orion_state::{OrionState, OrionStateInitSteps};
 
 pub(crate) struct OrionHidDevice {
     hid_device: HidDevice,
+
+    init_serial_firmware_written: bool,
+    init_routes_mixer_ad_phases_written: bool,
 }
 
 impl OrionHidDevice {
     const READ_TIMEOUT_MS: i32 = 100;
 
     pub(crate) fn new(hid_device: HidDevice) -> Self {
-        Self { hid_device }
+        Self {
+            hid_device,
+
+            init_serial_firmware_written: false,
+            init_routes_mixer_ad_phases_written: false,
+        }
     }
 
     pub(crate) fn write_packet(&self, packet: &[u8; 64]) -> bool {
@@ -21,38 +29,32 @@ impl OrionHidDevice {
         self.hid_device.write(&packet_with_report).is_ok()
     }
 
-    fn ensure_init(&mut self, orion_state: &OrionState) -> bool {
-        let completed = orion_state.inits_completed;
-
-        let serial_firmware_complete = completed & OrionStateInitSteps::SERIAL_NUMBER != 0
-            && completed & OrionStateInitSteps::FIRMWARE_VERSION != 0;
-
-        if !serial_firmware_complete {
+    fn ensure_init(&mut self) -> bool {
+        if !self.init_serial_firmware_written {
             for packet in OrionHid::create_get_serial_firmware() {
                 if !self.write_packet(&packet) {
                     return false;
                 }
             }
+
+            self.init_serial_firmware_written = true;
         }
 
-        let routes_mixer_ad_phases_complete = completed & OrionStateInitSteps::ROUTES != 0
-            && completed & OrionStateInitSteps::MIXER_LEVELS != 0
-            && completed & OrionStateInitSteps::MIXER_PANS_SOLOS_MUTES != 0
-            && completed & OrionStateInitSteps::AD_PHASES != 0;
-
-        if !routes_mixer_ad_phases_complete {
+        if !self.init_routes_mixer_ad_phases_written {
             for packet in OrionHid::create_get_routes_mixer_ad_phases() {
                 if !self.write_packet(&packet) {
                     return false;
                 }
             }
+
+            self.init_routes_mixer_ad_phases_written = true;
         }
 
         true
     }
 
-    pub(crate) fn poll(&mut self, orion_state: &OrionState) -> Result<Option<[u8; 64]>, ()> {
-        if !self.ensure_init(orion_state) {
+    pub(crate) fn poll(&mut self, _orion_state: &OrionState) -> Result<Option<[u8; 64]>, ()> {
+        if !self.ensure_init() {
             return Err(());
         }
 
