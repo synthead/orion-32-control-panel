@@ -127,10 +127,7 @@ impl OrionHidDevice {
         *vu = hid_data[32..].try_into().unwrap();
 
         if last_preset != u8::MAX && last_preset != orion_state.preset_standby & 0x07 {
-            orion_state.inits_completed &= !OrionStateInitSteps::ROUTES;
-            orion_state.inits_completed &= !OrionStateInitSteps::MIXER_LEVELS;
-            orion_state.inits_completed &= !OrionStateInitSteps::MIXER_PANS_SOLOS_MUTES;
-            orion_state.inits_completed &= !OrionStateInitSteps::AD_PHASES;
+            self.init_routes_mixer_ad_phases_written = false;
         }
     }
 
