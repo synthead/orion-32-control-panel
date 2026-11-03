@@ -56,6 +56,11 @@ impl ControlPanelRoutingDimensions {
     const NAV_REDO_Y: u16 = 436;
     const NAV_SAVE_Y: u16 = 462;
     const NAV_LOAD_Y: u16 = 488;
+
+    const TARGET_ROUTES_MIN_X: f32 = 127.0;
+    const TARGET_ROUTES_MIN_Y: f32 = 448.0;
+    const TARGET_ROUTES_MAX_X: f32 = 1086.0;
+    const TARGET_ROUTES_MAX_Y: f32 = 552.0;
 }
 
 type RoutingFileData = ([[String; 32]; 7], [[u8; 32]; 7]);
@@ -834,7 +839,16 @@ impl ControlPanelRouting {
     }
 
     fn clear_target_selection_when_outside(&mut self, ui: &mut egui::Ui) {
-        let rect = egui::Rect::from_min_max(egui::pos2(127.0, 448.0), egui::pos2(1086.0, 552.0));
+        let rect = egui::Rect::from_min_max(
+            egui::pos2(
+                ControlPanelRoutingDimensions::TARGET_ROUTES_MIN_X,
+                ControlPanelRoutingDimensions::TARGET_ROUTES_MIN_Y,
+            ),
+            egui::pos2(
+                ControlPanelRoutingDimensions::TARGET_ROUTES_MAX_X,
+                ControlPanelRoutingDimensions::TARGET_ROUTES_MAX_Y,
+            ),
+        );
         let hover = ui.rect_contains_pointer(rect);
 
         if self.target_select_cell.is_some() && !hover {
