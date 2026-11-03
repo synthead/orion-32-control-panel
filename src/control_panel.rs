@@ -315,14 +315,7 @@ impl ControlPanel {
                     return;
                 };
 
-                if orion_state.inits_completed
-                    != OrionStateInitSteps::SERIAL_NUMBER
-                        | OrionStateInitSteps::FIRMWARE_VERSION
-                        | OrionStateInitSteps::ROUTES
-                        | OrionStateInitSteps::MIXER_LEVELS
-                        | OrionStateInitSteps::MIXER_PANS_SOLOS_MUTES
-                        | OrionStateInitSteps::AD_PHASES
-                {
+                if orion_state.inits_completed != OrionStateInitSteps::ALL {
                     self.devices.draw(ui);
 
                     return;
