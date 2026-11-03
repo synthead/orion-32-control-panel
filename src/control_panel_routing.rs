@@ -1033,18 +1033,19 @@ impl ControlPanelRouting {
     }
 
     fn update_persistence(&mut self, orion_state: &OrionState) {
-        let current_labels_routes = Some((orion_state.labels.clone(), orion_state.routes));
+        let changed = match &self.last_labels_routes {
+            Some((labels, routes)) => {
+                labels != &orion_state.labels || routes != &orion_state.routes
+            }
+            None => {
+                self.last_labels_routes = Some((orion_state.labels.clone(), orion_state.routes));
 
-        if self.last_labels_routes.is_none() {
-            self.last_labels_routes = current_labels_routes;
+                return;
+            }
+        };
 
-            return;
-        }
-
-        let current_labels_routes = Some((orion_state.labels.clone(), orion_state.routes));
-
-        if self.last_labels_routes != current_labels_routes {
-            self.last_labels_routes = current_labels_routes;
+        if changed {
+            self.last_labels_routes = Some((orion_state.labels.clone(), orion_state.routes));
 
             self.write_persistence_file(orion_state);
         }
