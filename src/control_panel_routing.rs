@@ -21,7 +21,6 @@ struct ControlPanelRoutingColors;
 
 impl ControlPanelRoutingColors {
     const SELECT: egui::Color32 = egui::Color32::from_rgb(0x91, 0xb4, 0xdf);
-    const TEXT: egui::Color32 = egui::Color32::WHITE;
 }
 
 struct ControlPanelRoutingDimensions;
@@ -393,7 +392,7 @@ impl ControlPanelRouting {
             &id_with,
             &label,
             ControlPanelRoutingDimensions::TEXT_SIZE,
-            ControlPanelRoutingColors::TEXT,
+            WidgetColors::TEXT_COLOR_LABEL,
         );
     }
 
@@ -427,7 +426,7 @@ impl ControlPanelRouting {
             &format!("route_{column}_{row}"),
             &label,
             ControlPanelRoutingDimensions::TEXT_SIZE,
-            ControlPanelRoutingColors::TEXT,
+            WidgetColors::TEXT_COLOR_LABEL,
         );
 
         if let Some((route_text, tab)) = level_edit_result {
@@ -711,7 +710,7 @@ impl ControlPanelRouting {
             egui::Align2::LEFT_TOP,
             text,
             egui::FontId::proportional(ControlPanelRoutingDimensions::TEXT_SIZE),
-            ControlPanelRoutingColors::TEXT,
+            WidgetColors::TEXT_COLOR_LABEL,
         );
     }
 
@@ -949,7 +948,7 @@ impl ControlPanelRouting {
             egui::Align2::CENTER_TOP,
             label,
             egui::FontId::proportional(ControlPanelRoutingDimensions::TEXT_SIZE),
-            ControlPanelRoutingColors::TEXT,
+            WidgetColors::TEXT_COLOR_LABEL,
         );
 
         rect

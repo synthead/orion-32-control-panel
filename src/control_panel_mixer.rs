@@ -13,13 +13,6 @@ use crate::control_panel_helpers::ControlPanelHelpers;
 
 use crate::render_asset;
 
-struct ControlPanelMixerColors;
-
-impl ControlPanelMixerColors {
-    const LABEL_TEXT: egui::Color32 = egui::Color32::WHITE;
-    const VALUE_TEXT: egui::Color32 = egui::Color32::from_rgb(0x95, 0x95, 0x95);
-}
-
 struct ControlPanelMixerDimensions;
 
 impl ControlPanelMixerDimensions {
@@ -158,7 +151,7 @@ impl ControlPanelMixer {
                 egui::Align2::CENTER_CENTER,
                 &label,
                 egui::FontId::proportional(ControlPanelMixerDimensions::FONT_SIZE_LABEL),
-                ControlPanelMixerColors::LABEL_TEXT,
+                WidgetColors::TEXT_COLOR_LABEL,
             );
         }
     }
