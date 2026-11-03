@@ -98,6 +98,7 @@ pub(crate) struct ControlPanelRouting {
 
 impl ControlPanelRouting {
     const CONFIG_DIR: &str = "Orion 32 Control Panel";
+    const PERSISTENCE_FILE_BASENAME: &str = "persistence.json";
 
     const SOURCE_ROW_LABELS: [&str; 7] = [
         "ADC",
@@ -1041,35 +1042,36 @@ impl ControlPanelRouting {
         if self.last_labels_routes != current_labels_routes {
             self.last_labels_routes = current_labels_routes;
 
-            self.write_persistence(orion_state);
+            self.write_persistence_file(orion_state);
         }
     }
 
-    pub(crate) fn read_persistence(&self) {
-        if self.config_dir.is_none() {
-            return;
+    fn persistence_file_path(&self) -> Option<std::path::PathBuf> {
+        if let Some(ref config_dir) = self.config_dir {
+            return Some(config_dir.join(Self::PERSISTENCE_FILE_BASENAME));
         }
 
-        let file = self.config_dir.as_ref().unwrap().join("persistence.json");
-
-        if !file.exists() {
-            return;
-        }
-
-        let orion_persistance = OrionPersistence::new(file);
-        let mut orion_state = self.orion_state.lock().unwrap();
-
-        (orion_state.labels, orion_state.routes) = orion_persistance.decode();
+        None
     }
 
-    fn write_persistence(&self, orion_state: &OrionState) {
-        if self.config_dir.is_none() {
-            return;
+    pub(crate) fn read_persistence_file(&self) {
+        if let Some(path) = self.persistence_file_path() {
+            if !path.exists() {
+                return;
+            }
+
+            let orion_persistance = OrionPersistence::new(path);
+            let mut orion_state = self.orion_state.lock().unwrap();
+
+            (orion_state.labels, orion_state.routes) = orion_persistance.decode();
         }
+    }
 
-        let file = self.config_dir.as_ref().unwrap().join("persistence.json");
-        let orion_persistance = OrionPersistence::new(file);
+    fn write_persistence_file(&self, orion_state: &OrionState) {
+        if let Some(path) = self.persistence_file_path() {
+            let orion_persistance = OrionPersistence::new(path);
 
-        orion_persistance.encode(orion_state);
+            orion_persistance.encode(orion_state);
+        }
     }
 }
