@@ -12,7 +12,7 @@ use crate::orion_file::OrionFile;
 use crate::orion_persistence::OrionPersistence;
 
 use crate::orion_hid::OrionHid;
-use crate::orion_state::{OrionState, OrionStateSignals};
+use crate::orion_state::{OrionState, OrionStateSignals, OrionStates};
 
 use crate::control_panel_helpers::ControlPanelHelpers;
 use crate::text_editor::TextEditor;
@@ -66,7 +66,7 @@ impl ControlPanelRoutingDimensions {
 type RoutingFileData = ([[String; 32]; 7], [[u8; 32]; 7]);
 
 pub(crate) struct ControlPanelRouting {
-    orion_state: Arc<Mutex<OrionState>>,
+    orion_states: Arc<Mutex<OrionStates>>,
     orion_hid: Arc<Mutex<OrionHid>>,
 
     text_editor: Arc<Mutex<TextEditor>>,
@@ -111,7 +111,7 @@ impl ControlPanelRouting {
     ];
 
     pub(crate) fn new(
-        orion_state: Arc<Mutex<OrionState>>,
+        orion_states: Arc<Mutex<OrionStates>>,
         orion_hid: Arc<Mutex<OrionHid>>,
         text_editor: Arc<Mutex<TextEditor>>,
     ) -> Self {
@@ -121,7 +121,7 @@ impl ControlPanelRouting {
         let (file_dialog_tx, file_dialog_rx) = mpsc::channel();
 
         Self {
-            orion_state,
+            orion_states,
             orion_hid,
 
             config_dir,
@@ -154,7 +154,9 @@ impl ControlPanelRouting {
     }
 
     pub(crate) fn draw(&mut self, ui: &mut egui::Ui) {
-        let mut orion_state = self.orion_state.lock().unwrap().clone();
+        let Some(mut orion_state) = self.orion_states.lock().unwrap().current().cloned() else {
+            return;
+        };
 
         orion_state.calculate_channel_counts();
 
@@ -340,9 +342,7 @@ impl ControlPanelRouting {
 
         while let Ok(result) = self.file_dialog_rx.try_recv() {
             if let Some((labels, routes)) = result {
-                {
-                    let mut orion_state = self.orion_state.lock().unwrap();
-
+                if let Some(orion_state) = self.orion_states.lock().unwrap().current_mut() {
                     orion_state.labels = labels;
                 }
 
@@ -443,8 +443,9 @@ impl ControlPanelRouting {
         );
 
         if let Some((route_text, tab)) = level_edit_result {
-            let mut orion_state_mut = self.orion_state.lock().unwrap();
-            orion_state_mut.labels[row as usize][column as usize] = route_text;
+            if let Some(orion_state) = self.orion_states.lock().unwrap().current_mut() {
+                orion_state.labels[row as usize][column as usize] = route_text;
+            }
 
             if let Some(tab) = tab {
                 let mut column_next = column as i16 + tab as i16;
@@ -488,13 +489,13 @@ impl ControlPanelRouting {
         for row in 0..orion_state.source_counts.len() as u8 {
             for column in 0..orion_state.source_counts[row as usize] as u8 {
                 if Some([column, row]) != self.label_edit_cell {
-                    self.draw_source(ui, column, row, &orion_state);
+                    self.draw_source(ui, column, row, orion_state);
                 }
             }
         }
 
         if let Some([column, row]) = self.label_edit_cell {
-            self.draw_source_editing(ui, column, row, &orion_state);
+            self.draw_source_editing(ui, column, row, orion_state);
         }
     }
 
@@ -594,7 +595,7 @@ impl ControlPanelRouting {
                             .clicked()
                         {
                             self.update_targets_from_context_menu(
-                                &routes,
+                                routes,
                                 Some(column),
                                 row,
                                 Self::route_for_special(RoutingColumns::MUTE),
@@ -613,7 +614,7 @@ impl ControlPanelRouting {
                             .clicked()
                         {
                             self.update_targets_from_context_menu(
-                                &routes,
+                                routes,
                                 None,
                                 row,
                                 Self::route_for_special(RoutingColumns::MUTE),
@@ -632,7 +633,7 @@ impl ControlPanelRouting {
                             .clicked()
                         {
                             self.update_targets_from_context_menu(
-                                &routes,
+                                routes,
                                 Some(column),
                                 row,
                                 Self::route_for_special(RoutingColumns::OSC_1),
@@ -651,7 +652,7 @@ impl ControlPanelRouting {
                             .clicked()
                         {
                             self.update_targets_from_context_menu(
-                                &routes,
+                                routes,
                                 Some(column),
                                 row,
                                 Self::route_for_special(RoutingColumns::OSC_2),
@@ -683,7 +684,7 @@ impl ControlPanelRouting {
             }
         }
 
-        self.queue_routes_with_undo(row as u8, &old_routes, &new_routes);
+        self.queue_routes_with_undo(row as u8, old_routes, &new_routes);
     }
 
     fn update_target_selections(
@@ -1061,9 +1062,10 @@ impl ControlPanelRouting {
             }
 
             let orion_persistance = OrionPersistence::new(path);
-            let mut orion_state = self.orion_state.lock().unwrap();
 
-            (orion_state.labels, orion_state.routes) = orion_persistance.decode();
+            if let Some(orion_state) = self.orion_states.lock().unwrap().current_mut() {
+                (orion_state.labels, orion_state.routes) = orion_persistance.decode();
+            }
         }
     }
 
