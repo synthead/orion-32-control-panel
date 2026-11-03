@@ -1,7 +1,7 @@
 use std::sync::Arc;
 use std::sync::Mutex;
 
-use crate::constants::WidgetColors;
+use crate::constants::{WidgetColors, WidgetDimensions};
 
 use crate::orion_hid::OrionHid;
 use crate::orion_state::OrionState;
@@ -147,10 +147,10 @@ impl ControlPanelMixer {
             ui.painter().rect_filled(rect, 0.0, color);
 
             ui.painter().text(
-                rect.center(),
+                rect.center() - egui::vec2(0.0, 1.0),
                 egui::Align2::CENTER_CENTER,
                 &label,
-                egui::FontId::proportional(ControlPanelMixerDimensions::FONT_SIZE_LABEL),
+                egui::FontId::proportional(WidgetDimensions::TEXT_SIZE),
                 WidgetColors::TEXT_COLOR_LABEL,
             );
         }
