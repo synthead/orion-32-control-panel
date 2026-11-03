@@ -26,7 +26,7 @@ impl ControlPanelDevicesDimensions {
 struct ControlPanelDevicesColors;
 
 impl ControlPanelDevicesColors {
-    const DEVIES_BORDER: egui::Color32 = egui::Color32::from_rgb(0x82, 0x87, 0x90);
+    const DEVICES_BORDER: egui::Color32 = egui::Color32::from_rgb(0x82, 0x87, 0x90);
 }
 
 pub(crate) struct ControlPanelDevices {
@@ -130,7 +130,7 @@ impl ControlPanelDevices {
                         ),
                     ),
                     0.0,
-                    egui::Stroke::new(1.0, ControlPanelDevicesColors::DEVIES_BORDER),
+                    egui::Stroke::new(1.0, ControlPanelDevicesColors::DEVICES_BORDER),
                     egui::StrokeKind::Inside,
                 );
 
