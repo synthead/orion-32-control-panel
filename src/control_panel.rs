@@ -895,6 +895,7 @@ impl ControlPanel {
             let mut devices: Vec<_> = states
                 .orion_states
                 .iter()
+                .filter(|(_, orion_state)| orion_state.inits_completed == OrionStateInitSteps::ALL)
                 .map(|(hid_path, orion_state)| {
                     (
                         hid_path.clone(),
