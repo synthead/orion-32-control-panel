@@ -13,6 +13,7 @@ pub(crate) struct WidgetDimensions;
 
 impl WidgetDimensions {
     pub(crate) const TEXT_SIZE: f32 = 10.5;
+    pub(crate) const TEXT_SIZE_MIXER_VALUE: f32 = 12.0;
 }
 
 pub(crate) struct RoutingLabelColors;

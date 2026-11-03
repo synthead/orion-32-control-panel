@@ -17,8 +17,6 @@ struct ControlPanelMixerDimensions;
 
 impl ControlPanelMixerDimensions {
     const STEP_X: f32 = 35.0;
-    const FONT_SIZE_LABEL: f32 = 10.0;
-    const FONT_SIZE_VALUE: f32 = 12.0;
 
     const LABEL_X: f32 = 5.0;
     const LABEL_Y: f32 = 243.0;
@@ -286,7 +284,7 @@ impl ControlPanelMixer {
                 level_text_rect,
                 &format!("level_{channel}"),
                 &level_text,
-                ControlPanelMixerDimensions::FONT_SIZE_VALUE,
+                WidgetDimensions::TEXT_SIZE_MIXER_VALUE,
                 WidgetColors::TEXT_COLOR,
             );
 
@@ -372,7 +370,7 @@ impl ControlPanelMixer {
                 pan_text_rect,
                 &format!("pan_{channel}"),
                 &pan_float.to_string(),
-                ControlPanelMixerDimensions::FONT_SIZE_VALUE,
+                WidgetDimensions::TEXT_SIZE_MIXER_VALUE,
                 WidgetColors::TEXT_COLOR,
             );
 
@@ -602,7 +600,7 @@ impl ControlPanelMixer {
             text_rect,
             "level_0",
             &Self::text_for_level(level),
-            ControlPanelMixerDimensions::FONT_SIZE_VALUE,
+            WidgetDimensions::TEXT_SIZE_MIXER_VALUE,
             WidgetColors::TEXT_COLOR,
         );
 
