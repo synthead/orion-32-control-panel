@@ -29,27 +29,29 @@ use crate::render_asset;
 
 macro_rules! render_vu_meter {
     ($ui:expr, $x:expr, $y:expr, $db:expr, $subpath:literal) => {{
-        let image = egui::Image::new(egui::include_image!(concat!(
-            "../assets/images/",
-            $subpath,
-            ".png"
-        )))
-        .fit_to_original_size(1.0)
-        .show_loading_spinner(false);
+        if $db != 0x60 {
+            let image = egui::Image::new(egui::include_image!(concat!(
+                "../assets/images/",
+                $subpath,
+                ".png"
+            )))
+            .fit_to_original_size(1.0)
+            .show_loading_spinner(false);
 
-        if let Some(image_size) = image.load_and_calc_size($ui, $ui.available_size()) {
-            let image_rect =
-                egui::Rect::from_min_size(egui::pos2($x as f32, $y as f32), image_size);
+            if let Some(image_size) = image.load_and_calc_size($ui, $ui.available_size()) {
+                let image_rect =
+                    egui::Rect::from_min_size(egui::pos2($x as f32, $y as f32), image_size);
 
-            let clip_rect = egui::Rect::from_min_max(
-                egui::pos2($x as f32, $y as f32 + image_size.y * $db as f32 / 96.0),
-                image_rect.max,
-            );
+                let clip_rect = egui::Rect::from_min_max(
+                    egui::pos2($x as f32, $y as f32 + image_size.y * $db as f32 / 96.0),
+                    image_rect.max,
+                );
 
-            $ui.scope_builder(egui::UiBuilder::new().max_rect(image_rect), |ui| {
-                ui.set_clip_rect(clip_rect);
-                ui.add(image);
-            });
+                $ui.scope_builder(egui::UiBuilder::new().max_rect(image_rect), |ui| {
+                    ui.set_clip_rect(clip_rect);
+                    ui.add(image);
+                });
+            }
         }
     }};
 }
