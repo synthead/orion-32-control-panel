@@ -54,7 +54,6 @@ macro_rules! render_vu_meter {
 struct ControlPanelColors;
 
 impl ControlPanelColors {
-    const PRESET: egui::Color32 = egui::Color32::from_rgb(0x95, 0x95, 0x95);
     const PRESET_SEL: egui::Color32 = egui::Color32::from_rgb(0x64, 0xe7, 0x1d);
 }
 
@@ -667,7 +666,7 @@ impl ControlPanel {
             let color = if preset == preset_standby & 0x07 || response.contains_pointer() {
                 ControlPanelColors::PRESET_SEL
             } else {
-                ControlPanelColors::PRESET
+                WidgetColors::TEXT_COLOR
             };
 
             ui.painter().text(
