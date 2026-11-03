@@ -5,7 +5,7 @@ use std::sync::mpsc;
 use std::sync::{Arc, Mutex};
 
 use crate::orion_hid_device::OrionHidDevice;
-use crate::orion_state::OrionStates;
+use crate::orion_state::{OrionStateInitSteps, OrionStates};
 
 pub(crate) struct OrionHidPoller {
     orion_states: Arc<Mutex<OrionStates>>,
@@ -45,53 +45,57 @@ impl OrionHidPoller {
 
         let selected_hid_path = self.orion_states.lock().unwrap().selected_hid_path.clone();
 
-        if let Some(selected_hid_path) = selected_hid_path {
-            while let Ok(packet) = self.hid_write_rx.try_recv() {
-                let write_success = self
-                    .orion_hid_devices
-                    .get(&selected_hid_path)
-                    .is_some_and(|device| device.write_packet(&packet));
-
-                if !write_success {
-                    self.disconnect(&selected_hid_path);
-                    self.discard_pending_writes();
-                    break;
-                }
-            }
-        } else {
+        let Some(selected_hid_path) = selected_hid_path.as_ref() else {
             self.discard_pending_writes();
+            return;
+        };
+
+        while let Ok(packet) = self.hid_write_rx.try_recv() {
+            let write_success = self
+                .orion_hid_devices
+                .get(selected_hid_path)
+                .is_some_and(|device| device.write_packet(&packet));
+
+            if !write_success {
+                self.disconnect(selected_hid_path);
+                self.discard_pending_writes();
+                return;
+            }
         }
 
-        let device_paths: Vec<CString> = self.orion_hid_devices.keys().cloned().collect();
+        let poll_result = {
+            let states = self.orion_states.lock().unwrap();
 
-        for hid_path in device_paths {
-            let poll_result = {
-                let states = self.orion_states.lock().unwrap();
-
-                match (
-                    self.orion_hid_devices.get_mut(&hid_path),
-                    states.orion_states.get(&hid_path),
-                ) {
-                    (Some(device), Some(orion_state)) => device.poll(orion_state),
-                    _ => continue,
-                }
-            };
-
-            match poll_result {
-                Ok(Some(hid_data)) => {
-                    let mut states = self.orion_states.lock().unwrap();
-
-                    if let (Some(device), Some(orion_state)) = (
-                        self.orion_hid_devices.get_mut(&hid_path),
-                        states.orion_states.get_mut(&hid_path),
-                    ) {
-                        device.update_orion_state(&hid_data, orion_state);
+            match (
+                self.orion_hid_devices.get_mut(selected_hid_path),
+                states.orion_states.get(selected_hid_path),
+            ) {
+                (Some(device), Some(_)) => {
+                    if device.ensure_init() {
+                        device.read_packet()
+                    } else {
+                        Err(())
                     }
                 }
-                Ok(None) => {}
-                Err(()) => {
-                    self.disconnect(&hid_path);
+                _ => return,
+            }
+        };
+
+        match poll_result {
+            Ok(Some(hid_data)) => {
+                let mut states = self.orion_states.lock().unwrap();
+
+                if let (Some(device), Some(orion_state)) = (
+                    self.orion_hid_devices.get_mut(selected_hid_path),
+                    states.orion_states.get_mut(selected_hid_path),
+                ) {
+                    device.update_orion_state(&hid_data, orion_state);
                 }
+            }
+            Ok(None) => {}
+            Err(()) => {
+                self.disconnect(selected_hid_path);
+                self.discard_pending_writes();
             }
         }
     }
@@ -102,37 +106,113 @@ impl OrionHidPoller {
             return !self.orion_hid_devices.is_empty();
         }
 
-        for device_info in self.hid_api.device_list() {
-            if device_info.vendor_id() != Self::USB_VENDOR
-                || device_info.product_id() != Self::USB_PRODUCT
-            {
-                continue;
-            }
+        let available_paths: Vec<CString> = self
+            .hid_api
+            .device_list()
+            .filter(|device_info| {
+                device_info.vendor_id() == Self::USB_VENDOR
+                    && device_info.product_id() == Self::USB_PRODUCT
+            })
+            .map(|device_info| device_info.path().to_owned())
+            .collect();
 
-            let path = device_info.path().to_owned();
-
-            if self.orion_hid_devices.contains_key(&path) {
-                continue;
-            }
-
-            let hid_device = match device_info.open_device(&self.hid_api) {
-                Ok(device) => device,
-                Err(_) => continue,
-            };
-
-            self.orion_hid_devices
-                .insert(path.clone(), OrionHidDevice::new(hid_device));
-
+        let selected_hid_path = {
             let mut states = self.orion_states.lock().unwrap();
 
-            states.orion_states.entry(path.clone()).or_default();
+            states
+                .orion_states
+                .retain(|path, _| available_paths.contains(path));
 
-            if states.selected_hid_path.is_none() {
-                states.selected_hid_path = Some(path);
+            for path in &available_paths {
+                states.orion_states.entry(path.clone()).or_default();
+            }
+
+            if states
+                .selected_hid_path
+                .as_ref()
+                .is_none_or(|path| !available_paths.contains(path))
+            {
+                states.selected_hid_path = available_paths.first().cloned();
+            }
+
+            states.selected_hid_path.clone()
+        };
+
+        self.orion_hid_devices
+            .retain(|path, _| available_paths.contains(path));
+
+        let paths_to_open: Vec<CString> = {
+            let states = self.orion_states.lock().unwrap();
+
+            available_paths
+                .iter()
+                .filter(|path| {
+                    if self.orion_hid_devices.contains_key(*path) {
+                        return false;
+                    }
+
+                    if Some(*path) == selected_hid_path.as_ref() {
+                        return true;
+                    }
+
+                    states.orion_states.get(*path).is_some_and(|orion_state| {
+                        orion_state.inits_completed != OrionStateInitSteps::ALL
+                    })
+                })
+                .cloned()
+                .collect()
+        };
+
+        for path in paths_to_open {
+            let hid_device = self
+                .hid_api
+                .device_list()
+                .find(|device_info| path == device_info.path())
+                .and_then(|device_info| device_info.open_device(&self.hid_api).ok());
+
+            let Some(hid_device) = hid_device else {
+                continue;
+            };
+
+            let mut device = OrionHidDevice::new(hid_device);
+
+            if Some(&path) == selected_hid_path.as_ref() {
+                self.orion_hid_devices.insert(path, device);
+                continue;
+            }
+
+            loop {
+                if !device.ensure_init() {
+                    break;
+                }
+
+                match device.read_packet() {
+                    Ok(Some(hid_data)) => {
+                        let initialized = {
+                            let mut states = self.orion_states.lock().unwrap();
+
+                            if let Some(orion_state) = states.orion_states.get_mut(&path) {
+                                device.update_orion_state(&hid_data, orion_state);
+
+                                orion_state.inits_completed == OrionStateInitSteps::ALL
+                            } else {
+                                false
+                            }
+                        };
+
+                        if initialized {
+                            break;
+                        }
+                    }
+                    Ok(None) => {}
+                    Err(()) => break,
+                }
             }
         }
 
-        !self.orion_hid_devices.is_empty()
+        selected_hid_path
+            .as_ref()
+            .is_some_and(|path| self.orion_hid_devices.contains_key(path))
     }
 
     fn disconnect(&mut self, hid_path: &CString) {
@@ -143,7 +223,7 @@ impl OrionHidPoller {
         states.orion_states.remove(hid_path);
 
         if states.selected_hid_path.as_ref() == Some(hid_path) {
-            states.selected_hid_path = self.orion_hid_devices.keys().next().cloned();
+            states.selected_hid_path = None;
         }
     }
 

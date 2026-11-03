@@ -29,7 +29,7 @@ impl OrionHidDevice {
         self.hid_device.write(&packet_with_report).is_ok()
     }
 
-    fn ensure_init(&mut self) -> bool {
+    pub(crate) fn ensure_init(&mut self) -> bool {
         if !self.init_serial_firmware_written {
             for packet in OrionHid::create_get_serial_firmware() {
                 if !self.write_packet(&packet) {
@@ -53,11 +53,7 @@ impl OrionHidDevice {
         true
     }
 
-    pub(crate) fn poll(&mut self, _orion_state: &OrionState) -> Result<Option<[u8; 64]>, ()> {
-        if !self.ensure_init() {
-            return Err(());
-        }
-
+    pub(crate) fn read_packet(&self) -> Result<Option<[u8; 64]>, ()> {
         let mut hid_data = [0u8; 64];
 
         match self
