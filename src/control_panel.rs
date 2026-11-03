@@ -114,8 +114,6 @@ impl ControlPanelDimensions {
     const PRESET_STEP: f32 = 65.0;
     const PRESET_WIDTH: f32 = 50.0;
     const PRESET_HEIGHT: f32 = 12.0;
-
-    const FONT_SIZE_PRESET: f32 = 9.5;
 }
 
 pub(crate) struct ControlPanel {
@@ -667,7 +665,7 @@ impl ControlPanel {
                 rect.center(),
                 egui::Align2::CENTER_CENTER,
                 label,
-                egui::FontId::proportional(ControlPanelDimensions::FONT_SIZE_PRESET),
+                egui::FontId::proportional(WidgetDimensions::TEXT_SIZE),
                 color,
             );
 
