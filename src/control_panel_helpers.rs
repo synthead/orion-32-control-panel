@@ -49,6 +49,7 @@ impl ControlPanelHelpers {
         selected: u8,
         selected_text: Option<&str>,
         selections: &[&str],
+        enabled: bool,
         mut changed_callback: impl FnMut(u8),
     ) {
         ui.scope_builder(
@@ -78,31 +79,39 @@ impl ControlPanelHelpers {
 
                 let mut selected_mut = selected;
 
-                egui::ComboBox::from_id_salt((x, y))
-                    .width(width as f32)
-                    .selected_text(
-                        egui::RichText::new(selected_text.unwrap_or(selections[selected as usize]))
+                ui.add_enabled_ui(enabled, |ui| {
+                    egui::ComboBox::from_id_salt((x, y))
+                        .width(width as f32)
+                        .selected_text(
+                            egui::RichText::new(
+                                selected_text.unwrap_or(selections[selected as usize]),
+                            )
                             .size(WidgetDimensions::TEXT_SIZE)
-                            .color(WidgetColors::TEXT_COLOR),
-                    )
-                    .popup_style(egui::style::StyleModifier::new(|style| {
-                        style.visuals.window_fill = WidgetColors::BG_COLOR;
-                    }))
-                    .show_ui(ui, |ui| {
-                        for (i, selection) in selections.iter().enumerate() {
-                            let response = ui.selectable_value(
-                                &mut selected_mut,
-                                i as u8,
-                                egui::RichText::new(*selection)
-                                    .size(WidgetDimensions::TEXT_SIZE)
-                                    .color(WidgetColors::TEXT_COLOR),
-                            );
+                            .color(if enabled {
+                                WidgetColors::TEXT_COLOR
+                            } else {
+                                WidgetColors::TEXT_COLOR_DISABLED
+                            }),
+                        )
+                        .popup_style(egui::style::StyleModifier::new(|style| {
+                            style.visuals.window_fill = WidgetColors::BG_COLOR;
+                        }))
+                        .show_ui(ui, |ui| {
+                            for (i, selection) in selections.iter().enumerate() {
+                                let response = ui.selectable_value(
+                                    &mut selected_mut,
+                                    i as u8,
+                                    egui::RichText::new(*selection)
+                                        .size(WidgetDimensions::TEXT_SIZE)
+                                        .color(WidgetColors::TEXT_COLOR),
+                                );
 
-                            if response.changed() {
-                                changed_callback(selected_mut);
+                                if response.changed() {
+                                    changed_callback(selected_mut);
+                                }
                             }
-                        }
-                    });
+                        });
+                });
             },
         );
     }

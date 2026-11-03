@@ -184,6 +184,7 @@ impl ControlPanelSettings {
             (trims & 0x38) >> 3,
             None,
             &Self::LINE_OUT_ADC_TRIM_SELECTIONS,
+            true,
             |selected| {
                 self.orion_hid
                     .lock()
@@ -200,6 +201,7 @@ impl ControlPanelSettings {
             trims & 0x07,
             None,
             &Self::LINE_OUT_ADC_TRIM_SELECTIONS,
+            true,
             |selected| {
                 self.orion_hid.lock().unwrap().queue_trim(selected * 0x04);
             },
@@ -244,6 +246,7 @@ impl ControlPanelSettings {
             (oscillators & 0x01 != 0) as u8,
             None,
             &Self::OSC_FREQUENCY_SELECTIONS,
+            true,
             |selected| {
                 let oscillators_new = (oscillators & !0x01) | (selected * 0x01);
 
@@ -262,6 +265,7 @@ impl ControlPanelSettings {
             (oscillators & 0x30) >> 4,
             None,
             &Self::OSC_LEVEL_SELECTIONS,
+            true,
             |selected| {
                 let oscillators_new = (oscillators & !0x30) | (selected << 4);
 
@@ -280,6 +284,7 @@ impl ControlPanelSettings {
             (oscillators & 0x04 != 0) as u8,
             None,
             &Self::OSC_FREQUENCY_SELECTIONS,
+            true,
             |selected| {
                 let oscillators_new = (oscillators & !0x04) | (selected * 0x04);
 
@@ -468,6 +473,7 @@ impl ControlPanelSettings {
             (usb_channels_spdif_src & 0x02) >> 1,
             None,
             &Self::USB_CHANNELS_SELECTIONS,
+            true,
             |selected| {
                 self.orion_hid.lock().unwrap().queue_usb_channels(selected);
             },

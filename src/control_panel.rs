@@ -726,6 +726,7 @@ impl ControlPanel {
             left_vu_source,
             None,
             &Self::VU_SOURCE_SELECTIONS,
+            true,
             |selected| {
                 self.orion_hid
                     .lock()
@@ -742,6 +743,7 @@ impl ControlPanel {
             right_vu_source,
             None,
             &Self::VU_SOURCE_SELECTIONS,
+            true,
             |selected| {
                 self.orion_hid
                     .lock()
@@ -762,20 +764,19 @@ impl ControlPanel {
             clock_source_selections[0] = Self::CLOCK_SOURCE_SELECTION_ATOMIC;
         }
 
-        ui.add_enabled_ui(!signal_usb, |ui| {
-            ControlPanelHelpers::draw_combobox(
-                ui,
-                ControlPanelDimensions::CLOCK_CLOCK_SOURCE_X,
-                ControlPanelDimensions::CLOCK_Y,
-                ControlPanelDimensions::CLOCK_WIDTH,
-                orion_state.clock_source,
-                clock_source_text,
-                &clock_source_selections,
-                |selected| {
-                    self.orion_hid.lock().unwrap().queue_clock_source(selected);
-                },
-            );
-        });
+        ControlPanelHelpers::draw_combobox(
+            ui,
+            ControlPanelDimensions::CLOCK_CLOCK_SOURCE_X,
+            ControlPanelDimensions::CLOCK_Y,
+            ControlPanelDimensions::CLOCK_WIDTH,
+            orion_state.clock_source,
+            clock_source_text,
+            &clock_source_selections,
+            !signal_usb,
+            |selected| {
+                self.orion_hid.lock().unwrap().queue_clock_source(selected);
+            },
+        );
 
         let clock_oven = orion_state.clock_source == 0;
 
@@ -789,20 +790,19 @@ impl ControlPanel {
             "None".to_string()
         };
 
-        ui.add_enabled_ui(clock_oven && !signal_usb, |ui| {
-            ControlPanelHelpers::draw_combobox(
-                ui,
-                ControlPanelDimensions::CLOCK_SAMPLE_RATE_X,
-                ControlPanelDimensions::CLOCK_Y,
-                ControlPanelDimensions::CLOCK_WIDTH,
-                0,
-                Some(freq_text.as_str()),
-                &Self::SAMPLE_RATE_SELECTIONS,
-                |selected| {
-                    self.orion_hid.lock().unwrap().queue_sample_rate(selected);
-                },
-            );
-        });
+        ControlPanelHelpers::draw_combobox(
+            ui,
+            ControlPanelDimensions::CLOCK_SAMPLE_RATE_X,
+            ControlPanelDimensions::CLOCK_Y,
+            ControlPanelDimensions::CLOCK_WIDTH,
+            0,
+            Some(freq_text.as_str()),
+            &Self::SAMPLE_RATE_SELECTIONS,
+            clock_oven && !signal_usb,
+            |selected| {
+                self.orion_hid.lock().unwrap().queue_sample_rate(selected);
+            },
+        );
 
         if clock_lock {
             render_asset!(
@@ -902,6 +902,7 @@ impl ControlPanel {
             0,
             None,
             &[&serial_text],
+            true,
             |_selected| {
                 // TODO: Implement multi-interface control, and switch it here.
             },
