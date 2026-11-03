@@ -4,7 +4,7 @@ use std::sync::Mutex;
 use crate::constants::{WidgetColors, WidgetDimensions};
 
 use crate::orion_hid::OrionHid;
-use crate::orion_state::OrionState;
+use crate::orion_state::OrionStates;
 
 use crate::drag_value::DragValue;
 use crate::ignore_value::IgnoreValue;
@@ -68,7 +68,7 @@ impl ControlPanelSettingsDimensions {
 }
 
 pub(crate) struct ControlPanelSettings {
-    orion_state: Arc<Mutex<OrionState>>,
+    orion_states: Arc<Mutex<OrionStates>>,
     orion_hid: Arc<Mutex<OrionHid>>,
 
     text_editor: Arc<Mutex<TextEditor>>,
@@ -90,13 +90,13 @@ impl ControlPanelSettings {
     const USB_CHANNELS_SELECTIONS: [&str; 2] = ["24", "32"];
 
     pub(crate) fn new(
-        orion_state: Arc<Mutex<OrionState>>,
+        orion_states: Arc<Mutex<OrionStates>>,
         orion_hid: Arc<Mutex<OrionHid>>,
         text_editor: Arc<Mutex<TextEditor>>,
         drag_value: Arc<Mutex<DragValue>>,
     ) -> Self {
         Self {
-            orion_state,
+            orion_states,
             orion_hid,
 
             text_editor,
@@ -112,7 +112,9 @@ impl ControlPanelSettings {
             return;
         }
 
-        let orion_state = self.orion_state.lock().unwrap().clone();
+        let Some(orion_state) = self.orion_states.lock().unwrap().current().cloned() else {
+            return;
+        };
 
         self.draw_base_graphics(ui);
         self.draw_window_buttons(ui);

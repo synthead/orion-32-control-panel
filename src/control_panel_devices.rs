@@ -3,8 +3,7 @@ use std::sync::Mutex;
 
 use crate::constants::{WidgetColors, WidgetDimensions};
 
-use crate::orion_state::OrionState;
-use crate::orion_state::OrionStateInitSteps;
+use crate::orion_state::{OrionStateInitSteps, OrionStates};
 
 use crate::render_asset;
 
@@ -30,28 +29,35 @@ impl ControlPanelDevicesColors {
 }
 
 pub(crate) struct ControlPanelDevices {
-    orion_state: Arc<Mutex<OrionState>>,
+    orion_states: Arc<Mutex<OrionStates>>,
 }
 
 impl ControlPanelDevices {
-    const QUERYING_MESSAGES: [&str; 6] = [
+    const QUERYING_MESSAGES: [&str; 7] = [
         "serial number",
         "firmware version",
         "routes",
         "mixer levels",
         "mixer pans",
         "AD phases",
+        "stream state",
     ];
 
-    pub(crate) fn new(orion_state: Arc<Mutex<OrionState>>) -> Self {
-        Self { orion_state }
+    pub(crate) fn new(orion_states: Arc<Mutex<OrionStates>>) -> Self {
+        Self { orion_states }
     }
 
     pub(crate) fn draw(&mut self, ui: &mut egui::Ui) {
-        let orion_state = self.orion_state.lock().unwrap().clone();
+        let orion_state = self.orion_states.lock().unwrap().current().cloned();
 
         Self::draw_base_graphics(ui);
         self.draw_window_buttons(ui);
+
+        let Some(orion_state) = orion_state else {
+            self.draw_devices_list(ui, &[0; 13], 0);
+            self.draw_text(ui, 0);
+            return;
+        };
 
         self.draw_devices_list(ui, &orion_state.serial, orion_state.inits_completed);
         self.draw_text(ui, orion_state.inits_completed);

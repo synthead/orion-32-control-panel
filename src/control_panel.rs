@@ -7,7 +7,7 @@ use crate::constants::{WidgetColors, WidgetDimensions};
 
 use crate::orion_hid::OrionHid;
 use crate::orion_hid_poller::OrionHidPoller;
-use crate::orion_state::{OrionState, OrionStateInitSteps, OrionStateSignals};
+use crate::orion_state::{OrionState, OrionStateInitSteps, OrionStateSignals, OrionStates};
 
 use crate::drag_value::DragValue;
 use crate::ignore_value::IgnoreValue;
@@ -120,7 +120,7 @@ impl ControlPanelDimensions {
 }
 
 pub(crate) struct ControlPanel {
-    orion_state: Arc<Mutex<OrionState>>,
+    orion_states: Arc<Mutex<OrionStates>>,
     orion_hid: Arc<Mutex<OrionHid>>,
     orion_hid_poller: Arc<Mutex<OrionHidPoller>>,
 
@@ -176,48 +176,48 @@ impl ControlPanel {
     ];
 
     pub fn new() -> Self {
-        let orion_state = Arc::new(Mutex::new(OrionState::default()));
+        let orion_states = Arc::new(Mutex::new(OrionStates::default()));
         let (hid_write_tx, hid_write_rx) = mpsc::channel::<[u8; 64]>();
 
         let orion_hid_poller = Arc::new(Mutex::new(OrionHidPoller::new(
-            Arc::clone(&orion_state),
+            Arc::clone(&orion_states),
             hid_write_rx,
         )));
 
-        let orion_hid = OrionHid::new(hid_write_tx, Arc::clone(&orion_state));
+        let orion_hid = OrionHid::new(hid_write_tx, Arc::clone(&orion_states));
 
         let orion_hid = Arc::new(Mutex::new(orion_hid));
         let text_editor = Arc::new(Mutex::new(TextEditor::new()));
         let drag_value = Arc::new(Mutex::new(DragValue::new()));
 
-        let devices = ControlPanelDevices::new(Arc::clone(&orion_state));
+        let devices = ControlPanelDevices::new(Arc::clone(&orion_states));
 
         let routing = ControlPanelRouting::new(
-            Arc::clone(&orion_state),
+            Arc::clone(&orion_states),
             Arc::clone(&orion_hid),
             Arc::clone(&text_editor),
         );
 
         let mixer = ControlPanelMixer::new(
-            Arc::clone(&orion_state),
+            Arc::clone(&orion_states),
             Arc::clone(&orion_hid),
             Arc::clone(&text_editor),
             Arc::clone(&drag_value),
         );
 
-        let ad_phase = ControlPanelAdPhase::new(Arc::clone(&orion_state), Arc::clone(&orion_hid));
+        let ad_phase = ControlPanelAdPhase::new(Arc::clone(&orion_states), Arc::clone(&orion_hid));
 
         let settings = ControlPanelSettings::new(
-            Arc::clone(&orion_state),
+            Arc::clone(&orion_states),
             Arc::clone(&orion_hid),
             Arc::clone(&text_editor),
             Arc::clone(&drag_value),
         );
 
-        let about = ControlPanelAbout::new(Arc::clone(&orion_state));
+        let about = ControlPanelAbout::new(Arc::clone(&orion_states));
 
         Self {
-            orion_state,
+            orion_states,
             orion_hid,
             orion_hid_poller,
 
@@ -310,16 +310,12 @@ impl ControlPanel {
         egui::CentralPanel::default()
             .frame(egui::Frame::NONE)
             .show(ui, |ui| {
-                let orion_state = self.orion_state.lock().unwrap().clone();
+                let Some(orion_state) = self.orion_states.lock().unwrap().current().cloned() else {
+                    self.devices.draw(ui);
+                    return;
+                };
 
-                if orion_state.inits_completed
-                    != OrionStateInitSteps::SERIAL_NUMBER
-                        | OrionStateInitSteps::FIRMWARE_VERSION
-                        | OrionStateInitSteps::ROUTES
-                        | OrionStateInitSteps::MIXER_LEVELS
-                        | OrionStateInitSteps::MIXER_PANS_SOLOS_MUTES
-                        | OrionStateInitSteps::AD_PHASES
-                {
+                if orion_state.inits_completed != OrionStateInitSteps::ALL {
                     self.devices.draw(ui);
 
                     return;
@@ -347,7 +343,7 @@ impl ControlPanel {
                     orion_state.right_vu_source,
                 );
 
-                Self::draw_serial_combobox(ui, &orion_state.serial);
+                self.draw_serial_combobox(ui);
                 self.draw_line_out(ui, orion_state.line_out);
 
                 match self.current_tab {
@@ -892,20 +888,51 @@ impl ControlPanel {
         }
     }
 
-    fn draw_serial_combobox(ui: &mut egui::Ui, serial: &[u8; 13]) {
-        let serial_text = String::from_utf8_lossy(serial);
+    fn draw_serial_combobox(&self, ui: &mut egui::Ui) {
+        let (devices, selected_hid_path) = {
+            let states = self.orion_states.lock().unwrap();
+
+            let mut devices: Vec<_> = states
+                .orion_states
+                .iter()
+                .filter(|(_, orion_state)| orion_state.inits_completed == OrionStateInitSteps::ALL)
+                .map(|(hid_path, orion_state)| {
+                    (
+                        hid_path.clone(),
+                        String::from_utf8_lossy(&orion_state.serial).into_owned(),
+                    )
+                })
+                .collect();
+
+            devices.sort_by(|a, b| a.1.cmp(&b.1));
+
+            (devices, states.selected_hid_path.clone())
+        };
+
+        if devices.is_empty() {
+            return;
+        }
+
+        let selected_index = devices
+            .iter()
+            .position(|(hid_path, _)| Some(hid_path) == selected_hid_path.as_ref())
+            .unwrap_or(0);
+
+        let labels: Vec<&str> = devices.iter().map(|(_, serial)| serial.as_str()).collect();
 
         ControlPanelHelpers::draw_combobox(
             ui,
             ControlPanelDimensions::SERIAL_X,
             ControlPanelDimensions::SERIAL_Y,
             ControlPanelDimensions::SERIAL_WIDTH,
-            0,
+            selected_index as u8,
             None,
-            &[&serial_text],
+            &labels,
             true,
-            |_selected| {
-                // TODO: Implement multi-interface control, and switch it here.
+            |selected| {
+                if let Some((hid_path, _)) = devices.get(selected as usize) {
+                    self.orion_states.lock().unwrap().selected_hid_path = Some(hid_path.clone());
+                }
             },
         );
     }

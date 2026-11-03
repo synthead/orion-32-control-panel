@@ -1,4 +1,6 @@
 use crate::constants::{RoutingColumns, RoutingLabelColors, RoutingLabels, RoutingRows};
+use std::collections::HashMap;
+use std::ffi::CString;
 
 pub(crate) struct OrionStateInitSteps;
 
@@ -9,6 +11,8 @@ impl OrionStateInitSteps {
     pub(crate) const MIXER_LEVELS: u8 = 0x08;
     pub(crate) const MIXER_PANS_SOLOS_MUTES: u8 = 0x10;
     pub(crate) const AD_PHASES: u8 = 0x20;
+    pub(crate) const VU: u8 = 0x40;
+    pub(crate) const ALL: u8 = 0x7f;
 }
 
 pub(crate) struct OrionStateSignals;
@@ -21,6 +25,34 @@ impl OrionStateSignals {
     pub(crate) const ADAT_1: u8 = 0x20;
     pub(crate) const SPDIF: u8 = 0x40;
     pub(crate) const ADAT_2: u8 = 0x80;
+}
+
+pub(crate) struct OrionStates {
+    pub(crate) selected_hid_path: Option<CString>,
+    pub(crate) orion_states: HashMap<CString, OrionState>,
+}
+
+impl Default for OrionStates {
+    fn default() -> Self {
+        Self {
+            selected_hid_path: None,
+            orion_states: HashMap::new(),
+        }
+    }
+}
+
+impl OrionStates {
+    pub(crate) fn current(&self) -> Option<&OrionState> {
+        self.selected_hid_path
+            .as_ref()
+            .and_then(|hid_path| self.orion_states.get(hid_path))
+    }
+
+    pub(crate) fn current_mut(&mut self) -> Option<&mut OrionState> {
+        self.selected_hid_path
+            .as_ref()
+            .and_then(|path| self.orion_states.get_mut(path))
+    }
 }
 
 #[derive(Clone)]
