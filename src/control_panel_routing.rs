@@ -448,14 +448,19 @@ impl ControlPanelRouting {
             if let Some(tab) = tab {
                 let mut column_next = column as i16 + tab as i16;
                 let mut row_next = row as usize;
+                let row_count = orion_state.source_counts.len() as i16;
 
-                if column_next < 0 {
-                    row_next = (row_next + orion_state.source_counts.len() - 1)
-                        % orion_state.source_counts.len();
-                    column_next = orion_state.source_counts[row_next] as i16 - 1;
-                } else if column_next == orion_state.source_counts[row_next] as i16 {
-                    row_next = (row_next + 1) % orion_state.source_counts.len();
-                    column_next = 0;
+                while column_next < 0
+                    || column_next >= orion_state.source_counts[row_next] as i16
+                    || orion_state.source_counts[row_next] == 0
+                {
+                    row_next = (row_next as i16 + tab as i16).rem_euclid(row_count) as usize;
+
+                    column_next = if tab == 1 {
+                        0
+                    } else {
+                        orion_state.source_counts[row_next] as i16 - 1
+                    };
                 }
 
                 self.label_edit_cell = Some([column_next as u8, row_next as u8]);
