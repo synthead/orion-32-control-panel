@@ -18,6 +18,7 @@ mod text_editor;
 
 mod orion_file;
 mod orion_hid;
+mod orion_hid_device;
 mod orion_hid_poller;
 mod orion_persistence;
 mod orion_state;
