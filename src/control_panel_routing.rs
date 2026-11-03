@@ -37,7 +37,6 @@ impl ControlPanelRoutingDimensions {
 
     const TEXT_X: f32 = 138.0;
     const TEXT_Y: f32 = 412.0;
-    const TEXT_SIZE: f32 = 10.5;
 
     const PRESENSE_X: u16 = 1095;
     const PRESENSE_ADAT_IN_2_X: u16 = 1112;
@@ -387,7 +386,7 @@ impl ControlPanelRouting {
             rect,
             &id_with,
             &label,
-            ControlPanelRoutingDimensions::TEXT_SIZE,
+            WidgetDimensions::TEXT_SIZE,
             WidgetColors::TEXT_COLOR_LABEL,
         );
     }
@@ -421,7 +420,7 @@ impl ControlPanelRouting {
             rect,
             &format!("route_{column}_{row}"),
             &label,
-            ControlPanelRoutingDimensions::TEXT_SIZE,
+            WidgetDimensions::TEXT_SIZE,
             WidgetColors::TEXT_COLOR_LABEL,
         );
 
@@ -705,7 +704,7 @@ impl ControlPanelRouting {
             ),
             egui::Align2::LEFT_TOP,
             text,
-            egui::FontId::proportional(ControlPanelRoutingDimensions::TEXT_SIZE),
+            egui::FontId::proportional(WidgetDimensions::TEXT_SIZE),
             WidgetColors::TEXT_COLOR_LABEL,
         );
     }
@@ -943,7 +942,7 @@ impl ControlPanelRouting {
             egui::pos2(pos_x + 15.0, pos_y),
             egui::Align2::CENTER_TOP,
             label,
-            egui::FontId::proportional(ControlPanelRoutingDimensions::TEXT_SIZE),
+            egui::FontId::proportional(WidgetDimensions::TEXT_SIZE),
             WidgetColors::TEXT_COLOR_LABEL,
         );
 
