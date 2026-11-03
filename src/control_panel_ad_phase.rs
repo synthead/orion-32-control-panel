@@ -11,6 +11,9 @@ use crate::render_asset;
 struct ControlPanelAdPhaseDimensions;
 
 impl ControlPanelAdPhaseDimensions {
+    const BACKGROUND_X: u16 = 0;
+    const BACKGROUND_Y: u16 = 226;
+
     const STEP_X: u16 = 34;
     const BUTTON_X: u16 = 51;
     const BUTTON_Y: u16 = 411;
@@ -42,8 +45,8 @@ impl ControlPanelAdPhase {
     fn draw_base_graphics(ui: &mut egui::Ui) {
         render_asset!(
             ui,
-            0,
-            226,
+            ControlPanelAdPhaseDimensions::BACKGROUND_X,
+            ControlPanelAdPhaseDimensions::BACKGROUND_Y,
             "PhaseInvertView/default/background",
             1.0,
             0.0,
