@@ -1,4 +1,6 @@
 use crate::constants::{RoutingColumns, RoutingLabelColors, RoutingLabels, RoutingRows};
+use std::collections::HashMap;
+use std::ffi::CString;
 
 pub(crate) struct OrionStateInitSteps;
 
@@ -21,6 +23,20 @@ impl OrionStateSignals {
     pub(crate) const ADAT_1: u8 = 0x20;
     pub(crate) const SPDIF: u8 = 0x40;
     pub(crate) const ADAT_2: u8 = 0x80;
+}
+
+pub(crate) struct OrionStates {
+    pub(crate) selected_hid_path: Option<CString>,
+    pub(crate) orion_states: HashMap<CString, OrionState>,
+}
+
+impl Default for OrionStates {
+    fn default() -> Self {
+        Self {
+            selected_hid_path: None,
+            orion_states: HashMap::new(),
+        }
+    }
 }
 
 #[derive(Clone)]
