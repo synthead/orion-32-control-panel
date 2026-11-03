@@ -26,6 +26,7 @@ impl RoutingLabelColors {
     pub(crate) const OSC_1: egui::Color32 = egui::Color32::from_rgb(0x38, 0x90, 0xa7);
     pub(crate) const OSC_2: egui::Color32 = egui::Color32::from_rgb(0x90, 0x38, 0xa7);
     pub(crate) const MUTE: egui::Color32 = egui::Color32::from_rgb(0x7b, 0x7b, 0x7b);
+    pub(crate) const SELECT: egui::Color32 = egui::Color32::from_rgb(0x91, 0xb4, 0xdf);
 }
 
 pub(crate) struct RoutingRows;

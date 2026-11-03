@@ -4,7 +4,9 @@ use std::sync::mpsc;
 use std::sync::Arc;
 use std::sync::Mutex;
 
-use crate::constants::{RoutingColumns, RoutingRows, WidgetColors, WidgetDimensions};
+use crate::constants::{
+    RoutingColumns, RoutingLabelColors, RoutingRows, WidgetColors, WidgetDimensions,
+};
 
 use crate::orion_file::OrionFile;
 use crate::orion_persistence::OrionPersistence;
@@ -16,12 +18,6 @@ use crate::control_panel_helpers::ControlPanelHelpers;
 use crate::text_editor::TextEditor;
 
 use crate::render_asset;
-
-struct ControlPanelRoutingColors;
-
-impl ControlPanelRoutingColors {
-    const SELECT: egui::Color32 = egui::Color32::from_rgb(0x91, 0xb4, 0xdf);
-}
 
 struct ControlPanelRoutingDimensions;
 
@@ -358,7 +354,7 @@ impl ControlPanelRouting {
 
         let color = if self.source_select_row == row && self.source_select_columns.contains(&column)
         {
-            ControlPanelRoutingColors::SELECT
+            RoutingLabelColors::SELECT
         } else {
             orion_state.color_for_route(row, true)
         };
@@ -544,7 +540,7 @@ impl ControlPanelRouting {
                 let route = routes[column];
 
                 let color = if self.target_select_cell == Some([column as u8, row as u8]) {
-                    ControlPanelRoutingColors::SELECT
+                    RoutingLabelColors::SELECT
                 } else {
                     orion_state.color_for_route(route, true)
                 };
