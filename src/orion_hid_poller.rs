@@ -3,6 +3,8 @@ use std::collections::HashMap;
 use std::ffi::CString;
 use std::sync::mpsc;
 use std::sync::{Arc, Mutex};
+use std::thread;
+use std::time::Duration;
 
 use crate::orion_hid_device::OrionHidDevice;
 use crate::orion_state::{OrionStateInitSteps, OrionStates};
@@ -40,6 +42,8 @@ impl OrionHidPoller {
     pub(crate) fn poll_and_update_state(&mut self) {
         if !self.try_connect() {
             self.discard_pending_writes();
+            thread::sleep(Duration::from_millis(20));
+
             return;
         }
 
