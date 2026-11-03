@@ -1,84 +1,36 @@
 use hidapi::{HidApi, HidDevice};
+use std::collections::HashMap;
+use std::ffi::CString;
 use std::sync::mpsc;
 use std::sync::{Arc, Mutex};
 
 use crate::orion_hid::OrionHid;
-use crate::orion_state::OrionState;
-use crate::orion_state::OrionStateInitSteps;
+use crate::orion_state::{OrionState, OrionStateInitSteps, OrionStates};
 
-pub(crate) struct OrionHidPoller {
-    orion_state: Arc<Mutex<OrionState>>,
-    hid_write_rx: mpsc::Receiver<[u8; 64]>,
-
-    hid_api: HidApi,
-    hid_device: Option<HidDevice>,
+pub(crate) struct OrionHidDevice {
+    hid_device: HidDevice,
 
     init_serial_firmware_written: bool,
     init_routes_mixer_ad_phases_written: bool,
 }
 
-impl OrionHidPoller {
-    const USB_VENDOR: u16 = 0x23e5;
-    const USB_PRODUCT: u16 = 0xa040;
+impl OrionHidDevice {
     const READ_TIMEOUT_MS: i32 = 100;
 
-    pub(crate) fn new(
-        orion_state: Arc<Mutex<OrionState>>,
-        hid_write_rx: mpsc::Receiver<[u8; 64]>,
-    ) -> Self {
-        let hid_api = HidApi::new().unwrap_or_else(|error| {
-            eprintln!("Failed to initialize HIDAPI: {error}");
-            std::process::exit(1);
-        });
-
+    pub(crate) fn new(hid_device: HidDevice) -> Self {
         Self {
-            orion_state,
-            hid_write_rx,
-
-            hid_api,
-            hid_device: None,
+            hid_device,
 
             init_serial_firmware_written: false,
             init_routes_mixer_ad_phases_written: false,
         }
     }
 
-    pub(crate) fn poll_and_update_state(&mut self) {
-        if self.hid_device.is_none() && !self.try_connect() {
-            self.discard_pending_writes();
+    fn write_packet(&self, packet: &[u8; 64]) -> bool {
+        let mut packet_with_report = [0u8; 65];
+        packet_with_report[1..].copy_from_slice(packet);
 
-            return;
-        }
-
-        while let Ok(packet) = self.hid_write_rx.try_recv() {
-            if !self.write_packet(&packet) {
-                return;
-            }
-        }
-
-        if !self.ensure_init() {
-            return;
-        }
-
-        let mut hid_data = [0u8; 64];
-
-        match self
-            .hid_device
-            .as_ref()
-            .unwrap()
-            .read_timeout(&mut hid_data, Self::READ_TIMEOUT_MS)
-        {
-            Ok(64) => {
-                let orion_state = Arc::clone(&self.orion_state);
-                let mut orion_state = orion_state.lock().unwrap();
-
-                self.update_orion_state(&hid_data, &mut orion_state);
-            }
-            Ok(_) => {}
-            Err(_) => {
-                self.disconnect();
-            }
-        }
+        self.hid_device.write(&packet_with_report).is_ok()
     }
 
     fn ensure_init(&mut self) -> bool {
@@ -103,6 +55,23 @@ impl OrionHidPoller {
         }
 
         true
+    }
+
+    fn poll(&mut self) -> Result<Option<[u8; 64]>, ()> {
+        if !self.ensure_init() {
+            return Err(());
+        }
+
+        let mut hid_data = [0u8; 64];
+
+        match self
+            .hid_device
+            .read_timeout(&mut hid_data, Self::READ_TIMEOUT_MS)
+        {
+            Ok(64) => Ok(Some(hid_data)),
+            Ok(_) => Ok(None),
+            Err(_) => Err(()),
+        }
     }
 
     fn update_orion_state(&mut self, hid_data: &[u8; 64], orion_state: &mut OrionState) {
@@ -204,48 +173,137 @@ impl OrionHidPoller {
 
         orion_state.inits_completed |= OrionStateInitSteps::AD_PHASES;
     }
+}
 
-    fn try_connect(&mut self) -> bool {
-        let hid_device = match self.hid_api.open(Self::USB_VENDOR, Self::USB_PRODUCT) {
-            Ok(hid_device) => hid_device,
-            Err(_) => {
-                self.disconnect();
+pub(crate) struct OrionHidPoller {
+    orion_states: Arc<Mutex<OrionStates>>,
+    hid_write_rx: mpsc::Receiver<[u8; 64]>,
 
-                return false;
-            }
-        };
+    hid_api: HidApi,
+    orion_hid_devices: HashMap<CString, OrionHidDevice>,
+}
 
-        self.hid_device = Some(hid_device);
+impl OrionHidPoller {
+    const USB_VENDOR: u16 = 0x23e5;
+    const USB_PRODUCT: u16 = 0xa040;
 
-        true
-    }
+    pub(crate) fn new(
+        orion_states: Arc<Mutex<OrionStates>>,
+        hid_write_rx: mpsc::Receiver<[u8; 64]>,
+    ) -> Self {
+        let hid_api = HidApi::new().unwrap_or_else(|error| {
+            eprintln!("Failed to initialize HIDAPI: {error}");
+            std::process::exit(1);
+        });
 
-    fn write_packet(&mut self, packet: &[u8; 64]) -> bool {
-        let mut packet_with_report = [0u8; 65];
+        Self {
+            orion_states,
+            hid_write_rx,
 
-        packet_with_report[1..].copy_from_slice(packet);
-
-        match self.hid_device.as_ref().unwrap().write(&packet_with_report) {
-            Ok(_) => true,
-            Err(_) => {
-                self.disconnect();
-                self.discard_pending_writes();
-
-                false
-            }
+            hid_api,
+            orion_hid_devices: HashMap::new(),
         }
     }
 
+    pub(crate) fn poll_and_update_state(&mut self) {
+        if !self.try_connect() {
+            self.discard_pending_writes();
+            return;
+        }
+
+        let selected_hid_path = self
+            .orion_states
+            .lock()
+            .unwrap()
+            .selected_hid_path
+            .clone()
+            .unwrap();
+
+        while let Ok(packet) = self.hid_write_rx.try_recv() {
+            let write_success = self
+                .orion_hid_devices
+                .get(&selected_hid_path)
+                .is_some_and(|device| device.write_packet(&packet));
+
+            if !write_success {
+                self.disconnect();
+                self.discard_pending_writes();
+                return;
+            }
+        }
+
+        let poll_result = match self.orion_hid_devices.get_mut(&selected_hid_path) {
+            Some(device) => device.poll(),
+            None => Err(()),
+        };
+
+        let hid_data = match poll_result {
+            Ok(Some(hid_data)) => hid_data,
+            Ok(None) => return,
+            Err(()) => {
+                self.disconnect();
+                self.discard_pending_writes();
+                return;
+            }
+        };
+
+        let mut states = self.orion_states.lock().unwrap();
+
+        if let (Some(device), Some(orion_state)) = (
+            self.orion_hid_devices.get_mut(&selected_hid_path),
+            states.orion_states.get_mut(&selected_hid_path),
+        ) {
+            device.update_orion_state(&hid_data, orion_state);
+        }
+    }
+
+    fn try_connect(&mut self) -> bool {
+        for device_info in self.hid_api.device_list() {
+            if device_info.vendor_id() != Self::USB_VENDOR
+                || device_info.product_id() != Self::USB_PRODUCT
+            {
+                continue;
+            }
+
+            let path = device_info.path().to_owned();
+
+            if self.orion_hid_devices.contains_key(&path) {
+                continue;
+            }
+
+            let hid_device = match device_info.open_device(&self.hid_api) {
+                Ok(device) => device,
+                Err(_) => continue,
+            };
+
+            self.orion_hid_devices
+                .insert(path.clone(), OrionHidDevice::new(hid_device));
+
+            let mut states = self.orion_states.lock().unwrap();
+
+            states.orion_states.entry(path.clone()).or_default();
+
+            if states.selected_hid_path.is_none() {
+                states.selected_hid_path = Some(path);
+            }
+        }
+
+        self.orion_states
+            .lock()
+            .unwrap()
+            .selected_hid_path
+            .is_some()
+    }
+
     fn disconnect(&mut self) {
-        self.hid_device = None;
+        let mut states = self.orion_states.lock().unwrap();
 
-        self.init_serial_firmware_written = false;
-        self.init_routes_mixer_ad_phases_written = false;
+        if let Some(path) = states.selected_hid_path.take() {
+            self.orion_hid_devices.remove(&path);
+            states.orion_states.remove(&path);
+        }
 
-        let orion_state = Arc::clone(&self.orion_state);
-        let mut orion_state = orion_state.lock().unwrap();
-
-        orion_state.inits_completed = 0;
+        states.selected_hid_path = self.orion_hid_devices.keys().next().cloned();
     }
 
     fn discard_pending_writes(&self) {
