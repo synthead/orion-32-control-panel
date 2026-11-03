@@ -11,7 +11,8 @@ impl OrionStateInitSteps {
     pub(crate) const MIXER_LEVELS: u8 = 0x08;
     pub(crate) const MIXER_PANS_SOLOS_MUTES: u8 = 0x10;
     pub(crate) const AD_PHASES: u8 = 0x20;
-    pub(crate) const ALL: u8 = 0x3f;
+    pub(crate) const VU: u8 = 0x40;
+    pub(crate) const ALL: u8 = 0x7f;
 }
 
 pub(crate) struct OrionStateSignals;

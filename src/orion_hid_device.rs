@@ -125,6 +125,8 @@ impl OrionHidDevice {
         if last_preset != u8::MAX && last_preset != orion_state.preset_standby & 0x07 {
             self.init_routes_mixer_ad_phases_written = false;
         }
+
+        orion_state.inits_completed |= OrionStateInitSteps::VU;
     }
 
     fn transform_serial(hid_data: &[u8; 64], orion_state: &mut OrionState) {

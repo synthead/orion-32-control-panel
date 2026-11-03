@@ -33,13 +33,14 @@ pub(crate) struct ControlPanelDevices {
 }
 
 impl ControlPanelDevices {
-    const QUERYING_MESSAGES: [&str; 6] = [
+    const QUERYING_MESSAGES: [&str; 7] = [
         "serial number",
         "firmware version",
         "routes",
         "mixer levels",
         "mixer pans",
         "AD phases",
+        "stream state",
     ];
 
     pub(crate) fn new(orion_states: Arc<Mutex<OrionStates>>) -> Self {
