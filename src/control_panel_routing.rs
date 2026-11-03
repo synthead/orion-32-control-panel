@@ -710,15 +710,18 @@ impl ControlPanelRouting {
             return;
         }
 
-        let text = format!(
-            "{}: {}",
-            Self::SOURCE_ROW_LABELS[self.source_select_row as usize],
-            self.source_select_columns
-                .iter()
-                .map(|&column| labels[self.source_select_row as usize][column as usize].as_str())
-                .collect::<Vec<_>>()
-                .join(", ")
-        );
+        let mut text = String::new();
+
+        text.push_str(Self::SOURCE_ROW_LABELS[self.source_select_row as usize]);
+        text.push_str(": ");
+
+        for (index, &column) in self.source_select_columns.iter().enumerate() {
+            if index != 0 {
+                text.push_str(", ");
+            }
+
+            text.push_str(&labels[self.source_select_row as usize][column as usize]);
+        }
 
         ui.painter().text(
             egui::pos2(
