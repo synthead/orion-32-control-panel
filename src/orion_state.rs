@@ -39,6 +39,20 @@ impl Default for OrionStates {
     }
 }
 
+impl OrionStates {
+    pub(crate) fn current(&self) -> Option<&OrionState> {
+        self.selected_hid_path
+            .as_ref()
+            .and_then(|hid_path| self.orion_states.get(hid_path))
+    }
+
+    pub(crate) fn current_mut(&mut self) -> Option<&mut OrionState> {
+        self.selected_hid_path
+            .as_ref()
+            .and_then(|path| self.orion_states.get_mut(path))
+    }
+}
+
 #[derive(Clone)]
 pub(crate) struct OrionState {
     pub(crate) labels: [[String; 32]; 7],
