@@ -144,7 +144,7 @@ impl ControlPanelMixer {
 
             ui.painter().rect_filled(rect, 0.0, color);
 
-            ui.painter().text(
+            ui.painter().with_clip_rect(rect).text(
                 rect.center() - egui::vec2(0.0, 1.0),
                 egui::Align2::CENTER_CENTER,
                 &label,
