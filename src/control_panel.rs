@@ -3,6 +3,8 @@ use std::sync::Arc;
 use std::sync::Mutex;
 use std::thread;
 
+use crate::constants::{WidgetColors, WidgetDimensions};
+
 use crate::orion_hid::OrionHid;
 use crate::orion_hid_poller::OrionHidPoller;
 use crate::orion_state::{OrionState, OrionStateInitSteps, OrionStateSignals};
@@ -52,7 +54,6 @@ macro_rules! render_vu_meter {
 struct ControlPanelColors;
 
 impl ControlPanelColors {
-    const LINE_OUT: egui::Color32 = egui::Color32::from_rgb(0x95, 0x95, 0x95);
     const PRESET: egui::Color32 = egui::Color32::from_rgb(0x95, 0x95, 0x95);
     const PRESET_SEL: egui::Color32 = egui::Color32::from_rgb(0x64, 0xe7, 0x1d);
 }
@@ -121,7 +122,6 @@ impl ControlPanelDimensions {
     const PRESET_WIDTH: f32 = 50.0;
     const PRESET_HEIGHT: f32 = 12.0;
 
-    const FONT_SIZE_LINE_OUT: f32 = 11.0;
     const FONT_SIZE_PRESET: f32 = 9.5;
 }
 
@@ -879,8 +879,8 @@ impl ControlPanel {
             line_out_text_hitbox_rect,
             "line_out",
             &line_out_text,
-            ControlPanelDimensions::FONT_SIZE_LINE_OUT,
-            ControlPanelColors::LINE_OUT,
+            WidgetDimensions::TEXT_SIZE,
+            WidgetColors::TEXT_COLOR,
         ) {
             if tab.is_none() {
                 if let Some(line_out_new) = Self::line_out_for_text(&text) {
