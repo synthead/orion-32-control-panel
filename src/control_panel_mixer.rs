@@ -1,6 +1,8 @@
 use std::sync::Arc;
 use std::sync::Mutex;
 
+use crate::constants::WidgetColors;
+
 use crate::orion_hid::OrionHid;
 use crate::orion_state::OrionState;
 
@@ -292,7 +294,7 @@ impl ControlPanelMixer {
                 &format!("level_{channel}"),
                 &level_text,
                 ControlPanelMixerDimensions::FONT_SIZE_VALUE,
-                ControlPanelMixerColors::VALUE_TEXT,
+                WidgetColors::TEXT_COLOR,
             );
 
             if edit_permitted {
@@ -378,7 +380,7 @@ impl ControlPanelMixer {
                 &format!("pan_{channel}"),
                 &pan_float.to_string(),
                 ControlPanelMixerDimensions::FONT_SIZE_VALUE,
-                ControlPanelMixerColors::VALUE_TEXT,
+                WidgetColors::TEXT_COLOR,
             );
 
             if edit_permitted {
@@ -608,7 +610,7 @@ impl ControlPanelMixer {
             "level_0",
             &Self::text_for_level(level),
             ControlPanelMixerDimensions::FONT_SIZE_VALUE,
-            ControlPanelMixerColors::VALUE_TEXT,
+            WidgetColors::TEXT_COLOR,
         );
 
         if let Some((text, None)) = edit_result {
