@@ -3,7 +3,7 @@ use std::sync::Mutex;
 
 use crate::constants::WidgetColors;
 
-use crate::orion_state::OrionState;
+use crate::orion_state::{OrionState, OrionStates};
 
 use crate::render_asset;
 
@@ -27,15 +27,15 @@ impl ControlPanelAboutDimensions {
 }
 
 pub(crate) struct ControlPanelAbout {
-    orion_state: Arc<Mutex<OrionState>>,
+    orion_states: Arc<Mutex<OrionStates>>,
 
     pub(crate) enabled: bool,
 }
 
 impl ControlPanelAbout {
-    pub(crate) fn new(orion_state: Arc<Mutex<OrionState>>) -> Self {
+    pub(crate) fn new(orion_states: Arc<Mutex<OrionStates>>) -> Self {
         Self {
-            orion_state,
+            orion_states,
 
             enabled: false,
         }
@@ -46,7 +46,9 @@ impl ControlPanelAbout {
             return;
         }
 
-        let orion_state = self.orion_state.lock().unwrap().clone();
+        let Some(orion_state) = self.orion_states.lock().unwrap().current().cloned() else {
+            return;
+        };
 
         self.draw_base_graphics(ui);
         self.draw_window_buttons(ui);
