@@ -2,21 +2,21 @@ use std::sync::mpsc;
 use std::sync::Arc;
 use std::sync::Mutex;
 
-use crate::orion_state::OrionState;
+use crate::orion_state::OrionStates;
 
 pub(crate) struct OrionHid {
     hid_write_tx: mpsc::Sender<[u8; 64]>,
-    orion_state: Arc<Mutex<OrionState>>,
+    orion_states: Arc<Mutex<OrionStates>>,
 }
 
 impl OrionHid {
     pub(crate) fn new(
         hid_write_tx: mpsc::Sender<[u8; 64]>,
-        orion_state: Arc<Mutex<OrionState>>,
+        orion_states: Arc<Mutex<OrionStates>>,
     ) -> Self {
         Self {
             hid_write_tx,
-            orion_state,
+            orion_states,
         }
     }
 
@@ -48,8 +48,13 @@ impl OrionHid {
 
         self.queue_packet(0x70, 0x33, 0x00, 0x00, &routes_payload);
 
-        let mut orion_state = self.orion_state.lock().unwrap();
-        orion_state.routes[target as usize] = *routes;
+        let mut states = self.orion_states.lock().unwrap();
+
+        if let Some(selected_hid_path) = states.selected_hid_path.clone() {
+            if let Some(orion_state) = states.orion_states.get_mut(&selected_hid_path) {
+                orion_state.routes[target as usize] = *routes;
+            }
+        }
     }
 
     pub(crate) fn queue_mixer_channel(&mut self, channel: u8, level: u8, pan_solo_mute: u8) {
@@ -61,24 +66,33 @@ impl OrionHid {
             &[0x90, channel, level, pan_solo_mute],
         );
 
-        let mut orion_state = self.orion_state.lock().unwrap();
-        orion_state.mixer_levels[channel as usize] = level;
-        orion_state.mixer_pans_solos_mutes[channel as usize] = pan_solo_mute;
+        let mut states = self.orion_states.lock().unwrap();
+
+        if let Some(selected_hid_path) = states.selected_hid_path.clone() {
+            if let Some(orion_state) = states.orion_states.get_mut(&selected_hid_path) {
+                orion_state.mixer_levels[channel as usize] = level;
+                orion_state.mixer_pans_solos_mutes[channel as usize] = pan_solo_mute;
+            }
+        }
     }
 
     pub(crate) fn queue_ad_phase(&mut self, ad_phase: u8) {
         self.queue_packet(0x70, 0x12, 0x00, 0x00, &[0x11, ad_phase]);
 
-        let mut orion_state = self.orion_state.lock().unwrap();
+        let mut states = self.orion_states.lock().unwrap();
 
-        let ad_phase_i = (ad_phase & 0x7f) as usize;
-        let byte_i = ad_phase_i / 8;
-        let bit_i = ad_phase_i % 8;
+        if let Some(selected_hid_path) = states.selected_hid_path.clone() {
+            if let Some(orion_state) = states.orion_states.get_mut(&selected_hid_path) {
+                let ad_phase_i = (ad_phase & 0x7f) as usize;
+                let byte_i = ad_phase_i / 8;
+                let bit_i = ad_phase_i % 8;
 
-        if ad_phase & 0x80 != 0 {
-            orion_state.ad_phases[byte_i] |= 1 << bit_i;
-        } else {
-            orion_state.ad_phases[byte_i] &= !(1 << bit_i);
+                if ad_phase & 0x80 != 0 {
+                    orion_state.ad_phases[byte_i] |= 1 << bit_i;
+                } else {
+                    orion_state.ad_phases[byte_i] &= !(1 << bit_i);
+                }
+            }
         }
     }
 
