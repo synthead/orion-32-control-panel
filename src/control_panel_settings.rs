@@ -79,9 +79,6 @@ pub(crate) struct ControlPanelSettings {
 }
 
 impl ControlPanelSettings {
-    const FONT_COLOR: egui::Color32 = egui::Color32::from_rgb(0x95, 0x95, 0x95);
-    const FONT_SIZE: f32 = 10.5;
-
     const OSC_FREQUENCY_SELECTIONS: [&str; 2] = ["1 kHz", "440 Hz"];
 
     const OSC_LEVEL_SELECTIONS: [&str; 4] = ["0 dBFS", "-6 dbFS", "-12 dbFS", "-18 dbFS"];
