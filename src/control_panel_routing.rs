@@ -442,9 +442,8 @@ impl ControlPanelRouting {
         );
 
         if let Some((route_text, tab)) = level_edit_result {
-            let mut orion_state = self.orion_state.lock().unwrap();
-
-            orion_state.labels[row as usize][column as usize] = route_text;
+            let mut orion_state_mut = self.orion_state.lock().unwrap();
+            orion_state_mut.labels[row as usize][column as usize] = route_text;
 
             if let Some(tab) = tab {
                 let mut column_next = column as i16 + tab as i16;
