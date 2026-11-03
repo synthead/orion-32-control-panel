@@ -1,6 +1,8 @@
 use std::sync::Arc;
 use std::sync::Mutex;
 
+use crate::constants::WidgetColors;
+
 use crate::orion_state::OrionState;
 
 use crate::render_asset;
@@ -132,7 +134,8 @@ impl ControlPanelAbout {
             ),
         );
 
-        let label = egui::Label::new(egui::RichText::new(text).color(egui::Color32::WHITE));
+        let label =
+            egui::Label::new(egui::RichText::new(text).color(WidgetColors::TEXT_COLOR_ABOUT));
 
         ui.put(rect, label.selectable(true));
     }
