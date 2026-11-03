@@ -1,7 +1,7 @@
 pub(crate) struct WidgetColors;
 
 impl WidgetColors {
-    pub(crate) const TEXT_COLOR: egui::Color32 = egui::Color32::from_rgb(0x95, 0x95, 0x95);
+    pub(crate) const TEXT_COLOR: egui::Color32 = egui::Color32::from_rgb(0xa0, 0xa0, 0xa0);
     pub(crate) const BG_COLOR: egui::Color32 = egui::Color32::BLACK;
     pub(crate) const ARROW_COLOR: egui::Color32 = egui::Color32::from_rgb(0x85, 0xc8, 0x26);
 }
