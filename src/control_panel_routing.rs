@@ -677,9 +677,7 @@ impl ControlPanelRouting {
         if let Some(column) = column {
             new_routes[column] = route;
         } else {
-            for column in 0..orion_state.target_counts[row] {
-                new_routes[column] = route;
-            }
+            new_routes[..orion_state.target_counts[row]].fill(route);
         }
 
         self.queue_routes_with_undo(row as u8, old_routes, &new_routes);
