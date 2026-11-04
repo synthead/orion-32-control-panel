@@ -29,6 +29,7 @@ macro_rules! preload_assets_blocking {
             "LockLed/default/background",
             "MinimizeButton/default/released",
             "MixerNavButton/default/released@2x",
+            "MonitorPeakMeter/default/background",
             "PhaseInvNavButton/default/released",
             "PresenceLed/default/pressed",
             "PresenceLed/default/released",
