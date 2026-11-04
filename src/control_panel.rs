@@ -824,13 +824,11 @@ impl ControlPanel {
             &line_out_text,
             WidgetDimensions::TEXT_SIZE,
             WidgetColors::TEXT_COLOR,
-        ) {
-            if tab.is_none() {
-                if let Some(line_out_new) = Self::line_out_for_text(&text) {
-                    self.line_out_ignore.begin_ignore(line_out_new);
-                    self.orion_hid.lock().unwrap().queue_line_out(line_out_new);
-                }
-            }
+        ) && tab.is_none()
+            && let Some(line_out_new) = Self::line_out_for_text(&text)
+        {
+            self.line_out_ignore.begin_ignore(line_out_new);
+            self.orion_hid.lock().unwrap().queue_line_out(line_out_new);
         }
     }
 
