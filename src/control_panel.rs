@@ -165,6 +165,8 @@ impl ControlPanel {
         "Oven", "W.C.", "ADAT", "ADAT 2x", "ADAT 4x", "MADI", "MADI 2x", "MADI 4x", "S/PDIF",
     ];
 
+    const PRESET_LABELS: [&str; 5] = ["PRESET 1", "PRESET 2", "PRESET 3", "PRESET 4", "PRESET 5"];
+
     const CLOCK_SOURCE_SELECTION_ATOMIC: &str = "Atomic";
 
     const SAMPLE_RATE_SELECTIONS: [&str; 7] = [
@@ -644,7 +646,7 @@ impl ControlPanel {
 
     fn draw_presets(&mut self, ui: &mut egui::Ui, preset_standby: u8) {
         for preset in 1..6 {
-            let label = format!("PRESET {}", preset);
+            let label = Self::PRESET_LABELS[(preset - 1) as usize];
             let rect = egui::Rect::from_min_size(
                 egui::pos2(
                     ControlPanelDimensions::PRESET_X
