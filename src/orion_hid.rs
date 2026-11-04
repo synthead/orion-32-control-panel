@@ -50,10 +50,10 @@ impl OrionHid {
 
         let mut states = self.orion_states.lock().unwrap();
 
-        if let Some(selected_hid_path) = states.selected_hid_path.clone() {
-            if let Some(orion_state) = states.orion_states.get_mut(&selected_hid_path) {
-                orion_state.routes[target as usize] = *routes;
-            }
+        if let Some(selected_hid_path) = states.selected_hid_path.clone()
+            && let Some(orion_state) = states.orion_states.get_mut(&selected_hid_path)
+        {
+            orion_state.routes[target as usize] = *routes;
         }
     }
 
@@ -68,11 +68,11 @@ impl OrionHid {
 
         let mut states = self.orion_states.lock().unwrap();
 
-        if let Some(selected_hid_path) = states.selected_hid_path.clone() {
-            if let Some(orion_state) = states.orion_states.get_mut(&selected_hid_path) {
-                orion_state.mixer_levels[channel as usize] = level;
-                orion_state.mixer_pans_solos_mutes[channel as usize] = pan_solo_mute;
-            }
+        if let Some(selected_hid_path) = states.selected_hid_path.clone()
+            && let Some(orion_state) = states.orion_states.get_mut(&selected_hid_path)
+        {
+            orion_state.mixer_levels[channel as usize] = level;
+            orion_state.mixer_pans_solos_mutes[channel as usize] = pan_solo_mute;
         }
     }
 
@@ -81,17 +81,17 @@ impl OrionHid {
 
         let mut states = self.orion_states.lock().unwrap();
 
-        if let Some(selected_hid_path) = states.selected_hid_path.clone() {
-            if let Some(orion_state) = states.orion_states.get_mut(&selected_hid_path) {
-                let ad_phase_i = (ad_phase & 0x7f) as usize;
-                let byte_i = ad_phase_i / 8;
-                let bit_i = ad_phase_i % 8;
+        if let Some(selected_hid_path) = states.selected_hid_path.clone()
+            && let Some(orion_state) = states.orion_states.get_mut(&selected_hid_path)
+        {
+            let ad_phase_i = (ad_phase & 0x7f) as usize;
+            let byte_i = ad_phase_i / 8;
+            let bit_i = ad_phase_i % 8;
 
-                if ad_phase & 0x80 != 0 {
-                    orion_state.ad_phases[byte_i] |= 1 << bit_i;
-                } else {
-                    orion_state.ad_phases[byte_i] &= !(1 << bit_i);
-                }
+            if ad_phase & 0x80 != 0 {
+                orion_state.ad_phases[byte_i] |= 1 << bit_i;
+            } else {
+                orion_state.ad_phases[byte_i] &= !(1 << bit_i);
             }
         }
     }
