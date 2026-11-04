@@ -898,7 +898,7 @@ impl ControlPanel {
             Err(_) => return None,
         };
 
-        if text_parsed < -96 || text_parsed > 0 {
+        if !(-96..=0).contains(&text_parsed) {
             return None;
         }
 
