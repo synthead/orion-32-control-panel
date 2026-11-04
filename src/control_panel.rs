@@ -209,7 +209,7 @@ impl ControlPanel {
             Arc::clone(&drag_value),
         );
 
-        let ad_phase = ControlPanelAdPhase::new(Arc::clone(&orion_states), Arc::clone(&orion_hid));
+        let ad_phase = ControlPanelAdPhase::new(Arc::clone(&orion_hid));
 
         let settings = ControlPanelSettings::new(
             Arc::clone(&orion_states),
@@ -352,7 +352,7 @@ impl ControlPanel {
 
                 match self.current_tab {
                     1 => self.mixer.draw(ui, &orion_state),
-                    2 => self.ad_phase.draw(ui),
+                    2 => self.ad_phase.draw(ui, &orion_state),
                     _ => self.routing.draw(ui, &orion_state),
                 };
 

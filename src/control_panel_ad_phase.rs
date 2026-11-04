@@ -2,7 +2,7 @@ use std::sync::Arc;
 use std::sync::Mutex;
 
 use crate::orion_hid::OrionHid;
-use crate::orion_state::OrionStates;
+use crate::orion_state::OrionState;
 
 use crate::control_panel_helpers::ControlPanelHelpers;
 
@@ -20,26 +20,15 @@ impl ControlPanelAdPhaseDimensions {
 }
 
 pub(crate) struct ControlPanelAdPhase {
-    orion_states: Arc<Mutex<OrionStates>>,
     orion_hid: Arc<Mutex<OrionHid>>,
 }
 
 impl ControlPanelAdPhase {
-    pub(crate) fn new(
-        orion_states: Arc<Mutex<OrionStates>>,
-        orion_hid: Arc<Mutex<OrionHid>>,
-    ) -> Self {
-        Self {
-            orion_states,
-            orion_hid,
-        }
+    pub(crate) fn new(orion_hid: Arc<Mutex<OrionHid>>) -> Self {
+        Self { orion_hid }
     }
 
-    pub(crate) fn draw(&mut self, ui: &mut egui::Ui) {
-        let Some(orion_state) = self.orion_states.lock().unwrap().current().cloned() else {
-            return;
-        };
-
+    pub(crate) fn draw(&mut self, ui: &mut egui::Ui, orion_state: &OrionState) {
         Self::draw_base_graphics(ui);
         self.draw_buttons(ui, &orion_state.ad_phases);
     }
