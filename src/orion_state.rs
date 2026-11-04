@@ -56,6 +56,7 @@ pub(crate) struct OrionState {
     pub(crate) target_counts: [usize; 7],
 
     pub(crate) inits_completed: u8,
+    pub(crate) persistence_loaded: bool,
 
     pub(crate) serial: [u8; 13],
     pub(crate) hardware_version: [u8; 8],
@@ -99,6 +100,7 @@ impl Default for OrionState {
             target_counts: [0; 7],
 
             inits_completed: 0,
+            persistence_loaded: false,
 
             serial: [0; 13],
             hardware_version: [0; 8],
