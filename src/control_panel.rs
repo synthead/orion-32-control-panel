@@ -18,6 +18,7 @@ use crate::control_panel_devices::ControlPanelDevices;
 use crate::control_panel_helpers::ControlPanelHelpers;
 use crate::control_panel_mixer::ControlPanelMixer;
 use crate::control_panel_routing::ControlPanelRouting;
+use crate::control_panel_vu_meters::ControlPanelVuMeters;
 
 use crate::control_panel_about::ControlPanelAbout;
 use crate::control_panel_settings::ControlPanelSettings;
@@ -26,35 +27,6 @@ use crate::preload_assets_blocking;
 use crate::preload_assets_nonblocking;
 
 use crate::render_asset;
-
-macro_rules! render_vu_meter {
-    ($ui:expr, $x:expr, $y:expr, $db:expr, $subpath:literal) => {{
-        if $db != 0x60 {
-            let image = egui::Image::new(egui::include_image!(concat!(
-                "../assets/images/",
-                $subpath,
-                ".png"
-            )))
-            .fit_to_original_size(1.0)
-            .show_loading_spinner(false);
-
-            if let Some(image_size) = image.load_and_calc_size($ui, $ui.available_size()) {
-                let image_rect =
-                    egui::Rect::from_min_size(egui::pos2($x as f32, $y as f32), image_size);
-
-                let clip_rect = egui::Rect::from_min_max(
-                    egui::pos2($x as f32, $y as f32 + image_size.y * $db as f32 / 96.0),
-                    image_rect.max,
-                );
-
-                $ui.scope_builder(egui::UiBuilder::new().max_rect(image_rect), |ui| {
-                    ui.set_clip_rect(clip_rect);
-                    ui.add(image);
-                });
-            }
-        }
-    }};
-}
 
 struct ControlPanelDimensions;
 
@@ -80,11 +52,6 @@ impl ControlPanelDimensions {
     const VU_SOURCE_RIGHT_X: u16 = 977;
     const VU_SOURCE_Y: u16 = 38;
     const VU_SOURCE_WIDTH: u8 = 83;
-
-    const VU_METER_LEFT_X: usize = 135;
-    const VU_METER_RIGHT_X: usize = 716;
-    const VU_METER_X_STEP: usize = 11;
-    const VU_METER_Y: usize = 60;
 
     const CLOCK_CLOCK_SOURCE_X: u16 = 508;
     const CLOCK_SAMPLE_RATE_X: u16 = 597;
@@ -127,6 +94,7 @@ pub(crate) struct ControlPanel {
     orion_hid_poller: Arc<Mutex<OrionHidPoller>>,
 
     devices: ControlPanelDevices,
+    vu_meters: ControlPanelVuMeters,
     routing: ControlPanelRouting,
     mixer: ControlPanelMixer,
     ad_phase: ControlPanelAdPhase,
@@ -195,6 +163,7 @@ impl ControlPanel {
         let drag_value = Arc::new(Mutex::new(DragValue::new()));
 
         let devices = ControlPanelDevices::new(Arc::clone(&orion_states));
+        let vu_meters = ControlPanelVuMeters::new(ctx);
 
         let routing = ControlPanelRouting::new(
             Arc::clone(&orion_states),
@@ -225,6 +194,7 @@ impl ControlPanel {
             orion_hid_poller,
 
             devices,
+            vu_meters,
             routing,
             mixer,
             ad_phase,
@@ -313,7 +283,7 @@ impl ControlPanel {
         egui::CentralPanel::default()
             .frame(egui::Frame::NONE)
             .show(ui, |ui| {
-                let Some(orion_state) = self.orion_states.lock().unwrap().current().cloned() else {
+                let Some(mut orion_state) = self.orion_states.lock().unwrap().current().cloned() else {
                     self.devices.draw(ui);
                     return;
                 };
@@ -332,7 +302,7 @@ impl ControlPanel {
                 self.draw_tab_buttons(ui);
                 self.draw_presets(ui, orion_state.preset_standby);
 
-                Self::draw_vu_meters(
+                self.vu_meters.draw(
                     ui,
                     &orion_state.left_vu_values,
                     &orion_state.right_vu_values,
@@ -689,31 +659,6 @@ impl ControlPanel {
 
                 orion_hid.queue_preset(preset);
             }
-        }
-    }
-
-    fn draw_vu_meters(ui: &mut egui::Ui, left_vu_values: &[u8; 32], right_vu_values: &[u8; 32]) {
-        for vu_meter_x in 0..32 {
-            let pos_x = vu_meter_x * ControlPanelDimensions::VU_METER_X_STEP;
-
-            let pos_x_left = ControlPanelDimensions::VU_METER_LEFT_X + pos_x;
-            let pos_x_right = ControlPanelDimensions::VU_METER_RIGHT_X + pos_x;
-
-            render_vu_meter!(
-                ui,
-                pos_x_left,
-                ControlPanelDimensions::VU_METER_Y,
-                left_vu_values[vu_meter_x],
-                "MonitorPeakMeter/default/background"
-            );
-
-            render_vu_meter!(
-                ui,
-                pos_x_right,
-                ControlPanelDimensions::VU_METER_Y,
-                right_vu_values[vu_meter_x],
-                "MonitorPeakMeter/default/background"
-            );
         }
     }
 

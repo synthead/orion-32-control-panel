@@ -11,6 +11,7 @@ mod control_panel_helpers;
 mod control_panel_mixer;
 mod control_panel_routing;
 mod control_panel_settings;
+mod control_panel_vu_meters;
 
 mod drag_value;
 mod ignore_value;
