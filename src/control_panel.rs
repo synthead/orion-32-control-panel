@@ -831,7 +831,7 @@ impl ControlPanel {
         }
     }
 
-    fn draw_serial_combobox(&self, ui: &mut egui::Ui) {
+    fn draw_serial_combobox(&mut self, ui: &mut egui::Ui) {
         let (devices, selected_hid_path) = {
             let states = self.orion_states.lock().unwrap();
 
@@ -875,6 +875,7 @@ impl ControlPanel {
             |selected| {
                 if let Some((hid_path, _)) = devices.get(selected as usize) {
                     self.orion_states.lock().unwrap().selected_hid_path = Some(hid_path.clone());
+                    self.vu_meters.reset();
                 }
             },
         );
