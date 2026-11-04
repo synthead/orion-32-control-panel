@@ -282,17 +282,19 @@ impl ControlPanel {
         egui::CentralPanel::default()
             .frame(egui::Frame::NONE)
             .show(ui, |ui| {
-                let Some(mut orion_state) = self.orion_states.lock().unwrap().current().cloned()
+                let Some(mut orion_state) = self
+                    .orion_states
+                    .lock()
+                    .unwrap()
+                    .current()
+                    .cloned()
+                    .filter(|state| state.inits_completed == OrionStateInitSteps::ALL)
                 else {
                     self.devices.draw(ui);
+                    self.vu_meters.reset();
+
                     return;
                 };
-
-                if orion_state.inits_completed != OrionStateInitSteps::ALL {
-                    self.devices.draw(ui);
-
-                    return;
-                }
 
                 Self::draw_base_graphics(ui);
 
@@ -831,7 +833,7 @@ impl ControlPanel {
         }
     }
 
-    fn draw_serial_combobox(&self, ui: &mut egui::Ui) {
+    fn draw_serial_combobox(&mut self, ui: &mut egui::Ui) {
         let (devices, selected_hid_path) = {
             let states = self.orion_states.lock().unwrap();
 
@@ -875,6 +877,7 @@ impl ControlPanel {
             |selected| {
                 if let Some((hid_path, _)) = devices.get(selected as usize) {
                     self.orion_states.lock().unwrap().selected_hid_path = Some(hid_path.clone());
+                    self.vu_meters.reset();
                 }
             },
         );

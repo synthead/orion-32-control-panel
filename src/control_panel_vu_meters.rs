@@ -127,6 +127,11 @@ impl ControlPanelVuMeters {
         }
     }
 
+    pub(crate) fn reset(&mut self) {
+        self.meter_state_left = [MeterState::SILENT; 32];
+        self.meter_state_right = [MeterState::SILENT; 32];
+    }
+
     fn y_for_db(&self, db: f32) -> f32 {
         let normalized_level =
             1.0 - (db / ControlPanelVuMetersDimensions::VU_METER_DB_SPAN).clamp(0.0, 1.0);
