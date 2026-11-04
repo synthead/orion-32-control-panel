@@ -154,29 +154,23 @@ impl ControlPanelRouting {
         }
     }
 
-    pub(crate) fn draw(&mut self, ui: &mut egui::Ui) {
-        let Some(mut orion_state) = self.orion_states.lock().unwrap().current().cloned() else {
-            return;
-        };
-
-        orion_state.calculate_channel_counts();
-
+    pub(crate) fn draw(&mut self, ui: &mut egui::Ui, orion_state: &OrionState) {
         Self::draw_base_graphics(ui);
 
         self.draw_undo(ui);
-        self.draw_save(ui, &orion_state);
+        self.draw_save(ui, orion_state);
 
         self.draw_signals(ui, orion_state.signals);
         self.draw_text(ui, &orion_state.labels);
 
-        self.draw_sources(ui, &orion_state);
-        self.draw_targets(ui, &orion_state);
-        self.draw_drag(ui, &orion_state);
+        self.draw_sources(ui, orion_state);
+        self.draw_targets(ui, orion_state);
+        self.draw_drag(ui, orion_state);
 
         self.clear_target_selection_when_outside(ui);
-        self.update_targets_on_mouseup(ui, &orion_state);
+        self.update_targets_on_mouseup(ui, orion_state);
 
-        self.update_persistence(&orion_state);
+        self.update_persistence(orion_state);
     }
 
     pub(crate) fn create_config_dir(&self) {

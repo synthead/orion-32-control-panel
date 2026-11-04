@@ -353,7 +353,7 @@ impl ControlPanel {
                 match self.current_tab {
                     1 => self.mixer.draw(ui),
                     2 => self.ad_phase.draw(ui),
-                    _ => self.routing.draw(ui),
+                    _ => self.routing.draw(ui, &orion_state),
                 };
 
                 if self.settings.enabled || self.about.enabled {
