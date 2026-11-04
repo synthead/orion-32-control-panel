@@ -389,15 +389,13 @@ impl ControlPanelSettings {
             &brightness_text,
             WidgetDimensions::TEXT_SIZE,
             WidgetColors::TEXT_COLOR,
-        ) {
-            if tab.is_none() {
-                if let Some(brightness_new) = Self::brightness_for_text(&text) {
-                    self.orion_hid
-                        .lock()
-                        .unwrap()
-                        .queue_brightness(brightness_new);
-                }
-            }
+        ) && tab.is_none()
+            && let Some(brightness_new) = Self::brightness_for_text(&text)
+        {
+            self.orion_hid
+                .lock()
+                .unwrap()
+                .queue_brightness(brightness_new);
         }
     }
 
