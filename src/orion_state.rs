@@ -27,18 +27,10 @@ impl OrionStateSignals {
     pub(crate) const ADAT_2: u8 = 0x80;
 }
 
+#[derive(Default)]
 pub(crate) struct OrionStates {
     pub(crate) selected_hid_path: Option<CString>,
     pub(crate) orion_states: HashMap<CString, OrionState>,
-}
-
-impl Default for OrionStates {
-    fn default() -> Self {
-        Self {
-            selected_hid_path: None,
-            orion_states: HashMap::new(),
-        }
-    }
 }
 
 impl OrionStates {
