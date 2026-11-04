@@ -1,6 +1,6 @@
-use std::sync::mpsc;
 use std::sync::Arc;
 use std::sync::Mutex;
+use std::sync::mpsc;
 use std::thread;
 
 use crate::constants::{WidgetColors, WidgetDimensions};
