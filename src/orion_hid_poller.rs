@@ -50,7 +50,8 @@ impl OrionHidPoller {
     pub(crate) fn poll_and_update_state(&mut self) {
         if !self.try_connect() {
             self.discard_pending_writes();
-            thread::sleep(Duration::from_millis(20));
+
+            thread::sleep(Self::DEVICE_REFRESH_INTERVAL);
 
             return;
         }
@@ -83,6 +84,8 @@ impl OrionHidPoller {
             .contains_key(selected_hid_path);
 
         if !state_exists {
+            thread::sleep(Duration::from_millis(5));
+
             return;
         }
 
@@ -94,7 +97,11 @@ impl OrionHidPoller {
                     Err(())
                 }
             }
-            None => return,
+            None => {
+                thread::sleep(Duration::from_millis(5));
+
+                return;
+            }
         };
 
         match poll_result {
