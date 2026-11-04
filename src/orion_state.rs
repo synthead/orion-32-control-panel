@@ -1,6 +1,7 @@
 use crate::constants::{RoutingColumns, RoutingLabelColors, RoutingLabels, RoutingRows};
 use std::collections::HashMap;
 use std::ffi::CString;
+use std::sync::Arc;
 
 pub(crate) struct OrionStateInitSteps;
 
@@ -49,7 +50,7 @@ impl OrionStates {
 
 #[derive(Clone)]
 pub(crate) struct OrionState {
-    pub(crate) labels: [[String; 32]; 7],
+    pub(crate) labels: Arc<[[String; 32]; 7]>,
 
     pub(crate) source_counts: [usize; 7],
     pub(crate) target_counts: [usize; 7],
@@ -92,7 +93,7 @@ impl Default for OrionState {
         });
 
         Self {
-            labels,
+            labels: Arc::new(labels),
 
             source_counts: [0; 7],
             target_counts: [0; 7],
