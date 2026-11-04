@@ -283,37 +283,35 @@ impl ControlPanelMixer {
                 WidgetColors::TEXT_COLOR,
             );
 
-            if edit_permitted {
-                if let Some((level_text, tab)) = level_edit_result {
-                    if let Some(parsed_level) = Self::level_for_text(&level_text) {
-                        let mut orion_hid = self.orion_hid.lock().unwrap();
+            if edit_permitted && let Some((level_text, tab)) = level_edit_result {
+                if let Some(parsed_level) = Self::level_for_text(&level_text) {
+                    let mut orion_hid = self.orion_hid.lock().unwrap();
 
+                    orion_hid.queue_mixer_channel(
+                        channel as u8,
+                        parsed_level,
+                        pans_solos_mutes[channel],
+                    );
+
+                    if linked_state {
                         orion_hid.queue_mixer_channel(
-                            channel as u8,
+                            linked_channel as u8,
                             parsed_level,
-                            pans_solos_mutes[channel],
+                            pans_solos_mutes[linked_channel],
                         );
-
-                        if linked_state {
-                            orion_hid.queue_mixer_channel(
-                                linked_channel as u8,
-                                parsed_level,
-                                pans_solos_mutes[linked_channel],
-                            );
-                        }
                     }
-
-                    if let Some(tab) = tab {
-                        let next_channel = (channel as isize - 1 + tab).rem_euclid(32) + 1;
-
-                        self.text_editor
-                            .lock()
-                            .unwrap()
-                            .set_editing_id(egui::Id::new(("level", next_channel as u32)));
-                    }
-
-                    edit_permitted = false;
                 }
+
+                if let Some(tab) = tab {
+                    let next_channel = (channel as isize - 1 + tab).rem_euclid(32) + 1;
+
+                    self.text_editor
+                        .lock()
+                        .unwrap()
+                        .set_editing_id(egui::Id::new(("level", next_channel as u32)));
+                }
+
+                edit_permitted = false;
             }
 
             let pan_hitbox_rect = egui::Rect::from_min_size(
@@ -369,27 +367,25 @@ impl ControlPanelMixer {
                 WidgetColors::TEXT_COLOR,
             );
 
-            if edit_permitted {
-                if let Some((text, tab)) = pan_edit_result {
-                    if let Some(parsed_pan) = Self::pan_for_text(&text) {
-                        self.orion_hid.lock().unwrap().queue_mixer_channel(
-                            channel as u8,
-                            levels[channel],
-                            parsed_pan | solo | mute,
-                        );
-                    }
-
-                    if let Some(tab) = tab {
-                        let next_channel = (channel as isize - 1 + tab).rem_euclid(32) + 1;
-
-                        self.text_editor
-                            .lock()
-                            .unwrap()
-                            .set_editing_id(egui::Id::new(("pan", next_channel as u32)));
-                    }
-
-                    edit_permitted = false;
+            if edit_permitted && let Some((text, tab)) = pan_edit_result {
+                if let Some(parsed_pan) = Self::pan_for_text(&text) {
+                    self.orion_hid.lock().unwrap().queue_mixer_channel(
+                        channel as u8,
+                        levels[channel],
+                        parsed_pan | solo | mute,
+                    );
                 }
+
+                if let Some(tab) = tab {
+                    let next_channel = (channel as isize - 1 + tab).rem_euclid(32) + 1;
+
+                    self.text_editor
+                        .lock()
+                        .unwrap()
+                        .set_editing_id(egui::Id::new(("pan", next_channel as u32)));
+                }
+
+                edit_permitted = false;
             }
 
             let pan_knob_pos_x = base_pos_x as u16 + ControlPanelMixerDimensions::PAN_KNOB_X;
@@ -599,13 +595,13 @@ impl ControlPanelMixer {
             WidgetColors::TEXT_COLOR,
         );
 
-        if let Some((text, None)) = edit_result {
-            if let Some(parsed_level) = Self::level_for_text(&text) {
-                self.orion_hid
-                    .lock()
-                    .unwrap()
-                    .queue_mixer_channel(0, parsed_level, mute);
-            }
+        if let Some((text, None)) = edit_result
+            && let Some(parsed_level) = Self::level_for_text(&text)
+        {
+            self.orion_hid
+                .lock()
+                .unwrap()
+                .queue_mixer_channel(0, parsed_level, mute);
         }
 
         let mute_response = if mute & Self::MUTE_BIT != 0 {
@@ -646,7 +642,7 @@ impl ControlPanelMixer {
         (-(level as i8)).to_string()
     }
 
-    fn level_for_text(text: &String) -> Option<u8> {
+    fn level_for_text(text: &str) -> Option<u8> {
         let text_trimmed = text.trim();
 
         if text_trimmed == "-inf" {
@@ -658,14 +654,14 @@ impl ControlPanelMixer {
             Err(_) => return None,
         };
 
-        if text_parsed < -95 || text_parsed > 0 {
+        if !(-95..=0).contains(&text_parsed) {
             return None;
         }
 
-        Some(text_parsed.abs() as u8)
+        Some(text_parsed.unsigned_abs())
     }
 
-    fn pan_for_text(text: &String) -> Option<u8> {
+    fn pan_for_text(text: &str) -> Option<u8> {
         let text_trimmed = text.trim();
 
         let text_parsed = match text_trimmed.parse::<i8>() {
@@ -673,7 +669,7 @@ impl ControlPanelMixer {
             Err(_) => return None,
         };
 
-        if text_parsed < -30 || text_parsed > 30 {
+        if !(-30..=30).contains(&text_parsed) {
             return None;
         }
 
