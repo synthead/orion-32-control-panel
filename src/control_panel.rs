@@ -883,7 +883,7 @@ impl ControlPanel {
         );
     }
 
-    fn line_out_for_text(text: &String) -> Option<u8> {
+    fn line_out_for_text(text: &str) -> Option<u8> {
         let text_parsed = text.trim();
         let text_parsed = text_parsed.strip_suffix("dB").unwrap_or(text_parsed);
         let text_parsed = text_parsed.strip_suffix("db").unwrap_or(text_parsed);
