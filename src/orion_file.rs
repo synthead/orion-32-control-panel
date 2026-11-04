@@ -1,4 +1,4 @@
-use serde_pickle::{self, value::HashableValue, Value};
+use serde_pickle::{self, Value, value::HashableValue};
 use std::collections::BTreeMap;
 use std::fs::File;
 use std::path::PathBuf;
