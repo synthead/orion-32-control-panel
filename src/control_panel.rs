@@ -147,7 +147,7 @@ impl ControlPanel {
         "192.0 kHz",
     ];
 
-    pub fn new() -> Self {
+    pub fn new(ctx: &egui::Context) -> Self {
         let orion_states = Arc::new(Mutex::new(OrionStates::default()));
         let (hid_write_tx, hid_write_rx) = mpsc::channel::<[u8; 64]>();
 
@@ -243,7 +243,7 @@ impl ControlPanel {
 
         preload_assets_nonblocking!(&egui_ctx);
 
-        let control_panel = Self::new();
+        let control_panel = Self::new(&egui_ctx);
         control_panel.init_config();
 
         eframe::run_native_ext(
