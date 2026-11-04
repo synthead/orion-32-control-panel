@@ -73,6 +73,9 @@ pub(crate) struct OrionState {
     pub(crate) frequency: [u8; 3],
     pub(crate) preset_standby: u8,
 
+    pub(crate) madi_channels: u8,
+    pub(crate) adat_channels: u8,
+
     pub(crate) trims: u8,
     pub(crate) oscillators: u8,
     pub(crate) brightness: u8,
@@ -116,6 +119,9 @@ impl Default for OrionState {
             signals: 0,
             frequency: [0; 3],
             preset_standby: u8::MAX,
+
+            madi_channels: 0,
+            adat_channels: 0,
 
             trims: 0,
             oscillators: 0,
