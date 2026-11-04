@@ -380,8 +380,8 @@ impl ControlPanelRouting {
 
         ui.painter().rect_filled(rect, 0.0, color);
 
-        let id_with = format!("route_{column}_{row}");
-        let id = ui.id().with(&id_with);
+        let field_id = egui::Id::new(("route", column, row));
+        let id = ui.id().with(field_id);
         let response = ui.interact(rect, id, egui::Sense::click());
 
         if response.double_clicked() {
@@ -396,7 +396,7 @@ impl ControlPanelRouting {
         self.text_editor.lock().unwrap().draw(
             ui,
             rect,
-            &id_with,
+            field_id,
             &label,
             WidgetDimensions::TEXT_SIZE,
             WidgetColors::TEXT_COLOR_LABEL,
@@ -470,7 +470,7 @@ impl ControlPanelRouting {
                 self.text_editor
                     .lock()
                     .unwrap()
-                    .set_editing_id(&format!("route_{column_next}_{row_next}"));
+                    .set_editing_id(egui::Id::new(("route", column_next as u8, row_next as u8)));
 
                 self.source_select_row = row_next as u8;
                 self.source_select_columns.clear();

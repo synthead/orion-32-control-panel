@@ -284,7 +284,7 @@ impl ControlPanelMixer {
             let level_edit_result = self.text_editor.lock().unwrap().draw(
                 ui,
                 level_text_rect,
-                &format!("level_{channel}"),
+                egui::Id::new(("level", channel as u32)),
                 &level_text,
                 WidgetDimensions::TEXT_SIZE_MIXER_VALUE,
                 WidgetColors::TEXT_COLOR,
@@ -316,7 +316,7 @@ impl ControlPanelMixer {
                         self.text_editor
                             .lock()
                             .unwrap()
-                            .set_editing_id(&format!("level_{next_channel}"));
+                            .set_editing_id(egui::Id::new(("level", next_channel as u32)));
                     }
 
                     edit_permitted = false;
@@ -370,7 +370,7 @@ impl ControlPanelMixer {
             let pan_edit_result = self.text_editor.lock().unwrap().draw(
                 ui,
                 pan_text_rect,
-                &format!("pan_{channel}"),
+                egui::Id::new(("pan", channel as u32)),
                 &pan_float.to_string(),
                 WidgetDimensions::TEXT_SIZE_MIXER_VALUE,
                 WidgetColors::TEXT_COLOR,
@@ -392,7 +392,7 @@ impl ControlPanelMixer {
                         self.text_editor
                             .lock()
                             .unwrap()
-                            .set_editing_id(&format!("pan_{next_channel}"));
+                            .set_editing_id(egui::Id::new(("pan", next_channel as u32)));
                     }
 
                     edit_permitted = false;
@@ -600,7 +600,7 @@ impl ControlPanelMixer {
         let edit_result = self.text_editor.lock().unwrap().draw(
             ui,
             text_rect,
-            "level_0",
+            egui::Id::new(("level", 0u32)),
             &Self::text_for_level(level),
             WidgetDimensions::TEXT_SIZE_MIXER_VALUE,
             WidgetColors::TEXT_COLOR,

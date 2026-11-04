@@ -385,7 +385,7 @@ impl ControlPanelSettings {
         if let Some((text, tab)) = self.text_editor.lock().unwrap().draw(
             ui,
             brightness_text_hitbox_rect,
-            "brightness",
+            egui::Id::new("brightness"),
             &brightness_text,
             WidgetDimensions::TEXT_SIZE,
             WidgetColors::TEXT_COLOR,

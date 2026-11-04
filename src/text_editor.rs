@@ -1,5 +1,5 @@
 pub(crate) struct TextEditor {
-    editing_id: Option<String>,
+    editing_id: Option<egui::Id>,
     edit_string: Option<String>,
 }
 
@@ -15,19 +15,19 @@ impl TextEditor {
         &mut self,
         ui: &mut egui::Ui,
         rect: egui::Rect,
-        field_id: &str,
+        field_id: egui::Id,
         text: &str,
         font_size: f32,
         color: egui::Color32,
     ) -> Option<(String, Option<isize>)> {
         let id = ui.id().with(field_id);
-        let is_editing = self.editing_id.as_deref() == Some(field_id);
+        let is_editing = self.editing_id == Some(field_id);
 
         if !is_editing {
             let text_response = ui.interact(rect, id, egui::Sense::click());
 
             if text_response.double_clicked() {
-                self.editing_id = Some(field_id.to_owned());
+                self.editing_id = Some(field_id);
             } else {
                 let galley = ui.painter().layout_no_wrap(
                     text.to_owned(),
@@ -118,8 +118,8 @@ impl TextEditor {
         None
     }
 
-    pub(crate) fn set_editing_id(&mut self, editing_id: &str) {
-        self.editing_id = Some(editing_id.to_owned());
+    pub(crate) fn set_editing_id(&mut self, editing_id: egui::Id) {
+        self.editing_id = Some(editing_id);
         self.edit_string = None;
     }
 }

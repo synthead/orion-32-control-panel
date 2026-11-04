@@ -878,7 +878,7 @@ impl ControlPanel {
         if let Some((text, tab)) = self.text_editor.lock().unwrap().draw(
             ui,
             line_out_text_hitbox_rect,
-            "line_out",
+            egui::Id::new("line_out"),
             &line_out_text,
             WidgetDimensions::TEXT_SIZE,
             WidgetColors::TEXT_COLOR,
