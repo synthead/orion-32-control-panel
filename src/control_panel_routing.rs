@@ -154,7 +154,9 @@ impl ControlPanelRouting {
         }
     }
 
-    pub(crate) fn draw(&mut self, ui: &mut egui::Ui, orion_state: &OrionState) {
+    pub(crate) fn draw(&mut self, ui: &mut egui::Ui, orion_state: &mut OrionState) {
+        orion_state.calculate_channel_counts();
+
         Self::draw_base_graphics(ui);
 
         self.draw_undo(ui);

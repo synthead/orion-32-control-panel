@@ -321,9 +321,9 @@ impl ControlPanel {
                 self.draw_line_out(ui, orion_state.line_out);
 
                 match self.current_tab {
-                    1 => self.mixer.draw(ui, &orion_state),
+                    1 => self.mixer.draw(ui, &mut orion_state),
                     2 => self.ad_phase.draw(ui, &orion_state),
-                    _ => self.routing.draw(ui, &orion_state),
+                    _ => self.routing.draw(ui, &mut orion_state),
                 };
 
                 if self.settings.enabled || self.about.enabled {
