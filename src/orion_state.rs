@@ -143,7 +143,7 @@ impl OrionState {
         };
 
         let madi_2_count = match self.sample_rate {
-            0 | 1 | 2 => 32,
+            0..=2 => 32,
             _ => 0,
         };
 
