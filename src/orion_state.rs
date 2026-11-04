@@ -73,6 +73,9 @@ pub(crate) struct OrionState {
     pub(crate) frequency: [u8; 3],
     pub(crate) preset_standby: u8,
 
+    pub(crate) madi_channels: u8,
+    pub(crate) adat_channels: u8,
+
     pub(crate) trims: u8,
     pub(crate) oscillators: u8,
     pub(crate) brightness: u8,
@@ -117,6 +120,9 @@ impl Default for OrionState {
             frequency: [0; 3],
             preset_standby: u8::MAX,
 
+            madi_channels: 0,
+            adat_channels: 0,
+
             trims: 0,
             oscillators: 0,
             brightness: 0,
@@ -139,38 +145,26 @@ impl OrionState {
             32
         };
 
-        let madi_1_count = match self.sample_rate {
-            5 | 6 => 16,
-            _ => 32,
-        };
-
-        let madi_2_count = match self.sample_rate {
-            0..=2 => 32,
-            _ => 0,
-        };
-
-        let adat_count = match self.sample_rate {
-            3 | 4 => 8,
-            5 | 6 => 4,
-            _ => 16,
-        };
+        let madi_1_count = self.madi_channels.clamp(0, 32) as usize;
+        let madi_2_count = self.madi_channels.saturating_sub(32).clamp(0, 32) as usize;
+        let adat_count = self.adat_channels as usize;
 
         self.source_counts = [
             32,
-            usb_channel_count.try_into().unwrap(),
-            madi_1_count.try_into().unwrap(),
-            madi_2_count.try_into().unwrap(),
-            adat_count.try_into().unwrap(),
+            usb_channel_count,
+            madi_1_count,
+            madi_2_count,
+            adat_count,
             2,
             2,
         ];
 
         self.target_counts = [
             32,
-            usb_channel_count.try_into().unwrap(),
-            madi_1_count.try_into().unwrap(),
-            madi_2_count.try_into().unwrap(),
-            adat_count.try_into().unwrap(),
+            usb_channel_count,
+            madi_1_count,
+            madi_2_count,
+            adat_count,
             2,
             32,
         ];
