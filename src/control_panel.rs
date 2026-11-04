@@ -244,7 +244,7 @@ impl ControlPanel {
         preload_assets_nonblocking!(&egui_ctx);
 
         let control_panel = Self::new(&egui_ctx);
-        control_panel.init_config();
+        control_panel.create_config_dir();
 
         eframe::run_native_ext(
             Self::WINDOW_TITLE,
@@ -274,9 +274,8 @@ impl ControlPanel {
         )
     }
 
-    pub(crate) fn init_config(&self) {
+    pub(crate) fn create_config_dir(&self) {
         self.routing.create_config_dir();
-        self.routing.read_persistence_file();
     }
 
     fn ui_content(&mut self, ui: &mut egui::Ui) {

@@ -12,7 +12,7 @@ use crate::orion_file::OrionFile;
 use crate::orion_persistence::OrionPersistence;
 
 use crate::orion_hid::OrionHid;
-use crate::orion_state::{OrionState, OrionStateSignals, OrionStates};
+use crate::orion_state::{OrionState, OrionStateInitSteps, OrionStateSignals, OrionStates};
 
 use crate::control_panel_helpers::ControlPanelHelpers;
 use crate::text_editor::TextEditor;
@@ -64,7 +64,6 @@ impl ControlPanelRoutingDimensions {
 }
 
 type RoutingFileData = ([[String; 32]; 7], [[u8; 32]; 7]);
-type LabelsAndRoutes = (std::sync::Arc<[[String; 32]; 7]>, [[u8; 32]; 7]);
 
 pub(crate) struct ControlPanelRouting {
     orion_states: Arc<Mutex<OrionStates>>,
@@ -79,8 +78,6 @@ pub(crate) struct ControlPanelRouting {
 
     undo_buffer: Vec<(u8, [u8; 32], [u8; 32])>,
     undo_cursor: usize,
-
-    last_labels_routes: Option<LabelsAndRoutes>,
 
     label_edit_cell: Option<[u8; 2]>,
     source_select_range_row: Option<u8>,
@@ -135,8 +132,6 @@ impl ControlPanelRouting {
             undo_buffer: Vec::new(),
             undo_cursor: 0,
 
-            last_labels_routes: None,
-
             label_edit_cell: None,
 
             source_select_range_row: None,
@@ -157,6 +152,8 @@ impl ControlPanelRouting {
     pub(crate) fn draw(&mut self, ui: &mut egui::Ui, orion_state: &mut OrionState) {
         orion_state.calculate_channel_counts();
 
+        self.read_persistence_for_new_serials(orion_state);
+
         Self::draw_base_graphics(ui);
 
         self.draw_undo(ui);
@@ -171,8 +168,6 @@ impl ControlPanelRouting {
 
         self.clear_target_selection_when_outside(ui);
         self.update_targets_on_mouseup(ui, orion_state);
-
-        self.update_persistence(orion_state);
     }
 
     pub(crate) fn create_config_dir(&self) {
@@ -341,6 +336,8 @@ impl ControlPanelRouting {
             if let Some((labels, routes)) = result {
                 if let Some(orion_state) = self.orion_states.lock().unwrap().current_mut() {
                     orion_state.labels = std::sync::Arc::new(labels);
+
+                    self.write_persistence_file(&orion_state);
                 }
 
                 {
@@ -443,6 +440,8 @@ impl ControlPanelRouting {
             if let Some(orion_state) = self.orion_states.lock().unwrap().current_mut() {
                 std::sync::Arc::make_mut(&mut orion_state.labels)[row as usize][column as usize] =
                     route_text;
+
+                self.write_persistence_file(&orion_state);
             }
 
             if let Some(tab) = tab {
@@ -1028,22 +1027,11 @@ impl ControlPanelRouting {
         self.undo_cursor = 0;
     }
 
-    fn update_persistence(&mut self, orion_state: &OrionState) {
-        let changed = match &self.last_labels_routes {
-            Some((labels, routes)) => {
-                labels != &orion_state.labels || routes != &orion_state.routes
-            }
-            None => {
-                self.last_labels_routes = Some((orion_state.labels.clone(), orion_state.routes));
-
-                return;
-            }
-        };
-
-        if changed {
-            self.last_labels_routes = Some((orion_state.labels.clone(), orion_state.routes));
-
-            self.write_persistence_file(orion_state);
+    fn read_persistence_for_new_serials(&mut self, orion_state: &OrionState) {
+        if !orion_state.persistence_loaded
+            && orion_state.inits_completed & OrionStateInitSteps::SERIAL_NUMBER != 0
+        {
+            self.read_persistence_file();
         }
     }
 
@@ -1064,10 +1052,11 @@ impl ControlPanelRouting {
             let orion_persistance = OrionPersistence::new(path);
 
             if let Some(orion_state) = self.orion_states.lock().unwrap().current_mut() {
-                let (labels, routes) = orion_persistance.decode();
+                if let Some(labels) = orion_persistance.decode(&orion_state) {
+                    orion_state.labels = std::sync::Arc::new(labels);
+                }
 
-                orion_state.labels = std::sync::Arc::new(labels);
-                orion_state.routes = routes;
+                orion_state.persistence_loaded = true;
             }
         }
     }
@@ -1076,7 +1065,7 @@ impl ControlPanelRouting {
         if let Some(path) = self.persistence_file_path() {
             let orion_persistance = OrionPersistence::new(path);
 
-            orion_persistance.encode(orion_state);
+            orion_persistance.encode(&orion_state);
         }
     }
 }
