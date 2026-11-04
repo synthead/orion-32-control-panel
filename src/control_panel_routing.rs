@@ -346,8 +346,8 @@ impl ControlPanelRouting {
                 {
                     let mut orion_hid = self.orion_hid.lock().unwrap();
 
-                    for row in 0..7 {
-                        orion_hid.queue_routes(row as u8, &routes[row]);
+                    for (row, row_routes) in routes.iter().enumerate() {
+                        orion_hid.queue_routes(row as u8, row_routes);
                     }
                 }
 
