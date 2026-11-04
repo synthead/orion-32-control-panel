@@ -114,6 +114,9 @@ impl OrionHidDevice {
         orion_state.madi_smux = hid_data[24];
         orion_state.usb_channels_spdif_src = hid_data[25];
 
+        orion_state.adat_channels = hid_data[27];
+        orion_state.madi_channels = hid_data[29];
+
         let vu = if hid_data[31] == 1 {
             &mut orion_state.left_vu_values
         } else {
