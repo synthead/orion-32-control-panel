@@ -6,12 +6,13 @@ impl ControlPanelVuMetersDimensions {
     const VU_METER_X_STEP: f32 = 11.0;
     const VU_METER_Y: f32 = 60.0;
 
-    const VU_METER_MAX_DB: u8 = 0x60;
-    const VU_METER_DB_SPAN: f32 = 96.0;
-
+    const VU_METER_CURVE_STRENGTH: f32 = 1.5;
     const VU_METER_FALL_DB_PER_SECOND: f32 = 80.0;
     const VU_METER_PEAK_HEIGHT: f32 = 2.0;
     const VU_METER_PEAK_HOLD_SECONDS: f32 = 1.0;
+
+    const VU_METER_MAX_DB: u8 = 0x60;
+    const VU_METER_DB_SPAN: f32 = 96.0;
 }
 
 const SILENT_DB: f32 = ControlPanelVuMetersDimensions::VU_METER_MAX_DB as f32;
@@ -127,8 +128,17 @@ impl ControlPanelVuMeters {
     }
 
     fn y_for_db(&self, db: f32) -> f32 {
-        (ControlPanelVuMetersDimensions::VU_METER_Y
-            + self.meter_height * db / ControlPanelVuMetersDimensions::VU_METER_DB_SPAN)
+        let normalized_level =
+            1.0 - (db / ControlPanelVuMetersDimensions::VU_METER_DB_SPAN).clamp(0.0, 1.0);
+
+        let curve_strength = ControlPanelVuMetersDimensions::VU_METER_CURVE_STRENGTH;
+        let curved_level = if curve_strength > 0.0 {
+            (curve_strength * normalized_level).exp_m1() / curve_strength.exp_m1()
+        } else {
+            normalized_level
+        };
+
+        (ControlPanelVuMetersDimensions::VU_METER_Y + self.meter_height * (1.0 - curved_level))
             .round()
     }
 
