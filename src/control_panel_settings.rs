@@ -510,7 +510,7 @@ impl ControlPanelSettings {
         }
     }
 
-    fn brightness_for_text(text: &String) -> Option<u8> {
+    fn brightness_for_text(text: &str) -> Option<u8> {
         let text_parsed = text.trim();
 
         let text_parsed = match text_parsed.parse::<u16>() {
