@@ -4,7 +4,7 @@ use std::sync::Mutex;
 use crate::constants::{WidgetColors, WidgetDimensions};
 
 use crate::orion_hid::OrionHid;
-use crate::orion_state::{OrionState, OrionStates};
+use crate::orion_state::OrionState;
 
 use crate::drag_value::DragValue;
 use crate::text_editor::TextEditor;
@@ -70,7 +70,6 @@ impl ControlPanelMixerDimensions {
 }
 
 pub(crate) struct ControlPanelMixer {
-    orion_states: Arc<Mutex<OrionStates>>,
     orion_hid: Arc<Mutex<OrionHid>>,
 
     text_editor: Arc<Mutex<TextEditor>>,
@@ -84,13 +83,11 @@ impl ControlPanelMixer {
     const MUTE_BIT: u8 = 0x40;
 
     pub(crate) fn new(
-        orion_states: Arc<Mutex<OrionStates>>,
         orion_hid: Arc<Mutex<OrionHid>>,
         text_editor: Arc<Mutex<TextEditor>>,
         drag_value: Arc<Mutex<DragValue>>,
     ) -> Self {
         Self {
-            orion_states,
             orion_hid,
 
             text_editor,
@@ -100,15 +97,9 @@ impl ControlPanelMixer {
         }
     }
 
-    pub(crate) fn draw(&mut self, ui: &mut egui::Ui) {
-        let Some(mut orion_state) = self.orion_states.lock().unwrap().current().cloned() else {
-            return;
-        };
-
-        orion_state.calculate_channel_counts();
-
+    pub(crate) fn draw(&mut self, ui: &mut egui::Ui, orion_state: &OrionState) {
         Self::draw_base_graphics(ui);
-        Self::draw_labels(ui, &orion_state);
+        Self::draw_labels(ui, orion_state);
 
         self.draw_channels(
             ui,
