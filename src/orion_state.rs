@@ -188,20 +188,20 @@ impl OrionState {
         Some([column, row])
     }
 
-    pub(crate) fn label_for_route(&self, route: u8, truncate: bool) -> String {
+    pub(crate) fn label_for_route(&self, route: u8, truncate: bool) -> &str {
         if let Some([column, row]) = self.column_row_for_route(route, truncate) {
             if row == RoutingRows::SPECIAL {
                 return match column {
-                    0 => RoutingLabels::OSC_1.to_string(),
-                    1 => RoutingLabels::OSC_2.to_string(),
-                    _ => RoutingLabels::MUTE.to_string(),
+                    0 => RoutingLabels::OSC_1,
+                    1 => RoutingLabels::OSC_2,
+                    _ => RoutingLabels::MUTE,
                 };
             }
 
-            return self.labels[row as usize][column as usize].clone();
+            return &self.labels[row as usize][column as usize];
         }
 
-        RoutingLabels::MUTE.to_string()
+        RoutingLabels::MUTE
     }
 
     pub(crate) fn color_for_route(&self, route: u8, truncate: bool) -> egui::Color32 {
