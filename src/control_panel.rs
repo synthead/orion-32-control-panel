@@ -629,11 +629,8 @@ impl ControlPanel {
                 ),
             );
 
-            let response = ui.interact(
-                rect,
-                ui.id().with(&format!("preset_{preset}")),
-                egui::Sense::click(),
-            );
+            let response =
+                ui.interact(rect, ui.id().with(("preset", preset)), egui::Sense::click());
 
             let color = if preset == preset_standby & 0x07 || response.contains_pointer() {
                 WidgetColors::TEXT_COLOR_PRESET
