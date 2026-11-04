@@ -283,7 +283,8 @@ impl ControlPanel {
         egui::CentralPanel::default()
             .frame(egui::Frame::NONE)
             .show(ui, |ui| {
-                let Some(mut orion_state) = self.orion_states.lock().unwrap().current().cloned() else {
+                let Some(mut orion_state) = self.orion_states.lock().unwrap().current().cloned()
+                else {
                     self.devices.draw(ui);
                     return;
                 };
