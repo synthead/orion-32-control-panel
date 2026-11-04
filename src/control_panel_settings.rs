@@ -249,7 +249,7 @@ impl ControlPanelSettings {
             &Self::OSC_FREQUENCY_SELECTIONS,
             true,
             |selected| {
-                let oscillators_new = (oscillators & !0x01) | (selected * 0x01);
+                let oscillators_new = (oscillators & !0x01) | selected;
 
                 self.orion_hid
                     .lock()
