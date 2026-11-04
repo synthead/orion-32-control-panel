@@ -276,7 +276,6 @@ impl ControlPanel {
 
     pub(crate) fn init_config(&self) {
         self.routing.create_config_dir();
-        self.routing.read_persistence_file();
     }
 
     fn ui_content(&mut self, ui: &mut egui::Ui) {
