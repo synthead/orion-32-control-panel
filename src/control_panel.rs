@@ -737,7 +737,7 @@ impl ControlPanel {
             ControlPanelDimensions::CLOCK_SAMPLE_RATE_X,
             ControlPanelDimensions::CLOCK_Y,
             ControlPanelDimensions::CLOCK_WIDTH,
-            0,
+            orion_state.sample_rate,
             Some(freq_text.as_str()),
             &Self::SAMPLE_RATE_SELECTIONS,
             clock_oven && !signal_usb,
