@@ -1,8 +1,8 @@
 use std::collections::BTreeSet;
 use std::collections::HashSet;
-use std::sync::mpsc;
 use std::sync::Arc;
 use std::sync::Mutex;
+use std::sync::mpsc;
 
 use crate::constants::{
     RoutingColumns, RoutingLabelColors, RoutingRows, WidgetColors, WidgetDimensions,
