@@ -142,7 +142,7 @@ impl ControlPanelMixer {
             ui.painter().with_clip_rect(rect).text(
                 rect.center() - egui::vec2(0.0, 1.0),
                 egui::Align2::CENTER_CENTER,
-                &label,
+                label,
                 egui::FontId::proportional(WidgetDimensions::TEXT_SIZE),
                 WidgetColors::TEXT_COLOR_LABEL,
             );
