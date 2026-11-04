@@ -203,7 +203,6 @@ impl ControlPanel {
         );
 
         let mixer = ControlPanelMixer::new(
-            Arc::clone(&orion_states),
             Arc::clone(&orion_hid),
             Arc::clone(&text_editor),
             Arc::clone(&drag_value),
