@@ -249,7 +249,7 @@ impl ControlPanelSettings {
             &Self::OSC_FREQUENCY_SELECTIONS,
             true,
             |selected| {
-                let oscillators_new = (oscillators & !0x01) | (selected * 0x01);
+                let oscillators_new = (oscillators & !0x01) | selected;
 
                 self.orion_hid
                     .lock()
@@ -385,19 +385,17 @@ impl ControlPanelSettings {
         if let Some((text, tab)) = self.text_editor.lock().unwrap().draw(
             ui,
             brightness_text_hitbox_rect,
-            "brightness",
+            egui::Id::new("brightness"),
             &brightness_text,
             WidgetDimensions::TEXT_SIZE,
             WidgetColors::TEXT_COLOR,
-        ) {
-            if tab.is_none() {
-                if let Some(brightness_new) = Self::brightness_for_text(&text) {
-                    self.orion_hid
-                        .lock()
-                        .unwrap()
-                        .queue_brightness(brightness_new);
-                }
-            }
+        ) && tab.is_none()
+            && let Some(brightness_new) = Self::brightness_for_text(&text)
+        {
+            self.orion_hid
+                .lock()
+                .unwrap()
+                .queue_brightness(brightness_new);
         }
     }
 
@@ -510,7 +508,7 @@ impl ControlPanelSettings {
         }
     }
 
-    fn brightness_for_text(text: &String) -> Option<u8> {
+    fn brightness_for_text(text: &str) -> Option<u8> {
         let text_parsed = text.trim();
 
         let text_parsed = match text_parsed.parse::<u16>() {

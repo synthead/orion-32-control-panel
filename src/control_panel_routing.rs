@@ -1,8 +1,8 @@
 use std::collections::BTreeSet;
 use std::collections::HashSet;
-use std::sync::mpsc;
 use std::sync::Arc;
 use std::sync::Mutex;
+use std::sync::mpsc;
 
 use crate::constants::{
     RoutingColumns, RoutingLabelColors, RoutingRows, WidgetColors, WidgetDimensions,
@@ -64,6 +64,7 @@ impl ControlPanelRoutingDimensions {
 }
 
 type RoutingFileData = ([[String; 32]; 7], [[u8; 32]; 7]);
+type LabelsAndRoutes = (std::sync::Arc<[[String; 32]; 7]>, [[u8; 32]; 7]);
 
 pub(crate) struct ControlPanelRouting {
     orion_states: Arc<Mutex<OrionStates>>,
@@ -79,7 +80,7 @@ pub(crate) struct ControlPanelRouting {
     undo_buffer: Vec<(u8, [u8; 32], [u8; 32])>,
     undo_cursor: usize,
 
-    last_labels_routes: Option<([[String; 32]; 7], [[u8; 32]; 7])>,
+    last_labels_routes: Option<LabelsAndRoutes>,
 
     label_edit_cell: Option<[u8; 2]>,
     source_select_range_row: Option<u8>,
@@ -153,29 +154,25 @@ impl ControlPanelRouting {
         }
     }
 
-    pub(crate) fn draw(&mut self, ui: &mut egui::Ui) {
-        let Some(mut orion_state) = self.orion_states.lock().unwrap().current().cloned() else {
-            return;
-        };
-
+    pub(crate) fn draw(&mut self, ui: &mut egui::Ui, orion_state: &mut OrionState) {
         orion_state.calculate_channel_counts();
 
         Self::draw_base_graphics(ui);
 
         self.draw_undo(ui);
-        self.draw_save(ui, &orion_state);
+        self.draw_save(ui, orion_state);
 
         self.draw_signals(ui, orion_state.signals);
         self.draw_text(ui, &orion_state.labels);
 
-        self.draw_sources(ui, &orion_state);
-        self.draw_targets(ui, &orion_state);
-        self.draw_drag(ui, &orion_state);
+        self.draw_sources(ui, orion_state);
+        self.draw_targets(ui, orion_state);
+        self.draw_drag(ui, orion_state);
 
         self.clear_target_selection_when_outside(ui);
-        self.update_targets_on_mouseup(ui, &orion_state);
+        self.update_targets_on_mouseup(ui, orion_state);
 
-        self.update_persistence(&orion_state);
+        self.update_persistence(orion_state);
     }
 
     pub(crate) fn create_config_dir(&self) {
@@ -343,14 +340,14 @@ impl ControlPanelRouting {
         while let Ok(result) = self.file_dialog_rx.try_recv() {
             if let Some((labels, routes)) = result {
                 if let Some(orion_state) = self.orion_states.lock().unwrap().current_mut() {
-                    orion_state.labels = labels;
+                    orion_state.labels = std::sync::Arc::new(labels);
                 }
 
                 {
                     let mut orion_hid = self.orion_hid.lock().unwrap();
 
-                    for row in 0..7 {
-                        orion_hid.queue_routes(row as u8, &routes[row]);
+                    for (row, row_routes) in routes.iter().enumerate() {
+                        orion_hid.queue_routes(row as u8, row_routes);
                     }
                 }
 
@@ -360,7 +357,7 @@ impl ControlPanelRouting {
     }
 
     fn draw_source(&mut self, ui: &mut egui::Ui, column: u8, row: u8, orion_state: &OrionState) {
-        let label = &orion_state.labels[row as usize][column as usize].clone();
+        let label = &orion_state.labels[row as usize][column as usize];
         let (pos_x, pos_y) = Self::cell_pos(column, row, true);
 
         let color = if self.source_select_row == row && self.source_select_columns.contains(&column)
@@ -380,8 +377,8 @@ impl ControlPanelRouting {
 
         ui.painter().rect_filled(rect, 0.0, color);
 
-        let id_with = format!("route_{column}_{row}");
-        let id = ui.id().with(&id_with);
+        let field_id = egui::Id::new(("route", column, row));
+        let id = ui.id().with(field_id);
         let response = ui.interact(rect, id, egui::Sense::click());
 
         if response.double_clicked() {
@@ -396,8 +393,8 @@ impl ControlPanelRouting {
         self.text_editor.lock().unwrap().draw(
             ui,
             rect,
-            &id_with,
-            &label,
+            field_id,
+            label,
             WidgetDimensions::TEXT_SIZE,
             WidgetColors::TEXT_COLOR_LABEL,
         );
@@ -410,7 +407,7 @@ impl ControlPanelRouting {
         row: u8,
         orion_state: &OrionState,
     ) {
-        let label = &orion_state.labels[row as usize][column as usize].clone();
+        let label = &orion_state.labels[row as usize][column as usize];
         let (pos_x, pos_y) = Self::cell_pos(column, row, true);
         let color = orion_state.color_for_route(row, true);
 
@@ -436,15 +433,16 @@ impl ControlPanelRouting {
         let level_edit_result = self.text_editor.lock().unwrap().draw(
             ui,
             rect,
-            &format!("route_{column}_{row}"),
-            &label,
+            egui::Id::new(("route", column, row)),
+            label,
             WidgetDimensions::TEXT_SIZE,
             WidgetColors::TEXT_COLOR_LABEL,
         );
 
         if let Some((route_text, tab)) = level_edit_result {
             if let Some(orion_state) = self.orion_states.lock().unwrap().current_mut() {
-                orion_state.labels[row as usize][column as usize] = route_text;
+                std::sync::Arc::make_mut(&mut orion_state.labels)[row as usize][column as usize] =
+                    route_text;
             }
 
             if let Some(tab) = tab {
@@ -470,7 +468,7 @@ impl ControlPanelRouting {
                 self.text_editor
                     .lock()
                     .unwrap()
-                    .set_editing_id(&format!("route_{column_next}_{row_next}"));
+                    .set_editing_id(egui::Id::new(("route", column_next as u8, row_next as u8)));
 
                 self.source_select_row = row_next as u8;
                 self.source_select_columns.clear();
@@ -567,7 +565,7 @@ impl ControlPanelRouting {
                     orion_state.color_for_route(route, true)
                 };
 
-                let label = &orion_state.label_for_route(route, true);
+                let label = orion_state.label_for_route(route, true);
 
                 let rect =
                     Self::draw_rect_with_label(ui, column as u8, row as u8, false, color, label);
@@ -679,9 +677,7 @@ impl ControlPanelRouting {
         if let Some(column) = column {
             new_routes[column] = route;
         } else {
-            for column in 0..orion_state.target_counts[row] {
-                new_routes[column] = route;
-            }
+            new_routes[..orion_state.target_counts[row]].fill(route);
         }
 
         self.queue_routes_with_undo(row as u8, old_routes, &new_routes);
@@ -710,15 +706,18 @@ impl ControlPanelRouting {
             return;
         }
 
-        let text = format!(
-            "{}: {}",
-            Self::SOURCE_ROW_LABELS[self.source_select_row as usize],
-            self.source_select_columns
-                .iter()
-                .map(|&column| labels[self.source_select_row as usize][column as usize].as_str())
-                .collect::<Vec<_>>()
-                .join(", ")
-        );
+        let mut text = String::new();
+
+        text.push_str(Self::SOURCE_ROW_LABELS[self.source_select_row as usize]);
+        text.push_str(": ");
+
+        for (index, &column) in self.source_select_columns.iter().enumerate() {
+            if index != 0 {
+                text.push_str(", ");
+            }
+
+            text.push_str(&labels[self.source_select_row as usize][column as usize]);
+        }
 
         ui.painter().text(
             egui::pos2(
@@ -956,7 +955,7 @@ impl ControlPanelRouting {
         row: u8,
         is_source: bool,
         color: egui::Color32,
-        label: &String,
+        label: &str,
     ) -> egui::Rect {
         let (pos_x, pos_y) = Self::cell_pos(column, row, is_source);
 
@@ -1030,18 +1029,19 @@ impl ControlPanelRouting {
     }
 
     fn update_persistence(&mut self, orion_state: &OrionState) {
-        let current_labels_routes = Some((orion_state.labels.clone(), orion_state.routes));
+        let changed = match &self.last_labels_routes {
+            Some((labels, routes)) => {
+                labels != &orion_state.labels || routes != &orion_state.routes
+            }
+            None => {
+                self.last_labels_routes = Some((orion_state.labels.clone(), orion_state.routes));
 
-        if self.last_labels_routes.is_none() {
-            self.last_labels_routes = current_labels_routes;
+                return;
+            }
+        };
 
-            return;
-        }
-
-        let current_labels_routes = Some((orion_state.labels.clone(), orion_state.routes));
-
-        if self.last_labels_routes != current_labels_routes {
-            self.last_labels_routes = current_labels_routes;
+        if changed {
+            self.last_labels_routes = Some((orion_state.labels.clone(), orion_state.routes));
 
             self.write_persistence_file(orion_state);
         }
@@ -1064,7 +1064,10 @@ impl ControlPanelRouting {
             let orion_persistance = OrionPersistence::new(path);
 
             if let Some(orion_state) = self.orion_states.lock().unwrap().current_mut() {
-                (orion_state.labels, orion_state.routes) = orion_persistance.decode();
+                let (labels, routes) = orion_persistance.decode();
+
+                orion_state.labels = std::sync::Arc::new(labels);
+                orion_state.routes = routes;
             }
         }
     }

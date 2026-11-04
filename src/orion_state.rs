@@ -1,6 +1,7 @@
 use crate::constants::{RoutingColumns, RoutingLabelColors, RoutingLabels, RoutingRows};
 use std::collections::HashMap;
 use std::ffi::CString;
+use std::sync::Arc;
 
 pub(crate) struct OrionStateInitSteps;
 
@@ -27,18 +28,10 @@ impl OrionStateSignals {
     pub(crate) const ADAT_2: u8 = 0x80;
 }
 
+#[derive(Default)]
 pub(crate) struct OrionStates {
     pub(crate) selected_hid_path: Option<CString>,
     pub(crate) orion_states: HashMap<CString, OrionState>,
-}
-
-impl Default for OrionStates {
-    fn default() -> Self {
-        Self {
-            selected_hid_path: None,
-            orion_states: HashMap::new(),
-        }
-    }
 }
 
 impl OrionStates {
@@ -57,7 +50,7 @@ impl OrionStates {
 
 #[derive(Clone)]
 pub(crate) struct OrionState {
-    pub(crate) labels: [[String; 32]; 7],
+    pub(crate) labels: Arc<[[String; 32]; 7]>,
 
     pub(crate) source_counts: [usize; 7],
     pub(crate) target_counts: [usize; 7],
@@ -100,7 +93,7 @@ impl Default for OrionState {
         });
 
         Self {
-            labels,
+            labels: Arc::new(labels),
 
             source_counts: [0; 7],
             target_counts: [0; 7],
@@ -150,7 +143,7 @@ impl OrionState {
         };
 
         let madi_2_count = match self.sample_rate {
-            0 | 1 | 2 => 32,
+            0..=2 => 32,
             _ => 0,
         };
 
@@ -195,20 +188,20 @@ impl OrionState {
         Some([column, row])
     }
 
-    pub(crate) fn label_for_route(&self, route: u8, truncate: bool) -> String {
+    pub(crate) fn label_for_route(&self, route: u8, truncate: bool) -> &str {
         if let Some([column, row]) = self.column_row_for_route(route, truncate) {
             if row == RoutingRows::SPECIAL {
                 return match column {
-                    0 => RoutingLabels::OSC_1.to_string(),
-                    1 => RoutingLabels::OSC_2.to_string(),
-                    _ => RoutingLabels::MUTE.to_string(),
+                    0 => RoutingLabels::OSC_1,
+                    1 => RoutingLabels::OSC_2,
+                    _ => RoutingLabels::MUTE,
                 };
             }
 
-            return self.labels[row as usize][column as usize].clone();
+            return &self.labels[row as usize][column as usize];
         }
 
-        RoutingLabels::MUTE.to_string()
+        RoutingLabels::MUTE
     }
 
     pub(crate) fn color_for_route(&self, route: u8, truncate: bool) -> egui::Color32 {

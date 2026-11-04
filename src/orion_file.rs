@@ -1,4 +1,4 @@
-use serde_pickle::{self, value::HashableValue, Value};
+use serde_pickle::{self, Value, value::HashableValue};
 use std::collections::BTreeMap;
 use std::fs::File;
 use std::path::PathBuf;
@@ -69,8 +69,9 @@ impl OrionFile {
                                 let bg_color_string =
                                     orion_state.hex_color_for_route(*route, false);
 
-                                let value =
-                                    Value::String(orion_state.label_for_route(*route, false));
+                                let value = Value::String(
+                                    orion_state.label_for_route(*route, false).to_string(),
+                                );
                                 let source_row = Value::I64(source_row as i64);
                                 let enabled = Value::Bool(
                                     target_column < orion_state.target_counts[target_row],

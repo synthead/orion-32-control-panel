@@ -1,6 +1,6 @@
-use std::sync::mpsc;
 use std::sync::Arc;
 use std::sync::Mutex;
+use std::sync::mpsc;
 use std::thread;
 
 use crate::constants::{WidgetColors, WidgetDimensions};
@@ -18,6 +18,7 @@ use crate::control_panel_devices::ControlPanelDevices;
 use crate::control_panel_helpers::ControlPanelHelpers;
 use crate::control_panel_mixer::ControlPanelMixer;
 use crate::control_panel_routing::ControlPanelRouting;
+use crate::control_panel_vu_meters::ControlPanelVuMeters;
 
 use crate::control_panel_about::ControlPanelAbout;
 use crate::control_panel_settings::ControlPanelSettings;
@@ -26,33 +27,6 @@ use crate::preload_assets_blocking;
 use crate::preload_assets_nonblocking;
 
 use crate::render_asset;
-
-macro_rules! render_vu_meter {
-    ($ui:expr, $x:expr, $y:expr, $db:expr, $subpath:literal) => {{
-        let image = egui::Image::new(egui::include_image!(concat!(
-            "../assets/images/",
-            $subpath,
-            ".png"
-        )))
-        .fit_to_original_size(1.0)
-        .show_loading_spinner(false);
-
-        if let Some(image_size) = image.load_and_calc_size($ui, $ui.available_size()) {
-            let image_rect =
-                egui::Rect::from_min_size(egui::pos2($x as f32, $y as f32), image_size);
-
-            let clip_rect = egui::Rect::from_min_max(
-                egui::pos2($x as f32, $y as f32 + image_size.y * $db as f32 / 96.0),
-                image_rect.max,
-            );
-
-            $ui.scope_builder(egui::UiBuilder::new().max_rect(image_rect), |ui| {
-                ui.set_clip_rect(clip_rect);
-                ui.add(image);
-            });
-        }
-    }};
-}
 
 struct ControlPanelDimensions;
 
@@ -78,11 +52,6 @@ impl ControlPanelDimensions {
     const VU_SOURCE_RIGHT_X: u16 = 977;
     const VU_SOURCE_Y: u16 = 38;
     const VU_SOURCE_WIDTH: u8 = 83;
-
-    const VU_METER_LEFT_X: usize = 135;
-    const VU_METER_RIGHT_X: usize = 716;
-    const VU_METER_X_STEP: usize = 11;
-    const VU_METER_Y: usize = 60;
 
     const CLOCK_CLOCK_SOURCE_X: u16 = 508;
     const CLOCK_SAMPLE_RATE_X: u16 = 597;
@@ -125,6 +94,7 @@ pub(crate) struct ControlPanel {
     orion_hid_poller: Arc<Mutex<OrionHidPoller>>,
 
     devices: ControlPanelDevices,
+    vu_meters: ControlPanelVuMeters,
     routing: ControlPanelRouting,
     mixer: ControlPanelMixer,
     ad_phase: ControlPanelAdPhase,
@@ -163,6 +133,8 @@ impl ControlPanel {
         "Oven", "W.C.", "ADAT", "ADAT 2x", "ADAT 4x", "MADI", "MADI 2x", "MADI 4x", "S/PDIF",
     ];
 
+    const PRESET_LABELS: [&str; 5] = ["PRESET 1", "PRESET 2", "PRESET 3", "PRESET 4", "PRESET 5"];
+
     const CLOCK_SOURCE_SELECTION_ATOMIC: &str = "Atomic";
 
     const SAMPLE_RATE_SELECTIONS: [&str; 7] = [
@@ -175,7 +147,7 @@ impl ControlPanel {
         "192.0 kHz",
     ];
 
-    pub fn new() -> Self {
+    pub fn new(ctx: &egui::Context) -> Self {
         let orion_states = Arc::new(Mutex::new(OrionStates::default()));
         let (hid_write_tx, hid_write_rx) = mpsc::channel::<[u8; 64]>();
 
@@ -191,6 +163,7 @@ impl ControlPanel {
         let drag_value = Arc::new(Mutex::new(DragValue::new()));
 
         let devices = ControlPanelDevices::new(Arc::clone(&orion_states));
+        let vu_meters = ControlPanelVuMeters::new(ctx);
 
         let routing = ControlPanelRouting::new(
             Arc::clone(&orion_states),
@@ -199,13 +172,12 @@ impl ControlPanel {
         );
 
         let mixer = ControlPanelMixer::new(
-            Arc::clone(&orion_states),
             Arc::clone(&orion_hid),
             Arc::clone(&text_editor),
             Arc::clone(&drag_value),
         );
 
-        let ad_phase = ControlPanelAdPhase::new(Arc::clone(&orion_states), Arc::clone(&orion_hid));
+        let ad_phase = ControlPanelAdPhase::new(Arc::clone(&orion_hid));
 
         let settings = ControlPanelSettings::new(
             Arc::clone(&orion_states),
@@ -222,6 +194,7 @@ impl ControlPanel {
             orion_hid_poller,
 
             devices,
+            vu_meters,
             routing,
             mixer,
             ad_phase,
@@ -270,7 +243,7 @@ impl ControlPanel {
 
         preload_assets_nonblocking!(&egui_ctx);
 
-        let control_panel = Self::new();
+        let control_panel = Self::new(&egui_ctx);
         control_panel.init_config();
 
         eframe::run_native_ext(
@@ -310,7 +283,8 @@ impl ControlPanel {
         egui::CentralPanel::default()
             .frame(egui::Frame::NONE)
             .show(ui, |ui| {
-                let Some(orion_state) = self.orion_states.lock().unwrap().current().cloned() else {
+                let Some(mut orion_state) = self.orion_states.lock().unwrap().current().cloned()
+                else {
                     self.devices.draw(ui);
                     return;
                 };
@@ -329,7 +303,7 @@ impl ControlPanel {
                 self.draw_tab_buttons(ui);
                 self.draw_presets(ui, orion_state.preset_standby);
 
-                Self::draw_vu_meters(
+                self.vu_meters.draw(
                     ui,
                     &orion_state.left_vu_values,
                     &orion_state.right_vu_values,
@@ -347,9 +321,9 @@ impl ControlPanel {
                 self.draw_line_out(ui, orion_state.line_out);
 
                 match self.current_tab {
-                    1 => self.mixer.draw(ui),
-                    2 => self.ad_phase.draw(ui),
-                    _ => self.routing.draw(ui),
+                    1 => self.mixer.draw(ui, &mut orion_state),
+                    2 => self.ad_phase.draw(ui, &orion_state),
+                    _ => self.routing.draw(ui, &mut orion_state),
                 };
 
                 if self.settings.enabled || self.about.enabled {
@@ -642,7 +616,7 @@ impl ControlPanel {
 
     fn draw_presets(&mut self, ui: &mut egui::Ui, preset_standby: u8) {
         for preset in 1..6 {
-            let label = format!("PRESET {}", preset);
+            let label = Self::PRESET_LABELS[(preset - 1) as usize];
             let rect = egui::Rect::from_min_size(
                 egui::pos2(
                     ControlPanelDimensions::PRESET_X
@@ -655,11 +629,8 @@ impl ControlPanel {
                 ),
             );
 
-            let response = ui.interact(
-                rect,
-                ui.id().with(&format!("preset_{preset}")),
-                egui::Sense::click(),
-            );
+            let response =
+                ui.interact(rect, ui.id().with(("preset", preset)), egui::Sense::click());
 
             let color = if preset == preset_standby & 0x07 || response.contains_pointer() {
                 WidgetColors::TEXT_COLOR_PRESET
@@ -686,31 +657,6 @@ impl ControlPanel {
 
                 orion_hid.queue_preset(preset);
             }
-        }
-    }
-
-    fn draw_vu_meters(ui: &mut egui::Ui, left_vu_values: &[u8; 32], right_vu_values: &[u8; 32]) {
-        for vu_meter_x in 0..32 {
-            let pos_x = vu_meter_x * ControlPanelDimensions::VU_METER_X_STEP;
-
-            let pos_x_left = ControlPanelDimensions::VU_METER_LEFT_X + pos_x;
-            let pos_x_right = ControlPanelDimensions::VU_METER_RIGHT_X + pos_x;
-
-            render_vu_meter!(
-                ui,
-                pos_x_left,
-                ControlPanelDimensions::VU_METER_Y,
-                left_vu_values[vu_meter_x],
-                "MonitorPeakMeter/default/background"
-            );
-
-            render_vu_meter!(
-                ui,
-                pos_x_right,
-                ControlPanelDimensions::VU_METER_Y,
-                right_vu_values[vu_meter_x],
-                "MonitorPeakMeter/default/background"
-            );
         }
     }
 
@@ -874,17 +820,15 @@ impl ControlPanel {
         if let Some((text, tab)) = self.text_editor.lock().unwrap().draw(
             ui,
             line_out_text_hitbox_rect,
-            "line_out",
+            egui::Id::new("line_out"),
             &line_out_text,
             WidgetDimensions::TEXT_SIZE,
             WidgetColors::TEXT_COLOR,
-        ) {
-            if tab.is_none() {
-                if let Some(line_out_new) = Self::line_out_for_text(&text) {
-                    self.line_out_ignore.begin_ignore(line_out_new);
-                    self.orion_hid.lock().unwrap().queue_line_out(line_out_new);
-                }
-            }
+        ) && tab.is_none()
+            && let Some(line_out_new) = Self::line_out_for_text(&text)
+        {
+            self.line_out_ignore.begin_ignore(line_out_new);
+            self.orion_hid.lock().unwrap().queue_line_out(line_out_new);
         }
     }
 
@@ -937,7 +881,7 @@ impl ControlPanel {
         );
     }
 
-    fn line_out_for_text(text: &String) -> Option<u8> {
+    fn line_out_for_text(text: &str) -> Option<u8> {
         let text_parsed = text.trim();
         let text_parsed = text_parsed.strip_suffix("dB").unwrap_or(text_parsed);
         let text_parsed = text_parsed.strip_suffix("db").unwrap_or(text_parsed);
@@ -952,7 +896,7 @@ impl ControlPanel {
             Err(_) => return None,
         };
 
-        if text_parsed < -96 || text_parsed > 0 {
+        if !(-96..=0).contains(&text_parsed) {
             return None;
         }
 

@@ -3,6 +3,8 @@ use std::collections::HashMap;
 use std::ffi::CString;
 use std::sync::mpsc;
 use std::sync::{Arc, Mutex};
+use std::thread;
+use std::time::{Duration, Instant};
 
 use crate::orion_hid_device::OrionHidDevice;
 use crate::orion_state::{OrionStateInitSteps, OrionStates};
@@ -13,11 +15,16 @@ pub(crate) struct OrionHidPoller {
 
     hid_api: HidApi,
     orion_hid_devices: HashMap<CString, OrionHidDevice>,
+
+    last_device_refresh: Option<Instant>,
+    last_selected_hid_path: Option<CString>,
 }
 
 impl OrionHidPoller {
     const USB_VENDOR: u16 = 0x23e5;
     const USB_PRODUCT: u16 = 0xa040;
+
+    const DEVICE_REFRESH_INTERVAL: Duration = Duration::from_secs(1);
 
     pub(crate) fn new(
         orion_states: Arc<Mutex<OrionStates>>,
@@ -34,12 +41,18 @@ impl OrionHidPoller {
 
             hid_api,
             orion_hid_devices: HashMap::new(),
+
+            last_device_refresh: None,
+            last_selected_hid_path: None,
         }
     }
 
     pub(crate) fn poll_and_update_state(&mut self) {
         if !self.try_connect() {
             self.discard_pending_writes();
+
+            thread::sleep(Self::DEVICE_REFRESH_INTERVAL);
+
             return;
         }
 
@@ -63,21 +76,31 @@ impl OrionHidPoller {
             }
         }
 
-        let poll_result = {
-            let states = self.orion_states.lock().unwrap();
+        let state_exists = self
+            .orion_states
+            .lock()
+            .unwrap()
+            .orion_states
+            .contains_key(selected_hid_path);
 
-            match (
-                self.orion_hid_devices.get_mut(selected_hid_path),
-                states.orion_states.get(selected_hid_path),
-            ) {
-                (Some(device), Some(_)) => {
-                    if device.ensure_init() {
-                        device.read_packet()
-                    } else {
-                        Err(())
-                    }
+        if !state_exists {
+            thread::sleep(Duration::from_millis(5));
+
+            return;
+        }
+
+        let poll_result = match self.orion_hid_devices.get_mut(selected_hid_path) {
+            Some(device) => {
+                if device.ensure_init() {
+                    device.read_packet()
+                } else {
+                    Err(())
                 }
-                _ => return,
+            }
+            None => {
+                thread::sleep(Duration::from_millis(5));
+
+                return;
             }
         };
 
@@ -101,10 +124,30 @@ impl OrionHidPoller {
     }
 
     fn try_connect(&mut self) -> bool {
+        let selected_hid_path = self.orion_states.lock().unwrap().selected_hid_path.clone();
+
+        let selection_changed = selected_hid_path != self.last_selected_hid_path;
+
+        let refresh_due = self
+            .last_device_refresh
+            .is_none_or(|last_refresh| last_refresh.elapsed() >= Self::DEVICE_REFRESH_INTERVAL);
+
+        if !refresh_due && !selection_changed {
+            return selected_hid_path
+                .as_ref()
+                .is_some_and(|path| self.orion_hid_devices.contains_key(path));
+        }
+
         if let Err(error) = self.hid_api.refresh_devices() {
             eprintln!("Failed to refresh HID devices: {error}");
-            return !self.orion_hid_devices.is_empty();
+            self.last_device_refresh = Some(Instant::now());
+
+            return selected_hid_path
+                .as_ref()
+                .is_some_and(|path| self.orion_hid_devices.contains_key(path));
         }
+
+        self.last_device_refresh = Some(Instant::now());
 
         let available_paths: Vec<CString> = self
             .hid_api
@@ -137,6 +180,8 @@ impl OrionHidPoller {
 
             states.selected_hid_path.clone()
         };
+
+        self.last_selected_hid_path = selected_hid_path.clone();
 
         self.orion_hid_devices
             .retain(|path, _| available_paths.contains(path));
