@@ -64,6 +64,7 @@ impl ControlPanelRoutingDimensions {
 }
 
 type RoutingFileData = ([[String; 32]; 7], [[u8; 32]; 7]);
+type LabelsAndRoutes = (std::sync::Arc<[[String; 32]; 7]>, [[u8; 32]; 7]);
 
 pub(crate) struct ControlPanelRouting {
     orion_states: Arc<Mutex<OrionStates>>,
@@ -79,7 +80,7 @@ pub(crate) struct ControlPanelRouting {
     undo_buffer: Vec<(u8, [u8; 32], [u8; 32])>,
     undo_cursor: usize,
 
-    last_labels_routes: Option<([[String; 32]; 7], [[u8; 32]; 7])>,
+    last_labels_routes: Option<LabelsAndRoutes>,
 
     label_edit_cell: Option<[u8; 2]>,
     source_select_range_row: Option<u8>,
@@ -343,7 +344,7 @@ impl ControlPanelRouting {
         while let Ok(result) = self.file_dialog_rx.try_recv() {
             if let Some((labels, routes)) = result {
                 if let Some(orion_state) = self.orion_states.lock().unwrap().current_mut() {
-                    orion_state.labels = labels;
+                    orion_state.labels = std::sync::Arc::new(labels);
                 }
 
                 {
@@ -360,7 +361,7 @@ impl ControlPanelRouting {
     }
 
     fn draw_source(&mut self, ui: &mut egui::Ui, column: u8, row: u8, orion_state: &OrionState) {
-        let label = &orion_state.labels[row as usize][column as usize].clone();
+        let label = &orion_state.labels[row as usize][column as usize];
         let (pos_x, pos_y) = Self::cell_pos(column, row, true);
 
         let color = if self.source_select_row == row && self.source_select_columns.contains(&column)
@@ -397,7 +398,7 @@ impl ControlPanelRouting {
             ui,
             rect,
             field_id,
-            &label,
+            label,
             WidgetDimensions::TEXT_SIZE,
             WidgetColors::TEXT_COLOR_LABEL,
         );
@@ -410,7 +411,7 @@ impl ControlPanelRouting {
         row: u8,
         orion_state: &OrionState,
     ) {
-        let label = &orion_state.labels[row as usize][column as usize].clone();
+        let label = &orion_state.labels[row as usize][column as usize];
         let (pos_x, pos_y) = Self::cell_pos(column, row, true);
         let color = orion_state.color_for_route(row, true);
 
@@ -436,15 +437,16 @@ impl ControlPanelRouting {
         let level_edit_result = self.text_editor.lock().unwrap().draw(
             ui,
             rect,
-            &format!("route_{column}_{row}"),
-            &label,
+            egui::Id::new(("route", column, row)),
+            label,
             WidgetDimensions::TEXT_SIZE,
             WidgetColors::TEXT_COLOR_LABEL,
         );
 
         if let Some((route_text, tab)) = level_edit_result {
             if let Some(orion_state) = self.orion_states.lock().unwrap().current_mut() {
-                orion_state.labels[row as usize][column as usize] = route_text;
+                std::sync::Arc::make_mut(&mut orion_state.labels)[row as usize][column as usize] =
+                    route_text;
             }
 
             if let Some(tab) = tab {
@@ -567,7 +569,7 @@ impl ControlPanelRouting {
                     orion_state.color_for_route(route, true)
                 };
 
-                let label = &orion_state.label_for_route(route, true);
+                let label = orion_state.label_for_route(route, true);
 
                 let rect =
                     Self::draw_rect_with_label(ui, column as u8, row as u8, false, color, label);
@@ -959,7 +961,7 @@ impl ControlPanelRouting {
         row: u8,
         is_source: bool,
         color: egui::Color32,
-        label: &String,
+        label: &str,
     ) -> egui::Rect {
         let (pos_x, pos_y) = Self::cell_pos(column, row, is_source);
 
@@ -1068,7 +1070,10 @@ impl ControlPanelRouting {
             let orion_persistance = OrionPersistence::new(path);
 
             if let Some(orion_state) = self.orion_states.lock().unwrap().current_mut() {
-                (orion_state.labels, orion_state.routes) = orion_persistance.decode();
+                let (labels, routes) = orion_persistance.decode();
+
+                orion_state.labels = std::sync::Arc::new(labels);
+                orion_state.routes = routes;
             }
         }
     }
