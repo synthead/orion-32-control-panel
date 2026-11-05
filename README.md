@@ -53,6 +53,7 @@ Note: On Windows, a modal will appear about how Windows has "protected" you from
 - Clock source and realtime clock frequency, including 10M atomic clock.
 - Line out adjustment.
 - Identical route programming behavior, including selecting and dragging routes, and editing route labels.
+- Real-time MADI and ADAT channel count updates.
 - Signal indicators.
 - Loading and saving native o32r files.
 - Persisting label names when closing and opening the control panel.
