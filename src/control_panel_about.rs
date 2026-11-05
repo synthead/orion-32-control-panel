@@ -33,6 +33,8 @@ pub(crate) struct ControlPanelAbout {
 }
 
 impl ControlPanelAbout {
+    const PROJECT_URL: &'static str = "https://github.com/synthead/orion-32-control-panel";
+
     pub(crate) fn new(orion_states: Arc<Mutex<OrionStates>>) -> Self {
         Self {
             orion_states,
@@ -102,9 +104,10 @@ impl ControlPanelAbout {
         let firmware_version =
             (u16::from_be_bytes(orion_state.firmware_version) as f32 / 100.0).to_string();
 
-        self.draw_field(
+        self.draw_link_field(
             ui,
             control_panel_version,
+            Self::PROJECT_URL,
             ControlPanelAboutDimensions::TEXT_CONTROL_PANEL_VERISON_Y,
         );
 
@@ -128,17 +131,37 @@ impl ControlPanelAbout {
     }
 
     fn draw_field(&mut self, ui: &mut egui::Ui, text: String, pos_y: f32) {
-        let rect = egui::Rect::from_min_size(
+        ui.put(
+            Self::field_rect(pos_y),
+            Self::field_label(text).selectable(true),
+        );
+    }
+
+    fn draw_link_field(&mut self, ui: &mut egui::Ui, text: String, url: &str, pos_y: f32) {
+        let label = Self::field_label(text)
+            .selectable(false)
+            .sense(egui::Sense::click());
+
+        let response = ui
+            .put(Self::field_rect(pos_y), label)
+            .on_hover_cursor(egui::CursorIcon::PointingHand);
+
+        if response.clicked() {
+            ui.ctx().open_url(egui::OpenUrl::new_tab(url));
+        }
+    }
+
+    fn field_label(text: String) -> egui::Label {
+        egui::Label::new(egui::RichText::new(text).color(WidgetColors::TEXT_COLOR_ABOUT))
+    }
+
+    fn field_rect(pos_y: f32) -> egui::Rect {
+        egui::Rect::from_min_size(
             egui::pos2(ControlPanelAboutDimensions::TEXT_X, pos_y),
             egui::vec2(
                 ControlPanelAboutDimensions::TEXT_WIDTH,
                 ControlPanelAboutDimensions::TEXT_HEIGHT,
             ),
-        );
-
-        let label =
-            egui::Label::new(egui::RichText::new(text).color(WidgetColors::TEXT_COLOR_ABOUT));
-
-        ui.put(rect, label.selectable(true));
+        )
     }
 }
