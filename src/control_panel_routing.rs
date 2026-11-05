@@ -322,7 +322,7 @@ impl ControlPanelRouting {
                 if let Some(orion_state) = self.orion_states.lock().unwrap().current_mut() {
                     orion_state.labels = std::sync::Arc::new(labels);
 
-                    self.write_persistence_file(&orion_state);
+                    self.orion_persistence.lock().unwrap().encode(orion_state);
                 }
 
                 {
@@ -426,7 +426,7 @@ impl ControlPanelRouting {
                 std::sync::Arc::make_mut(&mut orion_state.labels)[row as usize][column as usize] =
                     route_text;
 
-                self.write_persistence_file(&orion_state);
+                self.orion_persistence.lock().unwrap().encode(orion_state);
             }
 
             if let Some(tab) = tab {
@@ -1010,9 +1010,5 @@ impl ControlPanelRouting {
     fn clear_undo(&mut self) {
         self.undo_buffer = Vec::new();
         self.undo_cursor = 0;
-    }
-
-    fn write_persistence_file(&self, orion_state: &OrionState) {
-        self.orion_persistence.lock().unwrap().encode(orion_state);
     }
 }
