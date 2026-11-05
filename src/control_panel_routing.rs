@@ -278,12 +278,7 @@ impl ControlPanelRouting {
         }
 
         if save_response.clicked() {
-            let config_dir = self.orion_paths.lock().unwrap().config_dir().to_path_buf();
-
-            let dialog = rfd::FileDialog::new()
-                .add_filter("Orion 32 Routing File", &["o32r"])
-                .set_directory(config_dir);
-
+            let dialog = self.orion_paths.lock().unwrap().create_file_dialog();
             let orion_state = orion_state.clone();
 
             std::thread::spawn(move || {
@@ -296,12 +291,7 @@ impl ControlPanelRouting {
         }
 
         if load_response.clicked() {
-            let config_dir = self.orion_paths.lock().unwrap().config_dir().to_path_buf();
-
-            let dialog = rfd::FileDialog::new()
-                .add_filter("Orion 32 Routing File", &["o32r"])
-                .set_directory(config_dir);
-
+            let dialog = self.orion_paths.lock().unwrap().create_file_dialog();
             let tx = self.file_dialog_tx.clone();
             let ctx = ui.ctx().clone();
 
