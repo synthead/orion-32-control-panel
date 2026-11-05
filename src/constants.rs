@@ -1,3 +1,10 @@
+pub(crate) struct FilePaths;
+
+impl FilePaths {
+    pub(crate) const CONFIG_DIR: &str = "Orion 32 Control Panel";
+    pub(crate) const PERSISTENCE_FILE: &str = "persistence.json";
+}
+
 pub(crate) struct WidgetColors;
 
 impl WidgetColors {
