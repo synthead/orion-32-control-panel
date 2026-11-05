@@ -48,6 +48,7 @@ Note: On Windows, a modal will appear about how Windows has "protected" you from
 
 ## What works
 
+- Multiple interface selection.
 - VU meters, and VU meter sources.
 - Clock source and frequency.
 - Line out adjustment.
