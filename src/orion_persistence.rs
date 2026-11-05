@@ -43,15 +43,15 @@ impl OrionPersistence {
             .unwrap_or_else(|error| panic!("Failed to encode {}: {}", file.display(), error));
     }
 
+    pub(crate) fn decode(&self, serial: &str) -> Option<[[String; 32]; 7]> {
+        self.read_route_labels().remove(serial)
+    }
+
     pub(crate) fn selected_serial(&self) -> Option<String> {
         self.read_file()
             .get("selected_serial")
             .and_then(Value::as_str)
             .map(str::to_owned)
-    }
-
-    pub(crate) fn decode(&self, serial: &str) -> Option<[[String; 32]; 7]> {
-        self.read_route_labels().remove(serial)
     }
 
     fn read_file(&self) -> Value {
