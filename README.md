@@ -1,10 +1,10 @@
-# Open source Orion 32 Control Panel
+# Open-source Orion 32 Control Panel
 
-This is an open source rewrite of the Orion 32 control panel, written in Rust with egui!  The goal of this project is to offer a fast, robust, and modern control panel for those that love their Orion 32.  It's written to be cross-platform, and Linux is supported, too!
+This is an open-source rewrite of the Orion 32 control panel, written in Rust with egui!  The goal of this project is to offer a fast, robust, and modern control panel for those who love their Orion 32.  It's written to be cross-platform, and Linux is supported, too!
 
-The Orion 32 was released in 2012, and is still an excellent audio interface.  It has 32 line-level, balanced analog inputs and outputs on Tascam DB-25 connectors, operates at 192 KHz at 24 bit, and has excellent audio quality.  It also supports 64-channel MADI ins/outs, 2 8-channel ADAT ins, 2 8-channel ADAT outs, and S/PDIF in/out, all in a tiny 1U 19" rack.  It also has a very stable clock with its drift compensated by a literal oven, and supports a 10M external clock sync.
+The Orion 32 was released in 2012, and is still an excellent audio interface.  It has 32 line-level, balanced analog inputs and outputs on Tascam DB-25 connectors, operates at 192 kHz at 24-bit, and has great audio quality.  It also supports 64-channel MADI ins/outs, two 8-channel ADAT ins, two 8-channel ADAT outs, and S/PDIF in/out, all in a tiny 1U 19" rack.  It also has a very stable clock with its drift compensated by a literal oven, and supports a 10M external clock sync.
 
-Not only is it great hardware, but from a software perspective, it is also excellent.  The Orion 32 audio is USB standards-compliant, so it will work nearly everywhere.  The control panel is also configured over HID, which is also standards-compliant.  On Linux, everything is supported directly from the kernel without any binary drivers.  The only missing piece to making this interface fully cross-platform is its control panel, which was only offered as proprietary software.  The open source control panel in this repository fills this gap, and lets you operate your interface on whatever system you choose!
+Not only is it great hardware, but from a software perspective, it is also excellent.  The Orion 32's audio is USB Audio Class compliant, so it works nearly everywhere, and its control panel is configured over standard USB HID.  On Linux, everything is supported directly by the kernel without any binary drivers.  The only missing piece to making this interface fully cross-platform was its control panel, which was only offered as proprietary software.  The open-source control panel in this repository fills that gap and lets you operate your interface on whatever system you choose!
 
 ## Screenshots
 
@@ -25,7 +25,7 @@ Here are some screenshots of this control panel at work!
 
 ## Downloading and installing
 
-Head to [the latest release](https://github.com/synthead/orion-32-control-panel/releases/latest) and download the binary for your operating system, then run it.  The control panel is a single, self-contained binary built by Rust, so no installation is necessary.  Keep the binary anywhere you'd like.
+Head to [the latest release](https://github.com/synthead/orion-32-control-panel/releases/latest) and download the binary for your operating system, then run it.  The control panel is a single, self-contained binary built in Rust, so no installation is necessary.  Keep the binary anywhere you'd like.
 
 If you want to migrate your route labels from the original control panel, simply save an o32r file by clicking save from the original control panel, and load the o32r file from the new control panel.
 
@@ -38,21 +38,21 @@ If you want to migrate your route labels from the original control panel, simply
 - Starts instantly, and queries the interface way, _way_ faster.
 - Respects your privacy.  The original control panel [phones home with your serial number](https://github.com/user-attachments/assets/2cc49ad6-c7d8-4646-8fa2-e62d66594c4e) every time it starts.  Yuck!
 - Does not care if your device is activated.  The original control panel [denies access to the interface](https://github.com/user-attachments/assets/b928eaf0-4e0d-4691-869c-0e8265ca9101) until the user registers for an account and submits [a mandatory form where all fields are required](https://github.com/user-attachments/assets/b6dc4f71-4134-4916-82f6-76e114971a8d), which includes invasive questions like who they bought it from and how much they paid for it.
-- Actually _works_.  The original launcher has malfunctioned with [a message to check your internet connection](https://github.com/user-attachments/assets/40db4b51-ac39-406b-b5d4-642adc1fa5f9) for more than a year.  The control panel data appears to be no longer hosted, and requires manual intervention to acquire this data to be functional.
-- Does not hassle you with [interactive administrator permissions to start a program](https://github.com/user-attachments/assets/66e7b258-fc90-4bbd-9cd0-d451bc62b0db) every time it starts.
+- Actually _works_.  The original launcher has shown [a message to check your internet connection](https://github.com/user-attachments/assets/40db4b51-ac39-406b-b5d4-642adc1fa5f9) for more than a year.  The control panel data appears to be no longer hosted, and requires manual intervention to obtain that data before it will work.
+- Does not hassle you with [an interactive administrator permissions prompt](https://github.com/user-attachments/assets/66e7b258-fc90-4bbd-9cd0-d451bc62b0db) every time it starts.
 - Connects directly to your interface.  The original control panel [connects to a network server](https://github.com/user-attachments/assets/2fea9af5-4119-4f73-9dc3-433ff719b634) that must always be running.
-- Long-standing routing and AD phase bugs have been fixed.  The original control panel still has bugs where active routes are sometimes erroneously presented as muted, and AD phases are sometimes erroneously displayed as the wrong state.
-- VU meters have [peak indicators](https://github.com/user-attachments/assets/760af7db-0317-4a6a-b5e7-b743f8c64060)!  The appearance is now idential to the meters on the physical screen.
+- Long-standing routing and AD phase bugs have been fixed.  The original control panel still has bugs where active routes are sometimes shown as muted, and AD phases are sometimes displayed in the wrong state.
+- VU meters have [peak indicators](https://github.com/user-attachments/assets/760af7db-0317-4a6a-b5e7-b743f8c64060)!  The appearance is now identical to the meters on the physical screen.
 - Knobs and sliders update smoothly.  The original control panel only updated occasionally when moving, which made audibly chunky changes.
 - Persists unique route labels per interface.  The original control panel kept the same labels across different interfaces.
 - When more than one interface is connected, the last-used interface is selected when the control panel starts.
-- Interface can still be [programmed while in standby](https://github.com/user-attachments/assets/9bf72619-b4a3-448c-ac8c-7a00ea3c37d0).  The power feature on the interface simply disables the display and mutes the audio, and does not turn the interface off.  The original control panel pretends that it is off by disabling the control panel, where this version permits programming in standby.
+- The interface can still be [programmed while in standby](https://github.com/user-attachments/assets/9bf72619-b4a3-448c-ac8c-7a00ea3c37d0).  The power feature on the interface simply disables the display and mutes the audio, and does not turn the interface off.  The original control panel pretends that it is off by disabling the control panel, while this version permits programming in standby.
 
 ## What works
 
 - Multiple interface selection.
 - VU meters including log curve and peak indicators, and VU meter sources.
-- Clock source and realtime clock frequency, including 10M atomic clock.
+- Clock source and real-time clock frequency, including 10M atomic clock.
 - Line out adjustment.
 - Identical route programming behavior, including selecting and dragging routes, and editing route labels.
 - Real-time MADI and ADAT channel count updates.
@@ -76,8 +76,8 @@ If you want to migrate your route labels from the original control panel, simply
 - Client support to connect to networked control panel server.
 - Administration tools to manage Windows service for control panel server.
 - Animations when changing views.  This makes the UI immediate.
-- Firmware updates.  New updates are not being released, so it can be updated once in Windows, if needed.
-- "How to" button.  This links to a YouTube playlist that has been removed on the original control panel.
+- Firmware updates.  New updates are not being released, so the interface can be updated once from Windows, if needed.
+- "How to" button.  In the original control panel, this links to a YouTube playlist that has been removed.
 - News feed.  Polling this feed does not respect your privacy, and the news feed is not online anymore.
-- Windows-only ASIO options.  These have been moved to driver settings in the system tray, but are still visible as permanently-disabled settings in the original control panel.
+- Windows-only ASIO options.  These have been moved to driver settings in the system tray, but are still visible as permanently disabled settings in the original control panel.
 - Multiple windows.  The original control panel could detach the routing, mixer, and AD phase settings as separate windows, which is cumbersome and not very useful.
