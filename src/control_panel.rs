@@ -232,6 +232,17 @@ impl ControlPanel {
             height,
         };
 
+        #[cfg_attr(not(windows), allow(unused_mut))]
+        let mut wgpu_options = eframe::egui_wgpu::WgpuConfiguration::default();
+
+        #[cfg(windows)]
+        if std::env::var_os("WGPU_BACKEND").is_none() {
+            if let eframe::egui_wgpu::WgpuSetup::CreateNew(setup) = &mut wgpu_options.wgpu_setup {
+                setup.instance_descriptor.backends =
+                    eframe::wgpu::Backends::DX12 | eframe::wgpu::Backends::GL;
+            }
+        }
+
         let options = eframe::NativeOptions {
             viewport: egui::ViewportBuilder::default()
                 .with_inner_size([
@@ -240,6 +251,7 @@ impl ControlPanel {
                 ])
                 .with_decorations(false)
                 .with_icon(std::sync::Arc::new(icon)),
+            wgpu_options,
             ..Default::default()
         };
 
