@@ -16,7 +16,11 @@ impl OrionPersistence {
         Self { orion_paths }
     }
 
-    pub(crate) fn encode(&self, orion_state: &OrionState) {
+    pub(crate) fn read(&self, serial: &str) -> Option<[[String; 32]; 7]> {
+        self.read_route_labels().remove(serial)
+    }
+
+    pub(crate) fn write(&self, orion_state: &OrionState) {
         let file = self.orion_paths.lock().unwrap().persistence_file_path();
         let mut route_labels = self.read_route_labels();
 
@@ -43,18 +47,14 @@ impl OrionPersistence {
             .unwrap_or_else(|error| panic!("Failed to encode {}: {}", file.display(), error));
     }
 
-    pub(crate) fn decode(&self, serial: &str) -> Option<[[String; 32]; 7]> {
-        self.read_route_labels().remove(serial)
-    }
-
-    pub(crate) fn selected_serial(&self) -> Option<String> {
-        self.read_file()
+    pub(crate) fn read_selected_serial(&self) -> Option<String> {
+        self.read_json_data()
             .get("selected_serial")
             .and_then(Value::as_str)
             .map(str::to_owned)
     }
 
-    fn read_file(&self) -> Value {
+    fn read_json_data(&self) -> Value {
         let file = self.orion_paths.lock().unwrap().persistence_file_path();
 
         if !file.exists() {
@@ -69,7 +69,7 @@ impl OrionPersistence {
     }
 
     fn read_route_labels(&self) -> HashMap<String, [[String; 32]; 7]> {
-        match self.read_file().get("route_labels") {
+        match self.read_json_data().get("route_labels") {
             Some(labels) => serde_json::from_value(labels.clone()).unwrap_or_else(|error| {
                 panic!("Failed to decode route labels in the persistence file: {error}")
             }),
