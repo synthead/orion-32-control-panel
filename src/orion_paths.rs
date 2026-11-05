@@ -32,4 +32,15 @@ impl OrionPaths {
     pub(crate) fn persistence_file_path(&self) -> std::path::PathBuf {
         self.config_dir().join(FilePaths::PERSISTENCE_FILE)
     }
+
+    pub(crate) fn create_file_dialog(&self) -> rfd::FileDialog {
+        let config_dir = self.config_dir();
+
+        rfd::FileDialog::new()
+            .add_filter(
+                FilePaths::ROUTING_FILE_DESCRIPTION,
+                FilePaths::ROUTING_FILE_EXTENSIONS,
+            )
+            .set_directory(config_dir)
+    }
 }
