@@ -29,7 +29,25 @@ Head to [the latest release](https://github.com/synthead/orion-32-control-panel/
 
 If you want to migrate your route labels from the original control panel, simply save an o32r file by clicking save from the original control panel, and load the o32r file from the new control panel.
 
-**Note:** On Windows, a modal will appear about how Windows has "protected" you from running the control panel without saying why, which makes it appear to be a suspicious program.  In reality, the binary is unsigned, and signing it with a Microsoft-issued CA to make the warning go away costs money.  If you downloaded it from a release on this repository, you can simply ignore this warning once, and it shouldn't bother you again.
+### Windows users
+
+Windows will show a "Windows protected your PC" warning when you first run the control panel, which makes it look like a suspicious program.  In reality, the binary is just unsigned, because code-signing certificates cost money.  If you downloaded it from a release on this repository, click "More info", then "Run anyway".  Windows may show the warning again for new releases.
+
+### Linux users
+
+On Linux, your user may not have read and write access to the Orion 32's HID node.  A udev rule may need to be added for the control panel to connect to your interface.  To fix this, add the following to `/etc/udev/rules.d/antelope-orion-32-hid.rules`:
+
+```
+SUBSYSTEM=="hidraw", ATTRS{idVendor}=="23e5", ATTRS{idProduct}=="a040", GROUP="audio", MODE="0660"
+```
+
+This allows anyone in the `audio` group access to the Orion 32's HID node so the control panel will work for them.  You may need to add your user to the `audio` group, like so:
+
+```
+sudo gpasswd -a "$USER" audio
+```
+
+To apply the settings, restart your computer.
 
 ## Improvements
 
