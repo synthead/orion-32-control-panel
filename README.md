@@ -12,14 +12,14 @@ Here are some screenshots of this control panel at work!
 
 <table>
   <tr>
-    <td><img width="100%" alt="Image" src="https://github.com/user-attachments/assets/d41c8168-8701-4b53-b804-716afc0a03a5" /></td>
-    <td><img width="100%" alt="Image" src="https://github.com/user-attachments/assets/3e99f1da-30e9-480c-8581-aa8e6a43682f" /></td>
-    <td><img width="100%" alt="Image" src="https://github.com/user-attachments/assets/8dde972d-6ef0-4287-a8a0-801d980db778" /></td>
+    <td><img width="100%" alt="Image" src="https://github.com/user-attachments/assets/5526b043-6bf6-4e29-a090-f1235f2cea03" /></td>
+    <td><img width="100%" alt="Image" src="https://github.com/user-attachments/assets/4bf66610-86c6-4bce-8197-009a125553ef" /></td>
+    <td><img width="100%" alt="Image" src="https://github.com/user-attachments/assets/51e8c434-3c13-4878-b939-53adfc9d6c58" /></td>
   </tr>
   <tr>
-    <td><img width="100%" alt="Image" src="https://github.com/user-attachments/assets/bb87fdb0-6508-477b-8407-546f15ea08c5" /></td>
-    <td><img width="100%" alt="Image" src="https://github.com/user-attachments/assets/560753d0-c966-47a1-b9bd-e1d0059405fc" /></td>
-    <td><img width="100%" alt="Image" src="https://github.com/user-attachments/assets/9644685b-3137-48d2-954d-1ce52b4eefb4" /></td>
+    <td><img width="100%" alt="Image" src="https://github.com/user-attachments/assets/8df4fb4b-7a80-4e9e-a698-5a63c745be57" /></td>
+    <td><img width="100%" alt="Image" src="https://github.com/user-attachments/assets/3cc52910-76ad-481b-bb55-84ba0a1eda58" /></td>
+    <td><img width="100%" alt="Image" src="https://github.com/user-attachments/assets/7607977b-f0d4-441f-b943-ae0e06f301ca" /></td>
   </tr>
 </table>
 
