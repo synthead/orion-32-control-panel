@@ -3,6 +3,8 @@ pub(crate) struct FilePaths;
 impl FilePaths {
     pub(crate) const CONFIG_DIR: &str = "Orion 32 Control Panel";
     pub(crate) const PERSISTENCE_FILE: &str = "persistence.json";
+    pub(crate) const ROUTING_FILE_DESCRIPTION: &str = "Orion 32 Routing File";
+    pub(crate) const ROUTING_FILE_EXTENSIONS: &[&str] = &["o32r"];
 }
 
 pub(crate) struct WidgetColors;
