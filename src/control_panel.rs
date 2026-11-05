@@ -7,6 +7,8 @@ use crate::constants::{WidgetColors, WidgetDimensions};
 
 use crate::orion_hid::OrionHid;
 use crate::orion_hid_poller::OrionHidPoller;
+use crate::orion_paths::OrionPaths;
+use crate::orion_persistence::OrionPersistence;
 use crate::orion_state::{OrionState, OrionStateInitSteps, OrionStateSignals, OrionStates};
 
 use crate::drag_value::DragValue;
@@ -148,13 +150,12 @@ impl ControlPanel {
     ];
 
     pub fn new(ctx: &egui::Context) -> Self {
+        let orion_paths = Arc::new(Mutex::new(OrionPaths::new()));
+        let orion_persistence =
+            Arc::new(Mutex::new(OrionPersistence::new(Arc::clone(&orion_paths))));
+
         let orion_states = Arc::new(Mutex::new(OrionStates::default()));
         let (hid_write_tx, hid_write_rx) = mpsc::channel::<[u8; 64]>();
-
-        let orion_hid_poller = Arc::new(Mutex::new(OrionHidPoller::new(
-            Arc::clone(&orion_states),
-            hid_write_rx,
-        )));
 
         let orion_hid = OrionHid::new(hid_write_tx, Arc::clone(&orion_states));
 
@@ -168,8 +169,16 @@ impl ControlPanel {
         let routing = ControlPanelRouting::new(
             Arc::clone(&orion_states),
             Arc::clone(&orion_hid),
+            Arc::clone(&orion_paths),
+            Arc::clone(&orion_persistence),
             Arc::clone(&text_editor),
         );
+
+        let orion_hid_poller = Arc::new(Mutex::new(OrionHidPoller::new(
+            Arc::clone(&orion_states),
+            Arc::clone(&orion_persistence),
+            hid_write_rx,
+        )));
 
         let mixer = ControlPanelMixer::new(
             Arc::clone(&orion_hid),
@@ -244,7 +253,6 @@ impl ControlPanel {
         preload_assets_nonblocking!(&egui_ctx);
 
         let control_panel = Self::new(&egui_ctx);
-        control_panel.create_config_dir();
 
         eframe::run_native_ext(
             Self::WINDOW_TITLE,
@@ -272,10 +280,6 @@ impl ControlPanel {
                 Ok(Box::new(control_panel))
             }),
         )
-    }
-
-    pub(crate) fn create_config_dir(&self) {
-        self.routing.create_config_dir();
     }
 
     fn ui_content(&mut self, ui: &mut egui::Ui) {
