@@ -34,17 +34,17 @@ Note: On Windows, a modal will appear about how Windows has "protected" you from
 - Open source!
 - Cross-platform!  There is finally a control panel for Linux!
 - Starts instantly, and queries the interface way, _way_ faster.
-- Respects your privacy.  The original control panel phones home with your serial number every time it starts.  Yuck.
-- Does not care if your device is activated.  The original control panel denies access to the interface until the user registers for an account and submits a mandatory form where all fields are required, which includes invasive questions like who they bought it from and how much they paid for it.
-- Actually _works_.  The original launcher malfunctions with a message to check your internet connection.  The control panel data is no longer hosted, and requires manual intervention to acquire this data to be functional.
-- Does not hassle you with interactive administrator permissions to start a Windows service every time it starts.
-- Connects directly to your interface.  The original control panel connects to a network server that must always be running.
+- Respects your privacy.  The original control panel [phones home with your serial number](https://github.com/user-attachments/assets/2cc49ad6-c7d8-4646-8fa2-e62d66594c4e) every time it starts.  Yuck!
+- Does not care if your device is activated.  The original control panel [denies access to the interface](https://github.com/user-attachments/assets/b928eaf0-4e0d-4691-869c-0e8265ca9101) until the user registers for an account and submits [a mandatory form where all fields are required](https://github.com/user-attachments/assets/b6dc4f71-4134-4916-82f6-76e114971a8d), which includes invasive questions like who they bought it from and how much they paid for it.
+- Actually _works_.  The original launcher has malfunctioned with [a message to check your internet connection](https://github.com/user-attachments/assets/40db4b51-ac39-406b-b5d4-642adc1fa5f9) for more than a year.  The control panel data appears to be no longer hosted, and requires manual intervention to acquire this data to be functional.
+- Does not hassle you with [interactive administrator permissions to start a program](https://github.com/user-attachments/assets/66e7b258-fc90-4bbd-9cd0-d451bc62b0db) every time it starts.
+- Connects directly to your interface.  The original control panel [connects to a network server](https://github.com/user-attachments/assets/2fea9af5-4119-4f73-9dc3-433ff719b634) that must always be running.
 - Long-standing routing and AD phase bugs have been fixed.  The original control panel still has bugs where active routes are sometimes erroneously presented as muted, and AD phases are sometimes erroneously displayed as the wrong state.
-- VU meters have peak indicators!  The appearance is now idential to the meters on the physical screen.
+- VU meters have [peak indicators](https://github.com/user-attachments/assets/760af7db-0317-4a6a-b5e7-b743f8c64060)!  The appearance is now idential to the meters on the physical screen.
 - Knobs and sliders update smoothly.  The original control panel only updated occasionally when moving, which made audibly chunky changes.
 - Persists unique route labels per interface.  The original control panel kept the same labels across different interfaces.
 - When more than one interface is connected, the last-used interface is selected when the control panel starts.
-- Interface can still be programmed while in standby.  The power button simply disables the display and mutes the audio, and does not turn the interface off.  The original control panel pretends that it is off by disabling the control panel, where this version permits programming in standby.
+- Interface can still be [programmed while in standby](https://github.com/user-attachments/assets/9bf72619-b4a3-448c-ac8c-7a00ea3c37d0).  The power feature on the interface simply disables the display and mutes the audio, and does not turn the interface off.  The original control panel pretends that it is off by disabling the control panel, where this version permits programming in standby.
 
 ## What works
 
