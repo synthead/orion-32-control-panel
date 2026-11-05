@@ -58,7 +58,7 @@ Note: On Windows, a modal will appear about how Windows has "protected" you from
 - Persisting label names when closing and opening the control panel.
 - Undo and redo support when editing routes.
 - Selecting and saving presets.
-- Standby support.
+- Standby support, including programming during standby.
 - Full mixer support.
 - AD phases.
 - All settings.
