@@ -28,6 +28,5 @@ mod orion_state;
 use crate::control_panel::ControlPanel;
 
 fn main() -> eframe::Result {
-    env_logger::init();
     ControlPanel::run()
 }
