@@ -78,4 +78,4 @@ Note: On Windows, a modal will appear about how Windows has "protected" you from
 - "How to" button.  This links to a YouTube playlist that has been removed on the original control panel.
 - News feed.  Polling this feed does not respect your privacy, and the news feed is not online anymore.
 - Windows-only ASIO options.  These have been moved to driver settings in the system tray, but are still visible as permanently-disabled settings in the original control panel.
-- Multiple window support.  The original control panel could detach the routing, mixer, and AD phase settings as separate windows, which is cumbersome and not very useful.
+- Multiple windows.  The original control panel could detach the routing, mixer, and AD phase settings as separate windows, which is cumbersome and not very useful.
