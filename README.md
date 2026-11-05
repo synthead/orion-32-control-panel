@@ -73,6 +73,7 @@ Note: On Windows, a modal will appear about how Windows has "protected" you from
 - Windows service for networked control panel server.
 - Client support to connect to networked control panel server.
 - Administration tools to manage Windows service for control panel server.
+- Animations when changing views.  This makes the UI immediate.
 - Firmware updates.  New updates are not being released, so it can be updated once in Windows, if needed.
 - "How to" button.  This links to a YouTube playlist that has been removed on the original control panel.
 - News feed.  Polling this feed does not respect your privacy, and the news feed is not online anymore.
