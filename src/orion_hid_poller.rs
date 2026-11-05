@@ -7,10 +7,12 @@ use std::thread;
 use std::time::{Duration, Instant};
 
 use crate::orion_hid_device::OrionHidDevice;
+use crate::orion_persistence::OrionPersistence;
 use crate::orion_state::{OrionStateInitSteps, OrionStates};
 
 pub(crate) struct OrionHidPoller {
     orion_states: Arc<Mutex<OrionStates>>,
+    persistence: Arc<Mutex<OrionPersistence>>,
     hid_write_rx: mpsc::Receiver<[u8; 64]>,
 
     hid_api: HidApi,
@@ -28,6 +30,7 @@ impl OrionHidPoller {
 
     pub(crate) fn new(
         orion_states: Arc<Mutex<OrionStates>>,
+        persistence: Arc<Mutex<OrionPersistence>>,
         hid_write_rx: mpsc::Receiver<[u8; 64]>,
     ) -> Self {
         let hid_api = HidApi::new().unwrap_or_else(|error| {
@@ -37,6 +40,7 @@ impl OrionHidPoller {
 
         Self {
             orion_states,
+            persistence,
             hid_write_rx,
 
             hid_api,
@@ -45,6 +49,56 @@ impl OrionHidPoller {
             last_device_refresh: None,
             last_selected_hid_path: None,
         }
+    }
+
+    fn pick_selection(&self, available_paths: &[CString]) -> Option<CString> {
+        let persisted_serial = self.persistence.lock().unwrap().read_selected_serial();
+        let states = self.orion_states.lock().unwrap();
+
+        let mut candidates: Vec<(&CString, String)> = available_paths
+            .iter()
+            .filter_map(|path| {
+                let orion_state = states.orion_states.get(path)?;
+
+                (orion_state.inits_completed == OrionStateInitSteps::ALL).then(|| {
+                    (
+                        path,
+                        String::from_utf8_lossy(&orion_state.serial).into_owned(),
+                    )
+                })
+            })
+            .collect();
+
+        candidates.sort_by(|a, b| a.1.cmp(&b.1));
+
+        candidates
+            .iter()
+            .find(|(_, serial)| Some(serial) == persisted_serial.as_ref())
+            .or(candidates.first())
+            .map(|(path, _)| (*path).clone())
+    }
+
+    fn persist_selection(&self, selected_hid_path: &CString) {
+        let mut states = self.orion_states.lock().unwrap();
+
+        let Some(orion_state) = states.orion_states.get_mut(selected_hid_path) else {
+            return;
+        };
+
+        if orion_state.inits_completed != OrionStateInitSteps::ALL {
+            return;
+        }
+
+        let persistence = self.persistence.lock().unwrap();
+        let serial = String::from_utf8_lossy(&orion_state.serial).into_owned();
+
+        let Some(labels) = persistence.read(&serial) else {
+            return;
+        };
+
+        orion_state.labels = Arc::new(labels);
+
+        persistence.write(orion_state);
     }
 
     pub(crate) fn poll_and_update_state(&mut self) {
@@ -173,15 +227,19 @@ impl OrionHidPoller {
             if states
                 .selected_hid_path
                 .as_ref()
-                .is_none_or(|path| !available_paths.contains(path))
+                .is_some_and(|path| !available_paths.contains(path))
             {
-                states.selected_hid_path = available_paths.first().cloned();
+                states.selected_hid_path = None;
             }
 
             states.selected_hid_path.clone()
         };
 
         self.last_selected_hid_path = selected_hid_path.clone();
+
+        if selection_changed && let Some(path) = selected_hid_path.as_ref() {
+            self.persist_selection(path);
+        }
 
         self.orion_hid_devices
             .retain(|path, _| available_paths.contains(path));
@@ -253,6 +311,14 @@ impl OrionHidPoller {
                     Err(()) => break,
                 }
             }
+        }
+
+        if selected_hid_path.is_none()
+            && let Some(path) = self.pick_selection(&available_paths)
+        {
+            self.orion_states.lock().unwrap().selected_hid_path = Some(path);
+
+            return self.try_connect();
         }
 
         selected_hid_path

@@ -1,6 +1,4 @@
-use std::sync::Arc;
-use std::sync::Mutex;
-use std::sync::mpsc;
+use std::sync::{Arc, Mutex, mpsc};
 
 use crate::orion_state::OrionStates;
 
