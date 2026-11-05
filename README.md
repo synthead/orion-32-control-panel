@@ -49,7 +49,7 @@ Note: On Windows, a modal will appear about how Windows has "protected" you from
 ## What works
 
 - Multiple interface selection.
-- VU meters, and VU meter sources.
+- VU meters including log curve and peak indicators, and VU meter sources.
 - Clock source and realtime clock frequency, including 10M atomic clock.
 - Line out adjustment.
 - Identical route programming behavior, including selecting and dragging routes, and editing route labels.
