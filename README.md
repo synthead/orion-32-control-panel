@@ -43,6 +43,7 @@ Note: On Windows, a modal will appear about how Windows has "protected" you from
 - VU meters have peak indicators!  The appearance is now idential to the meters on the physical screen.
 - Knobs and sliders update smoothly.  The original control panel only updated occasionally when moving, which made audibly chunky changes.
 - Persists unique route labels per interface.  The original control panel kept the same labels across different interfaces.
+- When more than one interface is connected, the last-used interface is selected when the control panel starts.
 - Interface can still be programmed while in standby.  The power button simply disables the display and mutes the audio, and does not turn the interface off.  The original control panel pretends that it is off by disabling the control panel, where this version permits programming in standby.
 
 ## What works
