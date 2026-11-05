@@ -9,10 +9,11 @@ use crate::constants::{
 };
 
 use crate::orion_file::OrionFile;
+use crate::orion_paths::OrionPaths;
 use crate::orion_persistence::OrionPersistence;
 
 use crate::orion_hid::OrionHid;
-use crate::orion_state::{OrionState, OrionStateInitSteps, OrionStateSignals, OrionStates};
+use crate::orion_state::{OrionState, OrionStateSignals, OrionStates};
 
 use crate::control_panel_helpers::ControlPanelHelpers;
 use crate::text_editor::TextEditor;
@@ -68,10 +69,10 @@ type RoutingFileData = ([[String; 32]; 7], [[u8; 32]; 7]);
 pub(crate) struct ControlPanelRouting {
     orion_states: Arc<Mutex<OrionStates>>,
     orion_hid: Arc<Mutex<OrionHid>>,
+    orion_paths: Arc<Mutex<OrionPaths>>,
+    orion_persistence: Arc<Mutex<OrionPersistence>>,
 
     text_editor: Arc<Mutex<TextEditor>>,
-
-    config_dir: Option<std::path::PathBuf>,
 
     file_dialog_tx: mpsc::Sender<Option<RoutingFileData>>,
     file_dialog_rx: mpsc::Receiver<Option<RoutingFileData>>,
@@ -95,9 +96,6 @@ pub(crate) struct ControlPanelRouting {
 }
 
 impl ControlPanelRouting {
-    const CONFIG_DIR: &str = "Orion 32 Control Panel";
-    const PERSISTENCE_FILE_BASENAME: &str = "persistence.json";
-
     const SOURCE_ROW_LABELS: [&str; 7] = [
         "ADC",
         "USB PLAY",
@@ -111,18 +109,18 @@ impl ControlPanelRouting {
     pub(crate) fn new(
         orion_states: Arc<Mutex<OrionStates>>,
         orion_hid: Arc<Mutex<OrionHid>>,
+        orion_paths: Arc<Mutex<OrionPaths>>,
+        orion_persistence: Arc<Mutex<OrionPersistence>>,
+
         text_editor: Arc<Mutex<TextEditor>>,
     ) -> Self {
-        let config_dir = directories::BaseDirs::new()
-            .map(|dirs| dirs.config_dir().join(ControlPanelRouting::CONFIG_DIR));
-
         let (file_dialog_tx, file_dialog_rx) = mpsc::channel();
 
         Self {
             orion_states,
             orion_hid,
-
-            config_dir,
+            orion_paths,
+            orion_persistence,
 
             file_dialog_tx,
             file_dialog_rx,
@@ -152,8 +150,6 @@ impl ControlPanelRouting {
     pub(crate) fn draw(&mut self, ui: &mut egui::Ui, orion_state: &mut OrionState) {
         orion_state.calculate_channel_counts();
 
-        self.read_persistence_for_new_serials(orion_state);
-
         Self::draw_base_graphics(ui);
 
         self.draw_undo(ui);
@@ -168,17 +164,6 @@ impl ControlPanelRouting {
 
         self.clear_target_selection_when_outside(ui);
         self.update_targets_on_mouseup(ui, orion_state);
-    }
-
-    pub(crate) fn create_config_dir(&self) {
-        if let Some(config_dir) = &self.config_dir {
-            std::fs::create_dir_all(config_dir).unwrap_or_else(|error| {
-                panic!(
-                    "Failed to create config directory '{}': {error}",
-                    config_dir.display()
-                )
-            });
-        }
     }
 
     fn draw_base_graphics(ui: &mut egui::Ui) {
@@ -293,11 +278,11 @@ impl ControlPanelRouting {
         }
 
         if save_response.clicked() {
-            let mut dialog = rfd::FileDialog::new().add_filter("Orion 32 Routing File", &["o32r"]);
+            let config_dir = self.orion_paths.lock().unwrap().config_dir().to_path_buf();
 
-            if let Some(config_dir) = &self.config_dir {
-                dialog = dialog.set_directory(config_dir);
-            }
+            let dialog = rfd::FileDialog::new()
+                .add_filter("Orion 32 Routing File", &["o32r"])
+                .set_directory(config_dir);
 
             let orion_state = orion_state.clone();
 
@@ -311,11 +296,11 @@ impl ControlPanelRouting {
         }
 
         if load_response.clicked() {
-            let mut dialog = rfd::FileDialog::new().add_filter("Orion 32 Routing File", &["o32r"]);
+            let config_dir = self.orion_paths.lock().unwrap().config_dir().to_path_buf();
 
-            if let Some(config_dir) = &self.config_dir {
-                dialog = dialog.set_directory(config_dir);
-            }
+            let dialog = rfd::FileDialog::new()
+                .add_filter("Orion 32 Routing File", &["o32r"])
+                .set_directory(config_dir);
 
             let tx = self.file_dialog_tx.clone();
             let ctx = ui.ctx().clone();
@@ -1027,45 +1012,7 @@ impl ControlPanelRouting {
         self.undo_cursor = 0;
     }
 
-    fn read_persistence_for_new_serials(&mut self, orion_state: &OrionState) {
-        if !orion_state.persistence_loaded
-            && orion_state.inits_completed & OrionStateInitSteps::SERIAL_NUMBER != 0
-        {
-            self.read_persistence_file();
-        }
-    }
-
-    fn persistence_file_path(&self) -> Option<std::path::PathBuf> {
-        if let Some(ref config_dir) = self.config_dir {
-            return Some(config_dir.join(Self::PERSISTENCE_FILE_BASENAME));
-        }
-
-        None
-    }
-
-    pub(crate) fn read_persistence_file(&self) {
-        if let Some(path) = self.persistence_file_path() {
-            if !path.exists() {
-                return;
-            }
-
-            let orion_persistance = OrionPersistence::new(path);
-
-            if let Some(orion_state) = self.orion_states.lock().unwrap().current_mut() {
-                if let Some(labels) = orion_persistance.decode(&orion_state) {
-                    orion_state.labels = std::sync::Arc::new(labels);
-                }
-
-                orion_state.persistence_loaded = true;
-            }
-        }
-    }
-
     fn write_persistence_file(&self, orion_state: &OrionState) {
-        if let Some(path) = self.persistence_file_path() {
-            let orion_persistance = OrionPersistence::new(path);
-
-            orion_persistance.encode(&orion_state);
-        }
+        self.orion_persistence.lock().unwrap().encode(orion_state);
     }
 }
