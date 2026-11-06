@@ -60,13 +60,14 @@ To apply the settings, restart your computer.
 - Does not hassle you with [an interactive administrator permissions prompt](https://github.com/user-attachments/assets/66e7b258-fc90-4bbd-9cd0-d451bc62b0db) every time it starts.
 - Connects directly to your interface.  The original control panel [connects to a network server](https://github.com/user-attachments/assets/2fea9af5-4119-4f73-9dc3-433ff719b634) that must always be running.
 - Long-standing routing and AD phase bugs have been fixed.  The original control panel still has bugs where active routes are sometimes shown as muted, and AD phases are sometimes displayed in the wrong state.
+- Hitting tab in a mixer pan or level field now jumps to the same field on the next channel, instead of alternating between pan and level as the original control panel did.
 - VU meters have [peak indicators](https://github.com/user-attachments/assets/760af7db-0317-4a6a-b5e7-b743f8c64060)!  The appearance is now identical to the meters on the physical screen.
 - Knobs and sliders update smoothly.  The original control panel only updated occasionally when moving, which made audibly chunky changes.
 - Persists unique route labels per interface.  The original control panel kept the same labels across different interfaces.
 - When more than one interface is connected, the last-used interface is selected when the control panel starts.
 - The interface can still be [programmed while in standby](https://github.com/user-attachments/assets/9bf72619-b4a3-448c-ac8c-7a00ea3c37d0).  The power feature on the interface simply disables the display and mutes the audio, and does not turn the interface off.  The original control panel pretends that it is off by disabling the control panel, while this version permits programming in standby.
 
-## What works
+## Supported features
 
 - Multiple interface selection.
 - VU meters including log curve and peak indicators, and VU meter sources.
@@ -80,7 +81,7 @@ To apply the settings, restart your computer.
 - Undo and redo support when editing routes.
 - Selecting and saving presets.
 - Standby support, including programming during standby.
-- Full mixer support.
+- Full mixer support, with double-click pan resets and better tab movement.
 - AD phases.
 - All settings.
 - All data in the about window.
@@ -99,3 +100,4 @@ To apply the settings, restart your computer.
 - News feed.  Polling this feed does not respect your privacy, and the news feed is not online anymore.
 - Windows-only ASIO options.  These have been moved to driver settings in the system tray, but are still visible as permanently disabled settings in the original control panel.
 - Multiple windows.  The original control panel could detach the routing, mixer, and AD phase settings as separate windows, which is cumbersome and not very useful.
+- Double-clicking a mixer level or the line out knob no longer resets it to a default value as the original control panel did. This prevents a sudden loud burst of audio from an accidental double-click.
