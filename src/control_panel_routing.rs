@@ -5,7 +5,7 @@ use std::sync::Mutex;
 use std::sync::mpsc;
 
 use crate::constants::{
-    RoutingColumns, RoutingLabelColors, RoutingRows, WidgetColors, WidgetDimensions,
+    RoutingColumns, RoutingLabelColors, RoutingLabels, RoutingRows, WidgetColors, WidgetDimensions,
 };
 
 use crate::orion_file::OrionFile;
@@ -412,6 +412,12 @@ impl ControlPanelRouting {
         );
 
         if let Some((route_text, tab)) = level_edit_result {
+            let route_text = if route_text.trim().is_empty() {
+                RoutingLabels::DEFAULT_LABEL_NUMBERS[row as usize][column as usize].to_string()
+            } else {
+                route_text
+            };
+
             if let Some(orion_state) = self.orion_states.lock().unwrap().current_mut() {
                 std::sync::Arc::make_mut(&mut orion_state.labels)[row as usize][column as usize] =
                     route_text;

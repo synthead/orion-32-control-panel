@@ -89,11 +89,8 @@ pub(crate) struct OrionState {
 
 impl Default for OrionState {
     fn default() -> Self {
-        let labels = std::array::from_fn(|group| {
-            let start_at = if group == 3 { 33 } else { 1 };
-
-            std::array::from_fn(|i| (i + start_at).to_string())
-        });
+        let labels =
+            RoutingLabels::DEFAULT_LABEL_NUMBERS.map(|row| row.map(|number| number.to_string()));
 
         Self {
             labels: Arc::new(labels),
