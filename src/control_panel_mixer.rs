@@ -82,6 +82,8 @@ impl ControlPanelMixer {
     const SOLO_BIT: u8 = 0x80;
     const MUTE_BIT: u8 = 0x40;
 
+    const PAN_RESET_VALUE: u8 = 0x20;
+
     pub(crate) fn new(
         orion_hid: Arc<Mutex<OrionHid>>,
         text_editor: Arc<Mutex<TextEditor>>,
@@ -339,7 +341,21 @@ impl ControlPanelMixer {
                 false,
             );
 
-            if pan_should_write {
+            let pan_reset = ui
+                .interact(
+                    pan_hitbox_rect,
+                    egui::Id::new(("pan_reset", channel as u32)),
+                    egui::Sense::click(),
+                )
+                .double_clicked();
+
+            let pan = if pan_reset {
+                Self::PAN_RESET_VALUE
+            } else {
+                pan
+            };
+
+            if pan_reset || pan_should_write {
                 self.orion_hid.lock().unwrap().queue_mixer_channel(
                     channel as u8,
                     levels[channel],
