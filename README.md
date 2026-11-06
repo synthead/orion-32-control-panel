@@ -81,7 +81,7 @@ To apply the settings, restart your computer.
 - Undo and redo support when editing routes.
 - Selecting and saving presets.
 - Standby support, including programming during standby.
-- Full mixer support.
+- Full mixer support, with double-click pan resets and better tab movement.
 - AD phases.
 - All settings.
 - All data in the about window.
