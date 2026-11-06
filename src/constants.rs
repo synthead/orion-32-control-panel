@@ -77,13 +77,13 @@ impl RoutingLabels {
         let mut defaults_1_32 = [0; 32];
         let mut defaults_33_64 = [0; 32];
 
-        let mut i = 0;
+        let mut column = 0;
 
-        while i < 32 {
-            defaults_1_32[i] = (i + 1) as u8;
-            defaults_33_64[i] = (i + 33) as u8;
+        while column < 32 {
+            defaults_1_32[column] = (column + 1) as u8;
+            defaults_33_64[column] = (column + 33) as u8;
 
-            i += 1;
+            column += 1;
         }
 
         [
