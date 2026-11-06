@@ -8,7 +8,7 @@ use std::time::{Duration, Instant};
 
 use crate::orion_hid_device::OrionHidDevice;
 use crate::orion_persistence::OrionPersistence;
-use crate::orion_state::{OrionStateInitSteps, OrionStates};
+use crate::orion_state::{OrionState, OrionStateInitSteps, OrionStates};
 
 pub(crate) struct OrionHidPoller {
     orion_states: Arc<Mutex<OrionStates>>,
@@ -92,13 +92,36 @@ impl OrionHidPoller {
         let persistence = self.persistence.lock().unwrap();
         let serial = String::from_utf8_lossy(&orion_state.serial).into_owned();
 
-        let Some(labels) = persistence.read(&serial) else {
+        persistence.read(orion_state);
+
+        if persistence.read_selected_serial().as_deref() != Some(&serial) {
+            persistence.write_selected_serial(&serial);
+        }
+    }
+
+    fn sync_labels_with_preset(
+        persistence: &Mutex<OrionPersistence>,
+        previous_preset_standby: u8,
+        orion_state: &mut OrionState,
+    ) {
+        if orion_state.inits_completed != OrionStateInitSteps::ALL {
             return;
-        };
+        }
 
-        orion_state.labels = Arc::new(labels);
+        let preset = orion_state.preset_standby & 0x07;
+        let first_report = previous_preset_standby == u8::MAX;
 
-        persistence.write(orion_state);
+        if !first_report && previous_preset_standby & 0x07 == preset {
+            return;
+        }
+
+        let persistence = persistence.lock().unwrap();
+
+        if preset == 0 && !first_report {
+            persistence.write(orion_state, 0);
+        } else {
+            persistence.read(orion_state);
+        }
     }
 
     pub(crate) fn poll_and_update_state(&mut self) {
@@ -166,7 +189,15 @@ impl OrionHidPoller {
                     self.orion_hid_devices.get_mut(selected_hid_path),
                     states.orion_states.get_mut(selected_hid_path),
                 ) {
+                    let previous_preset_standby = orion_state.preset_standby;
+
                     device.update_orion_state(&hid_data, orion_state);
+
+                    Self::sync_labels_with_preset(
+                        &self.persistence,
+                        previous_preset_standby,
+                        orion_state,
+                    );
                 }
             }
             Ok(None) => {}

@@ -1,20 +1,24 @@
 use std::sync::{Arc, Mutex, mpsc};
 
+use crate::orion_persistence::OrionPersistence;
 use crate::orion_state::OrionStates;
 
 pub(crate) struct OrionHid {
     hid_write_tx: mpsc::Sender<[u8; 64]>,
     orion_states: Arc<Mutex<OrionStates>>,
+    persistence: Arc<Mutex<OrionPersistence>>,
 }
 
 impl OrionHid {
     pub(crate) fn new(
         hid_write_tx: mpsc::Sender<[u8; 64]>,
         orion_states: Arc<Mutex<OrionStates>>,
+        persistence: Arc<Mutex<OrionPersistence>>,
     ) -> Self {
         Self {
             hid_write_tx,
             orion_states,
+            persistence,
         }
     }
 
@@ -99,6 +103,14 @@ impl OrionHid {
     }
 
     pub(crate) fn queue_preset_write(&mut self, preset: u8) {
+        {
+            let orion_states = self.orion_states.lock().unwrap();
+
+            if let Some(orion_state) = orion_states.current() {
+                self.persistence.lock().unwrap().write(orion_state, preset);
+            }
+        }
+
         self.queue_packet(0x70, 0x12, 0x00, 0x00, &[0x05, preset]);
     }
 

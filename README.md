@@ -63,7 +63,7 @@ To apply the settings, restart your computer.
 - Hitting tab in a mixer pan or level field now jumps to the same field on the next channel, instead of alternating between pan and level as the original control panel did.
 - VU meters have [peak indicators](https://github.com/user-attachments/assets/760af7db-0317-4a6a-b5e7-b743f8c64060)!  The appearance is now identical to the meters on the physical screen.
 - Knobs and sliders update smoothly.  The original control panel only updated occasionally when moving, which made audibly chunky changes.
-- Persists unique route labels per interface.  The original control panel kept the same labels across different interfaces.
+- Persists routing labels separately for each interface and each of its presets. The original control panel kept a single set of labels no matter which preset or interface was in use.
 - When more than one interface is connected, the last-used interface is selected when the control panel starts.
 - The interface can still be [programmed while in standby](https://github.com/user-attachments/assets/9bf72619-b4a3-448c-ac8c-7a00ea3c37d0).  The power feature on the interface simply disables the display and mutes the audio, and does not turn the interface off.  The original control panel pretends that it is off by disabling the control panel, while this version permits programming in standby.
 
