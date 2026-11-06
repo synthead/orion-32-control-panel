@@ -250,6 +250,8 @@ impl ControlPanel {
                     ControlPanelDimensions::VIEWPORT_HEIGHT,
                 ])
                 .with_decorations(false)
+                .with_resizable(false)
+                .with_maximize_button(false)
                 .with_icon(std::sync::Arc::new(icon)),
             wgpu_options,
             ..Default::default()
