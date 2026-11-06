@@ -100,4 +100,4 @@ To apply the settings, restart your computer.
 - News feed.  Polling this feed does not respect your privacy, and the news feed is not online anymore.
 - Windows-only ASIO options.  These have been moved to driver settings in the system tray, but are still visible as permanently disabled settings in the original control panel.
 - Multiple windows.  The original control panel could detach the routing, mixer, and AD phase settings as separate windows, which is cumbersome and not very useful.
-- Double-clicking the line out knob no longer resets it to -11 dB as the original control panel did. This prevents a sudden loud burst of audio that could be triggered accidentally.
+- Double-clicking a mixer level or the line out knob no longer resets it to a default value as the original control panel did. This prevents a sudden loud burst of audio from an accidental double-click.
