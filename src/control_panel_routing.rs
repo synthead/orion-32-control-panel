@@ -312,7 +312,7 @@ impl ControlPanelRouting {
                 if let Some(orion_state) = self.orion_states.lock().unwrap().current_mut() {
                     orion_state.labels = std::sync::Arc::new(labels);
 
-                    self.orion_persistence.lock().unwrap().write(orion_state);
+                    self.orion_persistence.lock().unwrap().write(orion_state, 0);
                 }
 
                 {
@@ -422,7 +422,12 @@ impl ControlPanelRouting {
                 std::sync::Arc::make_mut(&mut orion_state.labels)[row as usize][column as usize] =
                     route_text;
 
-                self.orion_persistence.lock().unwrap().write(orion_state);
+                let preset = orion_state.preset_standby & 0x07;
+
+                self.orion_persistence
+                    .lock()
+                    .unwrap()
+                    .write(orion_state, preset);
             }
 
             if let Some(tab) = tab {

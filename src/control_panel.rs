@@ -157,7 +157,11 @@ impl ControlPanel {
         let orion_states = Arc::new(Mutex::new(OrionStates::default()));
         let (hid_write_tx, hid_write_rx) = mpsc::channel::<[u8; 64]>();
 
-        let orion_hid = OrionHid::new(hid_write_tx, Arc::clone(&orion_states));
+        let orion_hid = OrionHid::new(
+            hid_write_tx,
+            Arc::clone(&orion_states),
+            Arc::clone(&orion_persistence),
+        );
 
         let orion_hid = Arc::new(Mutex::new(orion_hid));
         let text_editor = Arc::new(Mutex::new(TextEditor::new()));
