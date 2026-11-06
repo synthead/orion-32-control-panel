@@ -72,4 +72,28 @@ impl RoutingLabels {
     pub(crate) const OSC_1: &str = "O1";
     pub(crate) const OSC_2: &str = "O2";
     pub(crate) const MUTE: &str = "M";
+
+    pub(crate) const DEFAULT_LABEL_NUMBERS: [[u8; 32]; 7] = {
+        let mut defaults_1_32 = [0; 32];
+        let mut defaults_33_64 = [0; 32];
+
+        let mut i = 0;
+
+        while i < 32 {
+            defaults_1_32[i] = (i + 1) as u8;
+            defaults_33_64[i] = (i + 33) as u8;
+
+            i += 1;
+        }
+
+        [
+            defaults_1_32,
+            defaults_1_32,
+            defaults_1_32,
+            defaults_33_64,
+            defaults_1_32,
+            defaults_1_32,
+            defaults_1_32,
+        ]
+    };
 }
