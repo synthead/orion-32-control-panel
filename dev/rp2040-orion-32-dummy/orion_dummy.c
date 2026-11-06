@@ -298,20 +298,30 @@ int main(void) {
     vu[30] = 0x71;                                 // VU sources
 
     uint32_t last = 0;
+    bool vu_due = false;
     while (1) {
         tud_task();
-
-        if (tud_hid_ready() && q_tail != q_head) {
-            tud_hid_report(0, q[q_tail], 64);
-            q_tail = (q_tail + 1) % Q_LEN;
-        }
 
         uint32_t now = to_ms_since_boot(get_absolute_time());
         if (now - last >= 10) {
             last = now;
-            vu[31] ^= 1;
-            for (int i = 32; i < 64; i++) vu[i] = (now / 20 + i) & 0x3f;
-            q_push(vu);
+            vu_due = true;
+        }
+
+        // Replies go first. VU is not queued: it is built fresh when the IN
+        // endpoint is free and nothing else waits, so a host that isn't
+        // polling can't leave a backlog of stale VU packets that fills the
+        // queue and makes q_push() silently drop init replies.
+        if (tud_hid_ready()) {
+            if (q_tail != q_head) {
+                tud_hid_report(0, q[q_tail], 64);
+                q_tail = (q_tail + 1) % Q_LEN;
+            } else if (vu_due) {
+                vu_due = false;
+                vu[31] ^= 1;
+                for (int i = 32; i < 64; i++) vu[i] = (now / 20 + i) & 0x3f;
+                tud_hid_report(0, vu, 64);
+            }
         }
     }
 }
