@@ -60,6 +60,7 @@ To apply the settings, restart your computer.
 - Does not hassle you with [an interactive administrator permissions prompt](https://github.com/user-attachments/assets/66e7b258-fc90-4bbd-9cd0-d451bc62b0db) every time it starts.
 - Connects directly to your interface.  The original control panel [connects to a network server](https://github.com/user-attachments/assets/2fea9af5-4119-4f73-9dc3-433ff719b634) that must always be running.
 - Long-standing routing and AD phase bugs have been fixed.  The original control panel still has bugs where active routes are sometimes shown as muted, and AD phases are sometimes displayed in the wrong state.
+- Hitting tab in a mixer pan or level field now jumps to the same field on the next channel, instead of alternating between pan and level as the original control panel did.
 - VU meters have [peak indicators](https://github.com/user-attachments/assets/760af7db-0317-4a6a-b5e7-b743f8c64060)!  The appearance is now identical to the meters on the physical screen.
 - Knobs and sliders update smoothly.  The original control panel only updated occasionally when moving, which made audibly chunky changes.
 - Persists unique route labels per interface.  The original control panel kept the same labels across different interfaces.
