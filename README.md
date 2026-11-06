@@ -67,7 +67,7 @@ To apply the settings, restart your computer.
 - When more than one interface is connected, the last-used interface is selected when the control panel starts.
 - The interface can still be [programmed while in standby](https://github.com/user-attachments/assets/9bf72619-b4a3-448c-ac8c-7a00ea3c37d0).  The power feature on the interface simply disables the display and mutes the audio, and does not turn the interface off.  The original control panel pretends that it is off by disabling the control panel, while this version permits programming in standby.
 
-## What works
+## Supported features
 
 - Multiple interface selection.
 - VU meters including log curve and peak indicators, and VU meter sources.
