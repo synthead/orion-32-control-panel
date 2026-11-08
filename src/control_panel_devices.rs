@@ -48,19 +48,13 @@ impl ControlPanelDevices {
     }
 
     pub(crate) fn draw(&mut self, ui: &mut egui::Ui) {
-        let orion_state = self.orion_states.lock().unwrap().current().cloned();
+        let orion_states = self.orion_states.lock().unwrap();
 
         Self::draw_base_graphics(ui);
         self.draw_window_buttons(ui);
 
-        let Some(orion_state) = orion_state else {
-            self.draw_devices_list(ui, &[0; 13], 0);
-            self.draw_text(ui, 0);
-            return;
-        };
-
-        self.draw_devices_list(ui, &orion_state.serial, orion_state.inits_completed);
-        self.draw_text(ui, orion_state.inits_completed);
+        Self::draw_devices_list(ui, &orion_states);
+        Self::draw_text(ui, &orion_states);
     }
 
     fn draw_base_graphics(ui: &mut egui::Ui) {
@@ -110,9 +104,7 @@ impl ControlPanelDevices {
         }
     }
 
-    fn draw_devices_list(&mut self, ui: &mut egui::Ui, serial: &[u8; 13], inits_completed: u8) {
-        let serial_text = String::from_utf8_lossy(serial);
-
+    fn draw_devices_list(ui: &mut egui::Ui, orion_states: &OrionStates) {
         egui::Area::new(egui::Id::new("devices_list"))
             .fixed_pos(egui::pos2(
                 ControlPanelDevicesDimensions::DEVICES_LIST_X,
@@ -141,10 +133,12 @@ impl ControlPanelDevices {
                 );
 
                 egui::Frame::new().inner_margin(3.0).show(ui, |ui| {
-                    if inits_completed & OrionStateInitSteps::SERIAL_NUMBER != 0 {
+                    for orion_state in orion_states.orion_states.values().filter(|orion_state| {
+                        orion_state.inits_completed & OrionStateInitSteps::SERIAL_NUMBER != 0
+                    }) {
                         ui.add(
                             egui::Label::new(
-                                egui::RichText::new(serial_text)
+                                egui::RichText::new(String::from_utf8_lossy(&orion_state.serial))
                                     .color(WidgetColors::TEXT_COLOR_DEVICE),
                             )
                             .selectable(false),
@@ -154,7 +148,15 @@ impl ControlPanelDevices {
             });
     }
 
-    fn draw_text(&mut self, ui: &mut egui::Ui, inits_completed: u8) {
+    fn draw_text(ui: &mut egui::Ui, orion_states: &OrionStates) {
+        let inits_completed = orion_states
+            .orion_states
+            .values()
+            .map(|orion_state| orion_state.inits_completed)
+            .filter(|&inits_completed| inits_completed != OrionStateInitSteps::ALL)
+            .max()
+            .unwrap_or(0);
+
         let text = if inits_completed == 0 {
             "Not connected.".to_string()
         } else {
