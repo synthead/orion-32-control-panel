@@ -55,11 +55,11 @@ impl ControlPanelRoutingDimensions {
     const SIGNAL_ADAT_IN_Y: u16 = 346;
     const SIGNAL_SPDIF_IN_Y: u16 = 361;
 
-    const NAV_X: u16 = 1106;
-    const NAV_UNDO_Y: u16 = 410;
-    const NAV_REDO_Y: u16 = 436;
-    const NAV_SAVE_Y: u16 = 462;
-    const NAV_LOAD_Y: u16 = 488;
+    const BUTTON_X: u16 = 1106;
+    const BUTTON_UNDO_Y: u16 = 410;
+    const BUTTON_REDO_Y: u16 = 436;
+    const BUTTON_SAVE_Y: u16 = 462;
+    const BUTTON_LOAD_Y: u16 = 488;
 
     const TARGET_ROUTES_MIN_X: f32 = 127.0;
     const TARGET_ROUTES_MIN_Y: f32 = 448.0;
@@ -184,8 +184,8 @@ impl ControlPanelRouting {
     fn draw_undo(&mut self, ui: &mut egui::Ui) {
         let undo_response = render_asset!(
             ui,
-            ControlPanelRoutingDimensions::NAV_X,
-            ControlPanelRoutingDimensions::NAV_UNDO_Y,
+            ControlPanelRoutingDimensions::BUTTON_X,
+            ControlPanelRoutingDimensions::BUTTON_UNDO_Y,
             "UndoButton/default/released",
             1.0,
             0.0,
@@ -195,8 +195,8 @@ impl ControlPanelRouting {
         if undo_response.is_pointer_button_down_on() != undo_response.contains_pointer() {
             render_asset!(
                 ui,
-                ControlPanelRoutingDimensions::NAV_X,
-                ControlPanelRoutingDimensions::NAV_UNDO_Y,
+                ControlPanelRoutingDimensions::BUTTON_X,
+                ControlPanelRoutingDimensions::BUTTON_UNDO_Y,
                 "UndoButton/default/pressed",
                 1.0,
                 0.0,
@@ -206,8 +206,8 @@ impl ControlPanelRouting {
 
         let redo_response = render_asset!(
             ui,
-            ControlPanelRoutingDimensions::NAV_X,
-            ControlPanelRoutingDimensions::NAV_REDO_Y,
+            ControlPanelRoutingDimensions::BUTTON_X,
+            ControlPanelRoutingDimensions::BUTTON_REDO_Y,
             "RedoButton/default/released",
             1.0,
             0.0,
@@ -217,8 +217,8 @@ impl ControlPanelRouting {
         if redo_response.is_pointer_button_down_on() != redo_response.contains_pointer() {
             render_asset!(
                 ui,
-                ControlPanelRoutingDimensions::NAV_X,
-                ControlPanelRoutingDimensions::NAV_REDO_Y,
+                ControlPanelRoutingDimensions::BUTTON_X,
+                ControlPanelRoutingDimensions::BUTTON_REDO_Y,
                 "RedoButton/default/pressed",
                 1.0,
                 0.0,
@@ -238,8 +238,8 @@ impl ControlPanelRouting {
     fn draw_save(&mut self, ui: &mut egui::Ui, orion_state: &OrionState) {
         let save_response = render_asset!(
             ui,
-            ControlPanelRoutingDimensions::NAV_X,
-            ControlPanelRoutingDimensions::NAV_SAVE_Y,
+            ControlPanelRoutingDimensions::BUTTON_X,
+            ControlPanelRoutingDimensions::BUTTON_SAVE_Y,
             "SaveRoutingButton/default/released",
             1.0,
             0.0,
@@ -249,8 +249,8 @@ impl ControlPanelRouting {
         if save_response.is_pointer_button_down_on() != save_response.contains_pointer() {
             render_asset!(
                 ui,
-                ControlPanelRoutingDimensions::NAV_X,
-                ControlPanelRoutingDimensions::NAV_SAVE_Y,
+                ControlPanelRoutingDimensions::BUTTON_X,
+                ControlPanelRoutingDimensions::BUTTON_SAVE_Y,
                 "SaveRoutingButton/default/pressed",
                 1.0,
                 0.0,
@@ -260,8 +260,8 @@ impl ControlPanelRouting {
 
         let load_response = render_asset!(
             ui,
-            ControlPanelRoutingDimensions::NAV_X,
-            ControlPanelRoutingDimensions::NAV_LOAD_Y,
+            ControlPanelRoutingDimensions::BUTTON_X,
+            ControlPanelRoutingDimensions::BUTTON_LOAD_Y,
             "LoadRoutingButton/default/released",
             1.0,
             0.0,
@@ -271,8 +271,8 @@ impl ControlPanelRouting {
         if load_response.is_pointer_button_down_on() != load_response.contains_pointer() {
             render_asset!(
                 ui,
-                ControlPanelRoutingDimensions::NAV_X,
-                ControlPanelRoutingDimensions::NAV_LOAD_Y,
+                ControlPanelRoutingDimensions::BUTTON_X,
+                ControlPanelRoutingDimensions::BUTTON_LOAD_Y,
                 "LoadRoutingButton/default/pressed",
                 1.0,
                 0.0,
