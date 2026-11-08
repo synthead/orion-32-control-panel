@@ -36,6 +36,9 @@ impl ControlPanelRoutingDimensions {
     const SIZE_X: f32 = 29.0;
     const SIZE_Y: f32 = 14.0;
 
+    const HITBOX_SIZE_X: f32 = 30.0;
+    const HITBOX_SIZE_Y: f32 = 15.0;
+
     const EDIT_SIZE_X: f32 = 58.0;
     const EDIT_SIZE_Y: f32 = 18.0;
 
@@ -351,7 +354,7 @@ impl ControlPanelRouting {
 
         let field_id = egui::Id::new(("route", column, row));
         let id = ui.id().with(field_id);
-        let response = ui.interact(rect, id, egui::Sense::click());
+        let response = ui.interact(Self::hitbox_rect(rect), id, egui::Sense::click());
 
         if response.double_clicked() {
             self.label_edit_cell = Some([column, row]);
@@ -556,7 +559,7 @@ impl ControlPanelRouting {
                     Self::draw_rect_with_label(ui, column as u8, row as u8, false, color, label);
 
                 let id = ui.id().with(("route_target", column, row));
-                let response = ui.interact(rect, id, egui::Sense::click());
+                let response = ui.interact(Self::hitbox_rect(rect), id, egui::Sense::click());
 
                 if response.contains_pointer() {
                     self.target_hover_cell = Some([column as u8, row as u8]);
@@ -829,6 +832,10 @@ impl ControlPanelRouting {
     }
 
     fn clear_target_selection_when_outside(&mut self, ui: &mut egui::Ui) {
+        if self.target_select_cell.is_none() {
+            return;
+        }
+
         let rect = egui::Rect::from_min_max(
             egui::pos2(
                 ControlPanelRoutingDimensions::TARGET_ROUTES_MIN_X,
@@ -839,9 +846,8 @@ impl ControlPanelRouting {
                 ControlPanelRoutingDimensions::TARGET_ROUTES_MAX_Y,
             ),
         );
-        let hover = ui.rect_contains_pointer(rect);
 
-        if self.target_select_cell.is_some() && !hover {
+        if !ui.rect_contains_pointer(rect) {
             self.clear_selections();
         }
     }
@@ -932,6 +938,16 @@ impl ControlPanelRouting {
         let pos_y = base_pos_y + row as f32 * ControlPanelRoutingDimensions::STEP_Y;
 
         (pos_x, pos_y)
+    }
+
+    fn hitbox_rect(rect: egui::Rect) -> egui::Rect {
+        egui::Rect::from_min_size(
+            rect.min,
+            egui::vec2(
+                ControlPanelRoutingDimensions::HITBOX_SIZE_X,
+                ControlPanelRoutingDimensions::HITBOX_SIZE_Y,
+            ),
+        )
     }
 
     fn draw_rect_with_label(
