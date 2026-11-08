@@ -51,7 +51,7 @@ impl ControlPanelDevices {
         let orion_states = self.orion_states.lock().unwrap();
 
         Self::draw_base_graphics(ui);
-        self.draw_window_buttons(ui);
+        Self::draw_window_buttons(ui);
 
         Self::draw_devices_list(ui, &orion_states);
         Self::draw_text(ui, &orion_states);
@@ -76,7 +76,7 @@ impl ControlPanelDevices {
         }
     }
 
-    fn draw_window_buttons(&mut self, ui: &mut egui::Ui) {
+    fn draw_window_buttons(ui: &mut egui::Ui) {
         let close_response = render_asset!(
             ui,
             ControlPanelDevicesDimensions::WINDOW_BUTTON_CLOSE_X,
