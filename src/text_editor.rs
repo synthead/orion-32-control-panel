@@ -58,6 +58,7 @@ impl TextEditor {
                 .lock_focus(true)
                 .event_filter(egui::EventFilter {
                     tab: true,
+                    horizontal_arrows: true,
                     ..Default::default()
                 }),
         );
