@@ -26,27 +26,27 @@ impl ControlPanelRoutingDimensions {
     const BACKGROUND_X: u16 = 0;
     const BACKGROUND_Y: u16 = 226;
 
-    const START_X: f32 = 127.0;
-    const START_Y_SOURCE: f32 = 284.0;
-    const START_Y_TARGET: f32 = 448.0;
+    const LABEL_START_X: f32 = 127.0;
+    const LABEL_START_Y_SOURCE: f32 = 284.0;
+    const LABEL_START_Y_TARGET: f32 = 448.0;
 
-    const STEP_X: f32 = 30.0;
-    const STEP_Y: f32 = 15.0;
+    const LABEL_STEP_X: f32 = 30.0;
+    const LABEL_STEP_Y: f32 = 15.0;
 
-    const SIZE_X: f32 = 29.0;
-    const SIZE_Y: f32 = 14.0;
+    const LABEL_FILL_SIZE_X: f32 = 29.0;
+    const LABEL_FILL_SIZE_Y: f32 = 14.0;
 
-    const HITBOX_SIZE_X: f32 = 30.0;
-    const HITBOX_SIZE_Y: f32 = 15.0;
+    const LABEL_HITBOX_SIZE_X: f32 = 30.0;
+    const LABEL_HITBOX_SIZE_Y: f32 = 15.0;
 
-    const EDIT_SIZE_X: f32 = 58.0;
-    const EDIT_SIZE_Y: f32 = 18.0;
+    const LABEL_EDIT_SIZE_X: f32 = 58.0;
+    const LABEL_EDIT_SIZE_Y: f32 = 18.0;
 
-    const EDIT_SIZE_OFFSET_X: f32 = -14.0;
-    const EDIT_SIZE_OFFSET_Y: f32 = -2.0;
+    const LABEL_EDIT_SIZE_OFFSET_X: f32 = -14.0;
+    const LABEL_EDIT_SIZE_OFFSET_Y: f32 = -2.0;
 
-    const TEXT_X: f32 = 138.0;
-    const TEXT_Y: f32 = 412.0;
+    const SELECTED_ROUTE_TEXT_X: f32 = 138.0;
+    const SELECTED_ROUTE_TEXT_Y: f32 = 412.0;
 
     const PRESENSE_X: u16 = 1095;
     const PRESENSE_ADAT_IN_2_X: u16 = 1112;
@@ -345,8 +345,8 @@ impl ControlPanelRouting {
         let rect = egui::Rect::from_min_size(
             egui::pos2(pos_x, pos_y),
             egui::vec2(
-                ControlPanelRoutingDimensions::SIZE_X,
-                ControlPanelRoutingDimensions::SIZE_Y,
+                ControlPanelRoutingDimensions::LABEL_FILL_SIZE_X,
+                ControlPanelRoutingDimensions::LABEL_FILL_SIZE_Y,
             ),
         );
 
@@ -388,12 +388,12 @@ impl ControlPanelRouting {
 
         let rect = egui::Rect::from_min_size(
             egui::pos2(
-                pos_x + ControlPanelRoutingDimensions::EDIT_SIZE_OFFSET_X,
-                pos_y + ControlPanelRoutingDimensions::EDIT_SIZE_OFFSET_Y,
+                pos_x + ControlPanelRoutingDimensions::LABEL_EDIT_SIZE_OFFSET_X,
+                pos_y + ControlPanelRoutingDimensions::LABEL_EDIT_SIZE_OFFSET_Y,
             ),
             egui::vec2(
-                ControlPanelRoutingDimensions::EDIT_SIZE_X,
-                ControlPanelRoutingDimensions::EDIT_SIZE_Y,
+                ControlPanelRoutingDimensions::LABEL_EDIT_SIZE_X,
+                ControlPanelRoutingDimensions::LABEL_EDIT_SIZE_Y,
             ),
         );
 
@@ -709,8 +709,8 @@ impl ControlPanelRouting {
 
         ui.painter().text(
             egui::pos2(
-                ControlPanelRoutingDimensions::TEXT_X,
-                ControlPanelRoutingDimensions::TEXT_Y,
+                ControlPanelRoutingDimensions::SELECTED_ROUTE_TEXT_X,
+                ControlPanelRoutingDimensions::SELECTED_ROUTE_TEXT_Y,
             ),
             egui::Align2::LEFT_TOP,
             text,
@@ -928,14 +928,14 @@ impl ControlPanelRouting {
 
     fn cell_pos(column: u8, row: u8, is_source: bool) -> (f32, f32) {
         let base_pos_y = if is_source {
-            ControlPanelRoutingDimensions::START_Y_SOURCE
+            ControlPanelRoutingDimensions::LABEL_START_Y_SOURCE
         } else {
-            ControlPanelRoutingDimensions::START_Y_TARGET
+            ControlPanelRoutingDimensions::LABEL_START_Y_TARGET
         };
 
-        let pos_x = ControlPanelRoutingDimensions::START_X
-            + column as f32 * ControlPanelRoutingDimensions::STEP_X;
-        let pos_y = base_pos_y + row as f32 * ControlPanelRoutingDimensions::STEP_Y;
+        let pos_x = ControlPanelRoutingDimensions::LABEL_START_X
+            + column as f32 * ControlPanelRoutingDimensions::LABEL_STEP_X;
+        let pos_y = base_pos_y + row as f32 * ControlPanelRoutingDimensions::LABEL_STEP_Y;
 
         (pos_x, pos_y)
     }
@@ -944,8 +944,8 @@ impl ControlPanelRouting {
         egui::Rect::from_min_size(
             rect.min,
             egui::vec2(
-                ControlPanelRoutingDimensions::HITBOX_SIZE_X,
-                ControlPanelRoutingDimensions::HITBOX_SIZE_Y,
+                ControlPanelRoutingDimensions::LABEL_HITBOX_SIZE_X,
+                ControlPanelRoutingDimensions::LABEL_HITBOX_SIZE_Y,
             ),
         )
     }
@@ -963,8 +963,8 @@ impl ControlPanelRouting {
         let rect = egui::Rect::from_min_size(
             egui::pos2(pos_x, pos_y),
             egui::vec2(
-                ControlPanelRoutingDimensions::SIZE_X,
-                ControlPanelRoutingDimensions::SIZE_Y,
+                ControlPanelRoutingDimensions::LABEL_FILL_SIZE_X,
+                ControlPanelRoutingDimensions::LABEL_FILL_SIZE_Y,
             ),
         );
 
