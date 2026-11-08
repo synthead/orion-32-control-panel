@@ -48,12 +48,12 @@ impl ControlPanelRoutingDimensions {
     const SELECTED_ROUTE_TEXT_X: f32 = 138.0;
     const SELECTED_ROUTE_TEXT_Y: f32 = 412.0;
 
-    const PRESENSE_X: u16 = 1095;
-    const PRESENSE_ADAT_IN_2_X: u16 = 1112;
-    const PRESENSE_USB_PLAY_Y: u16 = 301;
-    const PRESENSE_MADI_IN_Y: u16 = 323;
-    const PRESENSE_ADAT_IN_Y: u16 = 346;
-    const PRESENSE_SPDIF_IN_Y: u16 = 361;
+    const SIGNAL_X: u16 = 1095;
+    const SIGNAL_ADAT_IN_2_X: u16 = 1112;
+    const SIGNAL_USB_PLAY_Y: u16 = 301;
+    const SIGNAL_MADI_IN_Y: u16 = 323;
+    const SIGNAL_ADAT_IN_Y: u16 = 346;
+    const SIGNAL_SPDIF_IN_Y: u16 = 361;
 
     const NAV_X: u16 = 1106;
     const NAV_UNDO_Y: u16 = 410;
@@ -723,8 +723,8 @@ impl ControlPanelRouting {
         if signals & OrionStateSignals::USB != 0 {
             render_asset!(
                 ui,
-                ControlPanelRoutingDimensions::PRESENSE_X,
-                ControlPanelRoutingDimensions::PRESENSE_USB_PLAY_Y,
+                ControlPanelRoutingDimensions::SIGNAL_X,
+                ControlPanelRoutingDimensions::SIGNAL_USB_PLAY_Y,
                 "PresenceLed/default/pressed",
                 1.0,
                 0.0,
@@ -733,8 +733,8 @@ impl ControlPanelRouting {
         } else {
             render_asset!(
                 ui,
-                ControlPanelRoutingDimensions::PRESENSE_X,
-                ControlPanelRoutingDimensions::PRESENSE_USB_PLAY_Y,
+                ControlPanelRoutingDimensions::SIGNAL_X,
+                ControlPanelRoutingDimensions::SIGNAL_USB_PLAY_Y,
                 "PresenceLed/default/released",
                 1.0,
                 0.0,
@@ -745,8 +745,8 @@ impl ControlPanelRouting {
         if signals & OrionStateSignals::MADI != 0 {
             render_asset!(
                 ui,
-                ControlPanelRoutingDimensions::PRESENSE_X,
-                ControlPanelRoutingDimensions::PRESENSE_MADI_IN_Y,
+                ControlPanelRoutingDimensions::SIGNAL_X,
+                ControlPanelRoutingDimensions::SIGNAL_MADI_IN_Y,
                 "PresenceLed/default/pressed",
                 1.0,
                 0.0,
@@ -755,8 +755,8 @@ impl ControlPanelRouting {
         } else {
             render_asset!(
                 ui,
-                ControlPanelRoutingDimensions::PRESENSE_X,
-                ControlPanelRoutingDimensions::PRESENSE_MADI_IN_Y,
+                ControlPanelRoutingDimensions::SIGNAL_X,
+                ControlPanelRoutingDimensions::SIGNAL_MADI_IN_Y,
                 "PresenceLed/default/released",
                 1.0,
                 0.0,
@@ -767,8 +767,8 @@ impl ControlPanelRouting {
         if signals & OrionStateSignals::ADAT_1 != 0 {
             render_asset!(
                 ui,
-                ControlPanelRoutingDimensions::PRESENSE_X,
-                ControlPanelRoutingDimensions::PRESENSE_ADAT_IN_Y,
+                ControlPanelRoutingDimensions::SIGNAL_X,
+                ControlPanelRoutingDimensions::SIGNAL_ADAT_IN_Y,
                 "PresenceLed/default/pressed",
                 1.0,
                 0.0,
@@ -777,8 +777,8 @@ impl ControlPanelRouting {
         } else {
             render_asset!(
                 ui,
-                ControlPanelRoutingDimensions::PRESENSE_X,
-                ControlPanelRoutingDimensions::PRESENSE_ADAT_IN_Y,
+                ControlPanelRoutingDimensions::SIGNAL_X,
+                ControlPanelRoutingDimensions::SIGNAL_ADAT_IN_Y,
                 "PresenceLed/default/released",
                 1.0,
                 0.0,
@@ -789,8 +789,8 @@ impl ControlPanelRouting {
         if signals & OrionStateSignals::ADAT_2 != 0 {
             render_asset!(
                 ui,
-                ControlPanelRoutingDimensions::PRESENSE_ADAT_IN_2_X,
-                ControlPanelRoutingDimensions::PRESENSE_ADAT_IN_Y,
+                ControlPanelRoutingDimensions::SIGNAL_ADAT_IN_2_X,
+                ControlPanelRoutingDimensions::SIGNAL_ADAT_IN_Y,
                 "PresenceLed/default/pressed",
                 1.0,
                 0.0,
@@ -799,8 +799,8 @@ impl ControlPanelRouting {
         } else {
             render_asset!(
                 ui,
-                ControlPanelRoutingDimensions::PRESENSE_ADAT_IN_2_X,
-                ControlPanelRoutingDimensions::PRESENSE_ADAT_IN_Y,
+                ControlPanelRoutingDimensions::SIGNAL_ADAT_IN_2_X,
+                ControlPanelRoutingDimensions::SIGNAL_ADAT_IN_Y,
                 "PresenceLed/default/released",
                 1.0,
                 0.0,
@@ -811,8 +811,8 @@ impl ControlPanelRouting {
         if signals & OrionStateSignals::SPDIF != 0 {
             render_asset!(
                 ui,
-                ControlPanelRoutingDimensions::PRESENSE_X,
-                ControlPanelRoutingDimensions::PRESENSE_SPDIF_IN_Y,
+                ControlPanelRoutingDimensions::SIGNAL_X,
+                ControlPanelRoutingDimensions::SIGNAL_SPDIF_IN_Y,
                 "PresenceLed/default/pressed",
                 1.0,
                 0.0,
@@ -821,8 +821,8 @@ impl ControlPanelRouting {
         } else {
             render_asset!(
                 ui,
-                ControlPanelRoutingDimensions::PRESENSE_X,
-                ControlPanelRoutingDimensions::PRESENSE_SPDIF_IN_Y,
+                ControlPanelRoutingDimensions::SIGNAL_X,
+                ControlPanelRoutingDimensions::SIGNAL_SPDIF_IN_Y,
                 "PresenceLed/default/released",
                 1.0,
                 0.0,
