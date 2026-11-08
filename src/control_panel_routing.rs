@@ -26,37 +26,40 @@ impl ControlPanelRoutingDimensions {
     const BACKGROUND_X: u16 = 0;
     const BACKGROUND_Y: u16 = 226;
 
-    const START_X: f32 = 127.0;
-    const START_Y_SOURCE: f32 = 284.0;
-    const START_Y_TARGET: f32 = 448.0;
+    const LABEL_START_X: f32 = 127.0;
+    const LABEL_START_Y_SOURCE: f32 = 284.0;
+    const LABEL_START_Y_TARGET: f32 = 448.0;
 
-    const STEP_X: f32 = 30.0;
-    const STEP_Y: f32 = 15.0;
+    const LABEL_STEP_X: f32 = 30.0;
+    const LABEL_STEP_Y: f32 = 15.0;
 
-    const SIZE_X: f32 = 29.0;
-    const SIZE_Y: f32 = 14.0;
+    const LABEL_FILL_SIZE_X: f32 = 29.0;
+    const LABEL_FILL_SIZE_Y: f32 = 14.0;
 
-    const EDIT_SIZE_X: f32 = 58.0;
-    const EDIT_SIZE_Y: f32 = 18.0;
+    const LABEL_HITBOX_SIZE_X: f32 = 30.0;
+    const LABEL_HITBOX_SIZE_Y: f32 = 15.0;
 
-    const EDIT_SIZE_OFFSET_X: f32 = -14.0;
-    const EDIT_SIZE_OFFSET_Y: f32 = -2.0;
+    const LABEL_EDIT_SIZE_X: f32 = 58.0;
+    const LABEL_EDIT_SIZE_Y: f32 = 18.0;
 
-    const TEXT_X: f32 = 138.0;
-    const TEXT_Y: f32 = 412.0;
+    const LABEL_EDIT_SIZE_OFFSET_X: f32 = -14.0;
+    const LABEL_EDIT_SIZE_OFFSET_Y: f32 = -2.0;
 
-    const PRESENSE_X: u16 = 1095;
-    const PRESENSE_ADAT_IN_2_X: u16 = 1112;
-    const PRESENSE_USB_PLAY_Y: u16 = 301;
-    const PRESENSE_MADI_IN_Y: u16 = 323;
-    const PRESENSE_ADAT_IN_Y: u16 = 346;
-    const PRESENSE_SPDIF_IN_Y: u16 = 361;
+    const SELECTED_ROUTE_TEXT_X: f32 = 138.0;
+    const SELECTED_ROUTE_TEXT_Y: f32 = 412.0;
 
-    const NAV_X: u16 = 1106;
-    const NAV_UNDO_Y: u16 = 410;
-    const NAV_REDO_Y: u16 = 436;
-    const NAV_SAVE_Y: u16 = 462;
-    const NAV_LOAD_Y: u16 = 488;
+    const SIGNAL_X: u16 = 1095;
+    const SIGNAL_ADAT_IN_2_X: u16 = 1112;
+    const SIGNAL_USB_PLAY_Y: u16 = 301;
+    const SIGNAL_MADI_IN_Y: u16 = 323;
+    const SIGNAL_ADAT_IN_Y: u16 = 346;
+    const SIGNAL_SPDIF_IN_Y: u16 = 361;
+
+    const BUTTON_X: u16 = 1106;
+    const BUTTON_UNDO_Y: u16 = 410;
+    const BUTTON_REDO_Y: u16 = 436;
+    const BUTTON_SAVE_Y: u16 = 462;
+    const BUTTON_LOAD_Y: u16 = 488;
 
     const TARGET_ROUTES_MIN_X: f32 = 127.0;
     const TARGET_ROUTES_MIN_Y: f32 = 448.0;
@@ -181,8 +184,8 @@ impl ControlPanelRouting {
     fn draw_undo(&mut self, ui: &mut egui::Ui) {
         let undo_response = render_asset!(
             ui,
-            ControlPanelRoutingDimensions::NAV_X,
-            ControlPanelRoutingDimensions::NAV_UNDO_Y,
+            ControlPanelRoutingDimensions::BUTTON_X,
+            ControlPanelRoutingDimensions::BUTTON_UNDO_Y,
             "UndoButton/default/released",
             1.0,
             0.0,
@@ -192,8 +195,8 @@ impl ControlPanelRouting {
         if undo_response.is_pointer_button_down_on() != undo_response.contains_pointer() {
             render_asset!(
                 ui,
-                ControlPanelRoutingDimensions::NAV_X,
-                ControlPanelRoutingDimensions::NAV_UNDO_Y,
+                ControlPanelRoutingDimensions::BUTTON_X,
+                ControlPanelRoutingDimensions::BUTTON_UNDO_Y,
                 "UndoButton/default/pressed",
                 1.0,
                 0.0,
@@ -203,8 +206,8 @@ impl ControlPanelRouting {
 
         let redo_response = render_asset!(
             ui,
-            ControlPanelRoutingDimensions::NAV_X,
-            ControlPanelRoutingDimensions::NAV_REDO_Y,
+            ControlPanelRoutingDimensions::BUTTON_X,
+            ControlPanelRoutingDimensions::BUTTON_REDO_Y,
             "RedoButton/default/released",
             1.0,
             0.0,
@@ -214,8 +217,8 @@ impl ControlPanelRouting {
         if redo_response.is_pointer_button_down_on() != redo_response.contains_pointer() {
             render_asset!(
                 ui,
-                ControlPanelRoutingDimensions::NAV_X,
-                ControlPanelRoutingDimensions::NAV_REDO_Y,
+                ControlPanelRoutingDimensions::BUTTON_X,
+                ControlPanelRoutingDimensions::BUTTON_REDO_Y,
                 "RedoButton/default/pressed",
                 1.0,
                 0.0,
@@ -235,8 +238,8 @@ impl ControlPanelRouting {
     fn draw_save(&mut self, ui: &mut egui::Ui, orion_state: &OrionState) {
         let save_response = render_asset!(
             ui,
-            ControlPanelRoutingDimensions::NAV_X,
-            ControlPanelRoutingDimensions::NAV_SAVE_Y,
+            ControlPanelRoutingDimensions::BUTTON_X,
+            ControlPanelRoutingDimensions::BUTTON_SAVE_Y,
             "SaveRoutingButton/default/released",
             1.0,
             0.0,
@@ -246,8 +249,8 @@ impl ControlPanelRouting {
         if save_response.is_pointer_button_down_on() != save_response.contains_pointer() {
             render_asset!(
                 ui,
-                ControlPanelRoutingDimensions::NAV_X,
-                ControlPanelRoutingDimensions::NAV_SAVE_Y,
+                ControlPanelRoutingDimensions::BUTTON_X,
+                ControlPanelRoutingDimensions::BUTTON_SAVE_Y,
                 "SaveRoutingButton/default/pressed",
                 1.0,
                 0.0,
@@ -257,8 +260,8 @@ impl ControlPanelRouting {
 
         let load_response = render_asset!(
             ui,
-            ControlPanelRoutingDimensions::NAV_X,
-            ControlPanelRoutingDimensions::NAV_LOAD_Y,
+            ControlPanelRoutingDimensions::BUTTON_X,
+            ControlPanelRoutingDimensions::BUTTON_LOAD_Y,
             "LoadRoutingButton/default/released",
             1.0,
             0.0,
@@ -268,8 +271,8 @@ impl ControlPanelRouting {
         if load_response.is_pointer_button_down_on() != load_response.contains_pointer() {
             render_asset!(
                 ui,
-                ControlPanelRoutingDimensions::NAV_X,
-                ControlPanelRoutingDimensions::NAV_LOAD_Y,
+                ControlPanelRoutingDimensions::BUTTON_X,
+                ControlPanelRoutingDimensions::BUTTON_LOAD_Y,
                 "LoadRoutingButton/default/pressed",
                 1.0,
                 0.0,
@@ -342,8 +345,8 @@ impl ControlPanelRouting {
         let rect = egui::Rect::from_min_size(
             egui::pos2(pos_x, pos_y),
             egui::vec2(
-                ControlPanelRoutingDimensions::SIZE_X,
-                ControlPanelRoutingDimensions::SIZE_Y,
+                ControlPanelRoutingDimensions::LABEL_FILL_SIZE_X,
+                ControlPanelRoutingDimensions::LABEL_FILL_SIZE_Y,
             ),
         );
 
@@ -351,7 +354,7 @@ impl ControlPanelRouting {
 
         let field_id = egui::Id::new(("route", column, row));
         let id = ui.id().with(field_id);
-        let response = ui.interact(rect, id, egui::Sense::click());
+        let response = ui.interact(Self::hitbox_rect(rect), id, egui::Sense::click());
 
         if response.double_clicked() {
             self.label_edit_cell = Some([column, row]);
@@ -385,12 +388,12 @@ impl ControlPanelRouting {
 
         let rect = egui::Rect::from_min_size(
             egui::pos2(
-                pos_x + ControlPanelRoutingDimensions::EDIT_SIZE_OFFSET_X,
-                pos_y + ControlPanelRoutingDimensions::EDIT_SIZE_OFFSET_Y,
+                pos_x + ControlPanelRoutingDimensions::LABEL_EDIT_SIZE_OFFSET_X,
+                pos_y + ControlPanelRoutingDimensions::LABEL_EDIT_SIZE_OFFSET_Y,
             ),
             egui::vec2(
-                ControlPanelRoutingDimensions::EDIT_SIZE_X,
-                ControlPanelRoutingDimensions::EDIT_SIZE_Y,
+                ControlPanelRoutingDimensions::LABEL_EDIT_SIZE_X,
+                ControlPanelRoutingDimensions::LABEL_EDIT_SIZE_Y,
             ),
         );
 
@@ -556,7 +559,7 @@ impl ControlPanelRouting {
                     Self::draw_rect_with_label(ui, column as u8, row as u8, false, color, label);
 
                 let id = ui.id().with(("route_target", column, row));
-                let response = ui.interact(rect, id, egui::Sense::click());
+                let response = ui.interact(Self::hitbox_rect(rect), id, egui::Sense::click());
 
                 if response.contains_pointer() {
                     self.target_hover_cell = Some([column as u8, row as u8]);
@@ -706,8 +709,8 @@ impl ControlPanelRouting {
 
         ui.painter().text(
             egui::pos2(
-                ControlPanelRoutingDimensions::TEXT_X,
-                ControlPanelRoutingDimensions::TEXT_Y,
+                ControlPanelRoutingDimensions::SELECTED_ROUTE_TEXT_X,
+                ControlPanelRoutingDimensions::SELECTED_ROUTE_TEXT_Y,
             ),
             egui::Align2::LEFT_TOP,
             text,
@@ -720,8 +723,8 @@ impl ControlPanelRouting {
         if signals & OrionStateSignals::USB != 0 {
             render_asset!(
                 ui,
-                ControlPanelRoutingDimensions::PRESENSE_X,
-                ControlPanelRoutingDimensions::PRESENSE_USB_PLAY_Y,
+                ControlPanelRoutingDimensions::SIGNAL_X,
+                ControlPanelRoutingDimensions::SIGNAL_USB_PLAY_Y,
                 "PresenceLed/default/pressed",
                 1.0,
                 0.0,
@@ -730,8 +733,8 @@ impl ControlPanelRouting {
         } else {
             render_asset!(
                 ui,
-                ControlPanelRoutingDimensions::PRESENSE_X,
-                ControlPanelRoutingDimensions::PRESENSE_USB_PLAY_Y,
+                ControlPanelRoutingDimensions::SIGNAL_X,
+                ControlPanelRoutingDimensions::SIGNAL_USB_PLAY_Y,
                 "PresenceLed/default/released",
                 1.0,
                 0.0,
@@ -742,8 +745,8 @@ impl ControlPanelRouting {
         if signals & OrionStateSignals::MADI != 0 {
             render_asset!(
                 ui,
-                ControlPanelRoutingDimensions::PRESENSE_X,
-                ControlPanelRoutingDimensions::PRESENSE_MADI_IN_Y,
+                ControlPanelRoutingDimensions::SIGNAL_X,
+                ControlPanelRoutingDimensions::SIGNAL_MADI_IN_Y,
                 "PresenceLed/default/pressed",
                 1.0,
                 0.0,
@@ -752,8 +755,8 @@ impl ControlPanelRouting {
         } else {
             render_asset!(
                 ui,
-                ControlPanelRoutingDimensions::PRESENSE_X,
-                ControlPanelRoutingDimensions::PRESENSE_MADI_IN_Y,
+                ControlPanelRoutingDimensions::SIGNAL_X,
+                ControlPanelRoutingDimensions::SIGNAL_MADI_IN_Y,
                 "PresenceLed/default/released",
                 1.0,
                 0.0,
@@ -764,8 +767,8 @@ impl ControlPanelRouting {
         if signals & OrionStateSignals::ADAT_1 != 0 {
             render_asset!(
                 ui,
-                ControlPanelRoutingDimensions::PRESENSE_X,
-                ControlPanelRoutingDimensions::PRESENSE_ADAT_IN_Y,
+                ControlPanelRoutingDimensions::SIGNAL_X,
+                ControlPanelRoutingDimensions::SIGNAL_ADAT_IN_Y,
                 "PresenceLed/default/pressed",
                 1.0,
                 0.0,
@@ -774,8 +777,8 @@ impl ControlPanelRouting {
         } else {
             render_asset!(
                 ui,
-                ControlPanelRoutingDimensions::PRESENSE_X,
-                ControlPanelRoutingDimensions::PRESENSE_ADAT_IN_Y,
+                ControlPanelRoutingDimensions::SIGNAL_X,
+                ControlPanelRoutingDimensions::SIGNAL_ADAT_IN_Y,
                 "PresenceLed/default/released",
                 1.0,
                 0.0,
@@ -786,8 +789,8 @@ impl ControlPanelRouting {
         if signals & OrionStateSignals::ADAT_2 != 0 {
             render_asset!(
                 ui,
-                ControlPanelRoutingDimensions::PRESENSE_ADAT_IN_2_X,
-                ControlPanelRoutingDimensions::PRESENSE_ADAT_IN_Y,
+                ControlPanelRoutingDimensions::SIGNAL_ADAT_IN_2_X,
+                ControlPanelRoutingDimensions::SIGNAL_ADAT_IN_Y,
                 "PresenceLed/default/pressed",
                 1.0,
                 0.0,
@@ -796,8 +799,8 @@ impl ControlPanelRouting {
         } else {
             render_asset!(
                 ui,
-                ControlPanelRoutingDimensions::PRESENSE_ADAT_IN_2_X,
-                ControlPanelRoutingDimensions::PRESENSE_ADAT_IN_Y,
+                ControlPanelRoutingDimensions::SIGNAL_ADAT_IN_2_X,
+                ControlPanelRoutingDimensions::SIGNAL_ADAT_IN_Y,
                 "PresenceLed/default/released",
                 1.0,
                 0.0,
@@ -808,8 +811,8 @@ impl ControlPanelRouting {
         if signals & OrionStateSignals::SPDIF != 0 {
             render_asset!(
                 ui,
-                ControlPanelRoutingDimensions::PRESENSE_X,
-                ControlPanelRoutingDimensions::PRESENSE_SPDIF_IN_Y,
+                ControlPanelRoutingDimensions::SIGNAL_X,
+                ControlPanelRoutingDimensions::SIGNAL_SPDIF_IN_Y,
                 "PresenceLed/default/pressed",
                 1.0,
                 0.0,
@@ -818,8 +821,8 @@ impl ControlPanelRouting {
         } else {
             render_asset!(
                 ui,
-                ControlPanelRoutingDimensions::PRESENSE_X,
-                ControlPanelRoutingDimensions::PRESENSE_SPDIF_IN_Y,
+                ControlPanelRoutingDimensions::SIGNAL_X,
+                ControlPanelRoutingDimensions::SIGNAL_SPDIF_IN_Y,
                 "PresenceLed/default/released",
                 1.0,
                 0.0,
@@ -829,6 +832,10 @@ impl ControlPanelRouting {
     }
 
     fn clear_target_selection_when_outside(&mut self, ui: &mut egui::Ui) {
+        if self.target_select_cell.is_none() {
+            return;
+        }
+
         let rect = egui::Rect::from_min_max(
             egui::pos2(
                 ControlPanelRoutingDimensions::TARGET_ROUTES_MIN_X,
@@ -839,9 +846,8 @@ impl ControlPanelRouting {
                 ControlPanelRoutingDimensions::TARGET_ROUTES_MAX_Y,
             ),
         );
-        let hover = ui.rect_contains_pointer(rect);
 
-        if self.target_select_cell.is_some() && !hover {
+        if !ui.rect_contains_pointer(rect) {
             self.clear_selections();
         }
     }
@@ -922,16 +928,26 @@ impl ControlPanelRouting {
 
     fn cell_pos(column: u8, row: u8, is_source: bool) -> (f32, f32) {
         let base_pos_y = if is_source {
-            ControlPanelRoutingDimensions::START_Y_SOURCE
+            ControlPanelRoutingDimensions::LABEL_START_Y_SOURCE
         } else {
-            ControlPanelRoutingDimensions::START_Y_TARGET
+            ControlPanelRoutingDimensions::LABEL_START_Y_TARGET
         };
 
-        let pos_x = ControlPanelRoutingDimensions::START_X
-            + column as f32 * ControlPanelRoutingDimensions::STEP_X;
-        let pos_y = base_pos_y + row as f32 * ControlPanelRoutingDimensions::STEP_Y;
+        let pos_x = ControlPanelRoutingDimensions::LABEL_START_X
+            + column as f32 * ControlPanelRoutingDimensions::LABEL_STEP_X;
+        let pos_y = base_pos_y + row as f32 * ControlPanelRoutingDimensions::LABEL_STEP_Y;
 
         (pos_x, pos_y)
+    }
+
+    fn hitbox_rect(rect: egui::Rect) -> egui::Rect {
+        egui::Rect::from_min_size(
+            rect.min,
+            egui::vec2(
+                ControlPanelRoutingDimensions::LABEL_HITBOX_SIZE_X,
+                ControlPanelRoutingDimensions::LABEL_HITBOX_SIZE_Y,
+            ),
+        )
     }
 
     fn draw_rect_with_label(
@@ -947,8 +963,8 @@ impl ControlPanelRouting {
         let rect = egui::Rect::from_min_size(
             egui::pos2(pos_x, pos_y),
             egui::vec2(
-                ControlPanelRoutingDimensions::SIZE_X,
-                ControlPanelRoutingDimensions::SIZE_Y,
+                ControlPanelRoutingDimensions::LABEL_FILL_SIZE_X,
+                ControlPanelRoutingDimensions::LABEL_FILL_SIZE_Y,
             ),
         );
 
