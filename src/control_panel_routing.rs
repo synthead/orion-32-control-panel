@@ -25,6 +25,8 @@ struct ControlPanelRoutingDimensions;
 impl ControlPanelRoutingDimensions {
     const BACKGROUND_X: u16 = 0;
     const BACKGROUND_Y: u16 = 226;
+    const BACKGROUND_WIDTH: f32 = 1180.0;
+    const BACKGROUND_HEIGHT: f32 = 453.0;
 
     const LABEL_START_X: f32 = 127.0;
     const LABEL_START_Y_SOURCE: f32 = 284.0;
@@ -154,6 +156,7 @@ impl ControlPanelRouting {
         orion_state.calculate_channel_counts();
 
         Self::draw_base_graphics(ui);
+        self.clear_selections_on_background_click(ui);
 
         self.draw_undo(ui);
         self.draw_save(ui, orion_state);
@@ -179,6 +182,26 @@ impl ControlPanelRouting {
             0.0,
             None
         );
+    }
+
+    fn clear_selections_on_background_click(&mut self, ui: &mut egui::Ui) {
+        let rect = egui::Rect::from_min_size(
+            egui::pos2(
+                ControlPanelRoutingDimensions::BACKGROUND_X as f32,
+                ControlPanelRoutingDimensions::BACKGROUND_Y as f32,
+            ),
+            egui::vec2(
+                ControlPanelRoutingDimensions::BACKGROUND_WIDTH,
+                ControlPanelRoutingDimensions::BACKGROUND_HEIGHT,
+            ),
+        );
+
+        let id = ui.id().with("routing_background");
+        let response = ui.interact(rect, id, egui::Sense::click());
+
+        if response.clicked() {
+            self.clear_selections();
+        }
     }
 
     fn draw_undo(&mut self, ui: &mut egui::Ui) {
@@ -353,6 +376,16 @@ impl ControlPanelRouting {
         ui.painter().rect_filled(rect, 0.0, color);
 
         let field_id = egui::Id::new(("route", column, row));
+
+        self.text_editor.lock().unwrap().draw(
+            ui,
+            rect,
+            field_id,
+            label,
+            WidgetDimensions::TEXT_SIZE,
+            WidgetColors::TEXT_COLOR_LABEL,
+        );
+
         let id = ui.id().with(field_id);
         let response = ui.interact(Self::hitbox_rect(rect), id, egui::Sense::click());
 
@@ -364,15 +397,6 @@ impl ControlPanelRouting {
             self.source_mousedown = true;
             self.update_source_selections(ui, column, row);
         }
-
-        self.text_editor.lock().unwrap().draw(
-            ui,
-            rect,
-            field_id,
-            label,
-            WidgetDimensions::TEXT_SIZE,
-            WidgetColors::TEXT_COLOR_LABEL,
-        );
     }
 
     fn draw_source_editing(
