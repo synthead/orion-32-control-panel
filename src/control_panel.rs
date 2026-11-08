@@ -37,6 +37,9 @@ impl ControlPanelDimensions {
     const VIEWPORT_HEIGHT: f32 = 700.0;
     const OVERLAY_TRANSPARENCY: u8 = 128;
 
+    const WINDOW_DRAG_UPPER_HEIGHT: f32 = 226.0;
+    const WINDOW_DRAG_LOWER_Y: f32 = 679.0;
+
     const STANDBY_X: u16 = 20;
     const STANDBY_Y: u16 = 8;
 
@@ -319,6 +322,7 @@ impl ControlPanel {
                 };
 
                 Self::draw_base_graphics(ui);
+                Self::draw_window_drag_areas(ui);
 
                 self.draw_standby(ui, orion_state.preset_standby);
                 self.draw_window_buttons(ui);
@@ -392,21 +396,50 @@ impl ControlPanel {
     }
 
     fn draw_base_graphics(ui: &mut egui::Ui) {
-        let response = render_asset!(
+        render_asset!(
             ui,
             0,
             0,
             "ControlPanel/default/background-edited",
             1.0,
             0.0,
-            Some(egui::Sense::click())
+            None
         );
+    }
 
-        if !egui::Popup::is_any_open(ui.ctx())
-            && response.is_pointer_button_down_on()
-            && ui.input(|i| i.pointer.button_pressed(egui::PointerButton::Primary))
-        {
-            ui.ctx().send_viewport_cmd(egui::ViewportCommand::StartDrag);
+    fn draw_window_drag_areas(ui: &mut egui::Ui) {
+        let rects = [
+            (
+                egui::Rect::from_min_max(
+                    egui::pos2(0.0, 0.0),
+                    egui::pos2(
+                        ControlPanelDimensions::VIEWPORT_WIDTH,
+                        ControlPanelDimensions::WINDOW_DRAG_UPPER_HEIGHT,
+                    ),
+                ),
+                "window_drag_upper",
+            ),
+            (
+                egui::Rect::from_min_max(
+                    egui::pos2(0.0, ControlPanelDimensions::WINDOW_DRAG_LOWER_Y),
+                    egui::pos2(
+                        ControlPanelDimensions::VIEWPORT_WIDTH,
+                        ControlPanelDimensions::VIEWPORT_HEIGHT,
+                    ),
+                ),
+                "window_drag_lower",
+            ),
+        ];
+
+        for (rect, id_salt) in rects {
+            let response = ui.interact(rect, ui.id().with(id_salt), egui::Sense::click());
+
+            if !egui::Popup::is_any_open(ui.ctx())
+                && response.is_pointer_button_down_on()
+                && ui.input(|i| i.pointer.button_pressed(egui::PointerButton::Primary))
+            {
+                ui.ctx().send_viewport_cmd(egui::ViewportCommand::StartDrag);
+            }
         }
     }
 
