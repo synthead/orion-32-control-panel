@@ -108,7 +108,7 @@ impl ControlPanelRouting {
         "MADI IN 33-64",
         "ADAT IN",
         "S/PDIF IN",
-        "MIX 1 L/R",
+        "MIX L/R",
     ];
 
     pub(crate) fn new(
