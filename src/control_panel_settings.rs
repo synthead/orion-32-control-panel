@@ -122,7 +122,8 @@ impl ControlPanelSettings {
         self.draw_base_graphics(ui);
         self.draw_window_buttons(ui);
 
-        self.draw_trims_activate(ui, orion_state.trims);
+        self.draw_trims(ui, orion_state.trims);
+        self.draw_activate(ui, orion_state.activate);
         self.draw_oscillators(ui, orion_state.oscillators);
         self.draw_brightness(ui, orion_state.brightness);
         self.draw_madi_smux(ui, orion_state.madi_smux);
@@ -179,7 +180,7 @@ impl ControlPanelSettings {
         }
     }
 
-    fn draw_trims_activate(&mut self, ui: &mut egui::Ui, trims: u8) {
+    fn draw_trims(&mut self, ui: &mut egui::Ui, trims: u8) {
         ControlPanelHelpers::draw_combobox(
             ui,
             ControlPanelSettingsDimensions::TRIM_LINE_OUT_X,
@@ -210,10 +211,10 @@ impl ControlPanelSettings {
                 self.orion_hid.lock().unwrap().queue_trim(selected * 0x04);
             },
         );
+    }
 
-        let activated = 1;
-
-        let activate_response = if activated == 1 {
+    fn draw_activate(&mut self, ui: &mut egui::Ui, activate: u8) {
+        let activate_response = if activate == 0x01 {
             render_asset!(
                 ui,
                 ControlPanelSettingsDimensions::ACTIVATE_X,
@@ -239,9 +240,8 @@ impl ControlPanelSettings {
             self.orion_hid
                 .lock()
                 .unwrap()
-                .queue_activate(1 - activated);
+                .queue_activate(1 - activate);
         }
-
     }
 
     fn draw_oscillators(&mut self, ui: &mut egui::Ui, oscillators: u8) {
