@@ -60,6 +60,7 @@ pub(crate) struct OrionState {
     pub(crate) serial: [u8; 13],
     pub(crate) hardware_version: [u8; 8],
     pub(crate) firmware_version: [u8; 2],
+    pub(crate) activate: u8,
 
     pub(crate) left_vu_source: u8,
     pub(crate) left_vu_values: [u8; 32],
@@ -103,6 +104,7 @@ impl Default for OrionState {
             serial: [0; 13],
             hardware_version: [0; 8],
             firmware_version: [0; 2],
+            activate: 0,
 
             left_vu_source: 0,
             left_vu_values: [0; 32],
