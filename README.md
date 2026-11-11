@@ -17,7 +17,7 @@ Here are some screenshots of this control panel at work!
     <td><img width="100%" alt="AD phases tab" src="https://github.com/user-attachments/assets/51e8c434-3c13-4878-b939-53adfc9d6c58" /></td>
   </tr>
   <tr>
-    <td><img width="100%" alt="Settings modal" src="https://github.com/user-attachments/assets/507297d8-57e3-491e-94b2-bb274d4af9cf" /></td>
+    <td><img width="100%" alt="Settings modal" src="https://github.com/user-attachments/assets/42cd817c-4b86-45c2-b947-2a3d54e55685" /></td>
     <td><img width="100%" alt="About modal" src="https://github.com/user-attachments/assets/0a76a23c-8828-4e60-99f1-b149d625acf8" /></td>
     <td><img width="100%" alt="Devices list" src="https://github.com/user-attachments/assets/7607977b-f0d4-441f-b943-ae0e06f301ca" /></td>
   </tr>
@@ -56,6 +56,7 @@ To apply the settings, restart your computer.
 - Starts instantly, and queries the interface way, _way_ faster.
 - Respects your privacy.  The original control panel [phones home with your serial number](https://github.com/user-attachments/assets/2cc49ad6-c7d8-4646-8fa2-e62d66594c4e) every time it starts.  Yuck!
 - Does not care if your device is activated.  The original control panel [denies access to the interface](https://github.com/user-attachments/assets/b928eaf0-4e0d-4691-869c-0e8265ca9101) until the user registers for an account and submits [a mandatory form where all fields are required](https://github.com/user-attachments/assets/b6dc4f71-4134-4916-82f6-76e114971a8d), which includes invasive questions like who they bought it from and how much they paid for it.
+- Allows you to activate and deactivate your interface as [a one-click option in the settings](https://github.com/user-attachments/assets/27bb179a-a0d0-48bc-85ac-3c2d2526eb34) without having to answer invasive questions.
 - Actually _works_.  The original launcher has shown [a message to check your internet connection](https://github.com/user-attachments/assets/40db4b51-ac39-406b-b5d4-642adc1fa5f9) for more than a year.  The control panel data appears to be no longer hosted, and requires manual intervention to obtain that data before it will work.
 - Does not hassle you with [an interactive administrator permissions prompt](https://github.com/user-attachments/assets/66e7b258-fc90-4bbd-9cd0-d451bc62b0db) every time it starts.
 - Connects directly to your interface.  The original control panel [connects to a network server](https://github.com/user-attachments/assets/2fea9af5-4119-4f73-9dc3-433ff719b634) that must always be running.
@@ -83,7 +84,7 @@ To apply the settings, restart your computer.
 - Standby support, including programming during standby.
 - Full mixer support, with double-click pan resets and better tab movement.
 - AD phases.
-- All settings.
+- All settings, including the ability to activate and deactivate interface at will.
 - All data in the about window.
 - USB hot plugging is correctly handled.
 - OS-appropriate configuration directory.
@@ -91,6 +92,7 @@ To apply the settings, restart your computer.
 ## Not implemented
 
 - Any action that phones home.
+- Forms to create an account, sign in, or submit registration questionnaire.
 - Windows service for networked control panel server.
 - Client support to connect to networked control panel server.
 - Administration tools to manage Windows service for control panel server.

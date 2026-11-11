@@ -80,6 +80,9 @@ impl OrionHidDevice {
             (0x75, 0x10, 0x02) => {
                 Self::transform_routes(hid_data, orion_state);
             }
+            (0x75, 0x10, 0x03) => {
+                Self::transform_activate(hid_data, orion_state);
+            }
             (0x75, 0x10, 0x04) => {
                 Self::transform_mixer_levels(hid_data, orion_state);
             }
@@ -154,6 +157,12 @@ impl OrionHidDevice {
         orion_state.routes[source_index] = hid_data[17..49].try_into().unwrap();
 
         orion_state.inits_completed |= OrionStateInitSteps::ROUTES;
+    }
+
+    fn transform_activate(hid_data: &[u8; 64], orion_state: &mut OrionState) {
+        orion_state.activate = hid_data[16];
+
+        orion_state.inits_completed |= OrionStateInitSteps::ACTIVATE;
     }
 
     fn transform_mixer_levels(hid_data: &[u8; 64], orion_state: &mut OrionState) {

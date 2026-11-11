@@ -26,14 +26,17 @@ impl ControlPanelSettingsDimensions {
     const WINDOW_BUTTON_CLOSE_X: u16 = 885;
     const WINDOW_BUTTON_CLOSE_Y: u16 = 185;
 
+    const TRIM_LINE_OUT_X: u16 = 461;
+    const TRIM_ADC_X: u16 = 598;
+    const TRIM_Y: u16 = 265;
+    const TRIM_WIDTH: u8 = 68;
+
+    const ACTIVATE_X: u16 = 738;
+    const ACTIVATE_Y: u16 = 266;
+
     const OSCILLATOR_MUTE_1_X: u16 = 347;
     const OSCILLATOR_MUTE_2_X: u16 = 836;
     const OSCILLATOR_MUTE_Y: u16 = 352;
-
-    const TRIM_LINE_OUT_X: u16 = 497;
-    const TRIM_ADC_X: u16 = 634;
-    const TRIM_Y: u16 = 265;
-    const TRIM_WIDTH: u8 = 68;
 
     const OSCILLATOR_FREQUENCY_1_X: u16 = 431;
     const OSCILLATOR_LEVEL_X: u16 = 568;
@@ -120,6 +123,7 @@ impl ControlPanelSettings {
         self.draw_window_buttons(ui);
 
         self.draw_trims(ui, orion_state.trims);
+        self.draw_activate(ui, orion_state.activate);
         self.draw_oscillators(ui, orion_state.oscillators);
         self.draw_brightness(ui, orion_state.brightness);
         self.draw_madi_smux(ui, orion_state.madi_smux);
@@ -207,6 +211,37 @@ impl ControlPanelSettings {
                 self.orion_hid.lock().unwrap().queue_trim(selected * 0x04);
             },
         );
+    }
+
+    fn draw_activate(&mut self, ui: &mut egui::Ui, activate: u8) {
+        let activate_response = if activate == 0x01 {
+            render_asset!(
+                ui,
+                ControlPanelSettingsDimensions::ACTIVATE_X,
+                ControlPanelSettingsDimensions::ACTIVATE_Y,
+                "SettingsPanelButton/default/pressed",
+                1.0,
+                0.0,
+                Some(egui::Sense::click())
+            )
+        } else {
+            render_asset!(
+                ui,
+                ControlPanelSettingsDimensions::ACTIVATE_X,
+                ControlPanelSettingsDimensions::ACTIVATE_Y,
+                "SettingsPanelButton/default/released",
+                1.0,
+                0.0,
+                Some(egui::Sense::click())
+            )
+        };
+
+        if ControlPanelHelpers::mouse_down_on(&activate_response) {
+            self.orion_hid
+                .lock()
+                .unwrap()
+                .queue_activate(1 - activate);
+        }
     }
 
     fn draw_oscillators(&mut self, ui: &mut egui::Ui, oscillators: u8) {

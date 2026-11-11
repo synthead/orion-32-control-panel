@@ -8,12 +8,13 @@ pub(crate) struct OrionStateInitSteps;
 impl OrionStateInitSteps {
     pub(crate) const SERIAL_NUMBER: u8 = 0x01;
     pub(crate) const FIRMWARE_VERSION: u8 = 0x02;
-    pub(crate) const ROUTES: u8 = 0x04;
-    pub(crate) const MIXER_LEVELS: u8 = 0x08;
-    pub(crate) const MIXER_PANS_SOLOS_MUTES: u8 = 0x10;
-    pub(crate) const AD_PHASES: u8 = 0x20;
-    pub(crate) const VU: u8 = 0x40;
-    pub(crate) const ALL: u8 = 0x7f;
+    pub(crate) const ACTIVATE: u8 = 0x04;
+    pub(crate) const ROUTES: u8 = 0x08;
+    pub(crate) const MIXER_LEVELS: u8 = 0x10;
+    pub(crate) const MIXER_PANS_SOLOS_MUTES: u8 = 0x20;
+    pub(crate) const AD_PHASES: u8 = 0x40;
+    pub(crate) const VU: u8 = 0x80;
+    pub(crate) const ALL: u8 = 0xff;
 }
 
 pub(crate) struct OrionStateSignals;
@@ -60,6 +61,7 @@ pub(crate) struct OrionState {
     pub(crate) serial: [u8; 13],
     pub(crate) hardware_version: [u8; 8],
     pub(crate) firmware_version: [u8; 2],
+    pub(crate) activate: u8,
 
     pub(crate) left_vu_source: u8,
     pub(crate) left_vu_values: [u8; 32],
@@ -103,6 +105,7 @@ impl Default for OrionState {
             serial: [0; 13],
             hardware_version: [0; 8],
             firmware_version: [0; 2],
+            activate: 0,
 
             left_vu_source: 0,
             left_vu_values: [0; 32],
