@@ -8,12 +8,13 @@ pub(crate) struct OrionStateInitSteps;
 impl OrionStateInitSteps {
     pub(crate) const SERIAL_NUMBER: u8 = 0x01;
     pub(crate) const FIRMWARE_VERSION: u8 = 0x02;
-    pub(crate) const ROUTES: u8 = 0x04;
-    pub(crate) const MIXER_LEVELS: u8 = 0x08;
-    pub(crate) const MIXER_PANS_SOLOS_MUTES: u8 = 0x10;
-    pub(crate) const AD_PHASES: u8 = 0x20;
-    pub(crate) const VU: u8 = 0x40;
-    pub(crate) const ALL: u8 = 0x7f;
+    pub(crate) const ACTIVATE: u8 = 0x04;
+    pub(crate) const ROUTES: u8 = 0x08;
+    pub(crate) const MIXER_LEVELS: u8 = 0x10;
+    pub(crate) const MIXER_PANS_SOLOS_MUTES: u8 = 0x20;
+    pub(crate) const AD_PHASES: u8 = 0x40;
+    pub(crate) const VU: u8 = 0x80;
+    pub(crate) const ALL: u8 = 0xff;
 }
 
 pub(crate) struct OrionStateSignals;
