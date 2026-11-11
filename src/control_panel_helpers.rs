@@ -33,7 +33,7 @@ macro_rules! preload_assets_blocking {
             "PresenceLed/default/pressed",
             "PresenceLed/default/released",
             "RedoButton/default/released",
-            "Routing/default/background",
+            "Routing/default/background-edited",
             "RoutingNavButton/default/pressed@2x",
             "SaveRoutingButton/default/released",
             "SettingsButton/default/released",
