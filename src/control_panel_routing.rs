@@ -177,7 +177,7 @@ impl ControlPanelRouting {
             ui,
             ControlPanelRoutingDimensions::BACKGROUND_X,
             ControlPanelRoutingDimensions::BACKGROUND_Y,
-            "Routing/default/background",
+            "Routing/default/background-edited",
             1.0,
             0.0,
             None

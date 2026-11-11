@@ -12,13 +12,13 @@ Here are some screenshots of this control panel at work!
 
 <table>
   <tr>
-    <td><img width="100%" alt="Routing tab" src="https://github.com/user-attachments/assets/5526b043-6bf6-4e29-a090-f1235f2cea03" /></td>
+    <td><img width="100%" alt="Routing tab" src="https://github.com/user-attachments/assets/91216239-a0b1-4c42-ab69-cb08d441b91b" /></td>
     <td><img width="100%" alt="Mixer tab" src="https://github.com/user-attachments/assets/4bf66610-86c6-4bce-8197-009a125553ef" /></td>
     <td><img width="100%" alt="AD phases tab" src="https://github.com/user-attachments/assets/51e8c434-3c13-4878-b939-53adfc9d6c58" /></td>
   </tr>
   <tr>
-    <td><img width="100%" alt="Settings modal" src="https://github.com/user-attachments/assets/8df4fb4b-7a80-4e9e-a698-5a63c745be57" /></td>
-    <td><img width="100%" alt="About modal" src="https://github.com/user-attachments/assets/3cc52910-76ad-481b-bb55-84ba0a1eda58" /></td>
+    <td><img width="100%" alt="Settings modal" src="https://github.com/user-attachments/assets/507297d8-57e3-491e-94b2-bb274d4af9cf" /></td>
+    <td><img width="100%" alt="About modal" src="https://github.com/user-attachments/assets/0a76a23c-8828-4e60-99f1-b149d625acf8" /></td>
     <td><img width="100%" alt="Devices list" src="https://github.com/user-attachments/assets/7607977b-f0d4-441f-b943-ae0e06f301ca" /></td>
   </tr>
 </table>
