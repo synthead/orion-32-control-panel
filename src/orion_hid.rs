@@ -122,6 +122,10 @@ impl OrionHid {
         self.queue_packet(0x70, 0x12, 0x00, 0x00, &[0x0c, trim]);
     }
 
+    pub(crate) fn queue_activate(&mut self, register: u8) {
+        self.queue_packet(0x70, 0x13, 0x00, 0x00, &[0xcf, 0x01, register]);
+    }
+
     pub(crate) fn queue_oscillators(&mut self, oscillators: u8) {
         self.queue_packet(0x70, 0x12, 0x00, 0x00, &[0x0a, oscillators]);
     }
