@@ -160,10 +160,11 @@ impl OrionHid {
         let _ = self.hid_write_tx.send(packet);
     }
 
-    pub(crate) fn create_get_serial_firmware() -> [[u8; 64]; 2] {
+    pub(crate) fn create_get_serial_firmware() -> [[u8; 64]; 3] {
         [
             Self::create_get_serial(),
             Self::create_get_firmware_version(),
+            Self::create_get_activate(),
         ]
     }
 
@@ -182,6 +183,10 @@ impl OrionHid {
 
     pub(crate) fn create_get_firmware_version() -> [u8; 64] {
         Self::create_packet(0x74, 0x10, 0x00, 0x00, &[])
+    }
+
+    pub(crate) fn create_get_activate() -> [u8; 64] {
+        Self::create_packet(0x74, 0x10, 0x00, 0x03, &[])
     }
 
     pub(crate) fn create_get_routes() -> [u8; 64] {
