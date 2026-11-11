@@ -17,7 +17,7 @@ Here are some screenshots of this control panel at work!
     <td><img width="100%" alt="AD phases tab" src="https://github.com/user-attachments/assets/51e8c434-3c13-4878-b939-53adfc9d6c58" /></td>
   </tr>
   <tr>
-    <td><img width="100%" alt="Settings modal" src="https://github.com/user-attachments/assets/507297d8-57e3-491e-94b2-bb274d4af9cf" /></td>
+    <td><img width="100%" alt="Settings modal" src="https://github.com/user-attachments/assets/42cd817c-4b86-45c2-b947-2a3d54e55685" /></td>
     <td><img width="100%" alt="About modal" src="https://github.com/user-attachments/assets/0a76a23c-8828-4e60-99f1-b149d625acf8" /></td>
     <td><img width="100%" alt="Devices list" src="https://github.com/user-attachments/assets/7607977b-f0d4-441f-b943-ae0e06f301ca" /></td>
   </tr>
