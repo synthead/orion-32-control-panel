@@ -50,10 +50,10 @@ impl OrionHid {
 
         self.queue_packet(0x70, 0x33, 0x00, 0x00, &routes_payload);
 
-        let mut states = self.orion_states.lock().unwrap();
+        let mut orion_states = self.orion_states.lock().unwrap();
 
-        if let Some(selected_hid_path) = states.selected_hid_path.clone()
-            && let Some(orion_state) = states.orion_states.get_mut(&selected_hid_path)
+        if let Some(selected_hid_path) = orion_states.selected_hid_path.clone()
+            && let Some(orion_state) = orion_states.orion_states.get_mut(&selected_hid_path)
         {
             orion_state.routes[target as usize] = *routes;
         }
@@ -68,10 +68,10 @@ impl OrionHid {
             &[0x90, channel, level, pan_solo_mute],
         );
 
-        let mut states = self.orion_states.lock().unwrap();
+        let mut orion_states = self.orion_states.lock().unwrap();
 
-        if let Some(selected_hid_path) = states.selected_hid_path.clone()
-            && let Some(orion_state) = states.orion_states.get_mut(&selected_hid_path)
+        if let Some(selected_hid_path) = orion_states.selected_hid_path.clone()
+            && let Some(orion_state) = orion_states.orion_states.get_mut(&selected_hid_path)
         {
             orion_state.mixer_levels[channel as usize] = level;
             orion_state.mixer_pans_solos_mutes[channel as usize] = pan_solo_mute;
@@ -81,10 +81,10 @@ impl OrionHid {
     pub(crate) fn queue_ad_phase(&mut self, ad_phase: u8) {
         self.queue_packet(0x70, 0x12, 0x00, 0x00, &[0x11, ad_phase]);
 
-        let mut states = self.orion_states.lock().unwrap();
+        let mut orion_states = self.orion_states.lock().unwrap();
 
-        if let Some(selected_hid_path) = states.selected_hid_path.clone()
-            && let Some(orion_state) = states.orion_states.get_mut(&selected_hid_path)
+        if let Some(selected_hid_path) = orion_states.selected_hid_path.clone()
+            && let Some(orion_state) = orion_states.orion_states.get_mut(&selected_hid_path)
         {
             let ad_phase_i = (ad_phase & 0x7f) as usize;
             let byte_i = ad_phase_i / 8;
