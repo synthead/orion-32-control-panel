@@ -122,8 +122,16 @@ impl OrionHid {
         self.queue_packet(0x70, 0x12, 0x00, 0x00, &[0x0c, trim]);
     }
 
-    pub(crate) fn queue_activate(&mut self, register: u8) {
-        self.queue_packet(0x70, 0x13, 0x00, 0x00, &[0xcf, 0x01, register]);
+    pub(crate) fn queue_activate(&mut self, activate: u8) {
+        self.queue_packet(0x70, 0x13, 0x00, 0x00, &[0xcf, 0x01, activate]);
+
+        let mut orion_states = self.orion_states.lock().unwrap();
+
+        if let Some(selected_hid_path) = orion_states.selected_hid_path.clone()
+            && let Some(orion_state) = orion_states.orion_states.get_mut(&selected_hid_path)
+        {
+            orion_state.activate = activate;
+        }
     }
 
     pub(crate) fn queue_oscillators(&mut self, oscillators: u8) {
