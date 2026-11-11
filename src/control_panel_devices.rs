@@ -33,9 +33,10 @@ pub(crate) struct ControlPanelDevices {
 }
 
 impl ControlPanelDevices {
-    const QUERYING_MESSAGES: [&str; 7] = [
+    const QUERYING_MESSAGES: [&str; 8] = [
         "serial number",
         "firmware version",
+        "activation status",
         "routes",
         "mixer levels",
         "mixer pans",
