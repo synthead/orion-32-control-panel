@@ -1,6 +1,7 @@
 pub(crate) struct TextEditor {
     editing_id: Option<egui::Id>,
     edit_string: Option<String>,
+    select_all_on_focus: bool,
 }
 
 impl TextEditor {
@@ -8,6 +9,7 @@ impl TextEditor {
         Self {
             editing_id: None,
             edit_string: None,
+            select_all_on_focus: false,
         }
     }
 
@@ -28,6 +30,7 @@ impl TextEditor {
 
             if text_response.double_clicked() {
                 self.editing_id = Some(field_id);
+                self.select_all_on_focus = true;
             } else {
                 let galley = ui.painter().layout_no_wrap(
                     text.to_owned(),
@@ -43,7 +46,6 @@ impl TextEditor {
             }
         }
 
-        let should_select_all = self.edit_string.is_none();
         let edit_string = self.edit_string.get_or_insert_with(|| text.to_owned());
 
         let response = ui.put(
@@ -67,7 +69,7 @@ impl TextEditor {
             ui.memory_mut(|mem| mem.request_focus(id));
         }
 
-        if should_select_all && response.has_focus() {
+        if self.select_all_on_focus && response.has_focus() {
             let mut state =
                 egui::widgets::text_edit::TextEditState::load(ui.ctx(), id).unwrap_or_default();
 
@@ -81,6 +83,7 @@ impl TextEditor {
                 )));
 
             state.store(ui.ctx(), id);
+            self.select_all_on_focus = false;
         }
 
         let outside_click = ui.input(|i| {
@@ -122,5 +125,6 @@ impl TextEditor {
     pub(crate) fn set_editing_id(&mut self, editing_id: egui::Id) {
         self.editing_id = Some(editing_id);
         self.edit_string = None;
+        self.select_all_on_focus = true;
     }
 }
